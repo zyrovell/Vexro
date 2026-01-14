@@ -1,6 +1,9 @@
 # Vexro Emotes
 An emote script for Roblox.
 
+# Vexro Chatting
+Chatting script for Roblox
+
 ## Installation
 1. Download the script.
 2. Use a Roblox executor to run the script in-game.
