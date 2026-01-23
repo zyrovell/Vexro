@@ -5,7 +5,7 @@ An emote script for Roblox.
 Chatting script for Roblox
 
 ## Installation
-1. Download the script.
+1. Copy the script.
 2. Use a Roblox executor to run the script in-game.
 
 ## Usage
@@ -15,6 +15,3 @@ Chatting script for Roblox
 - Quick emote execution
 - Menu selection interface
 - Easy integration
-
-## License
-All rights reserved.
