@@ -1134,31 +1134,35 @@ end
 
 	function Window:Minimize()
 		MainFrame.Visible = not MainFrame.Visible
+		if Window.FloatingButton then
+			Window.FloatingButton.Visible = not MainFrame.Visible
+		end
 	end
 function Window:AddMinimizeButton(Configs)
 	local Button = MakeDrag(Create("ImageButton", ScreenGui, {
 		Size = UDim2.fromOffset(60, 60),
 		Position = UDim2.fromScale(0.15, 0.15),
-		BackgroundTransparency = 1,
-		AutoButtonColor = false
+		BackgroundTransparency = 0.2,
+		BackgroundColor3 = Theme["Color Hub 2"],
+		Image = "rbxassetid://10734896206",
+		AutoButtonColor = true,
+		ZIndex = 1000,
+		Visible = false -- Menü açıkken gizli
 	}))
 
 	local Stroke, Corner
+	Corner = Make("Corner", Button, UDim.new(0, 10))
+	Stroke = Make("Stroke", Button, {Color = Theme["Color Theme"], Thickness = 2})
 
-	if Configs.Corner then
-		Corner = Make("Corner", Button)
-		SetProps(Corner, Configs.Corner)
-	end
+	if Configs.Corner then SetProps(Corner, Configs.Corner) end
+	if Configs.Stroke then SetProps(Stroke, Configs.Stroke) end
+	if Configs.Button then SetProps(Button, Configs.Button) end
 
-	if Configs.Stroke then
-		Stroke = Make("Stroke", Button)
-		SetProps(Stroke, Configs.Stroke)
-	end
+	Button.Activated:Connect(function()
+		Window:Minimize()
+	end)
 
-	SetProps(Button, Configs.Button)
-
-	Button.Activated:Connect(Window.Minimize)
-
+	Window.FloatingButton = Button
 	return {
 		Stroke = Stroke,
 		Corner = Corner,
