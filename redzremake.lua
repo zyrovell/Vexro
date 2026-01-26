@@ -1,3 +1,5 @@
+--Minha Versão única - Magnus Modificações 
+--Ser tive outro igual, e meu ramake rsrsrs
 local MarketplaceService = game:GetService("MarketplaceService")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -1068,13 +1070,13 @@ end
 	local Window, FirstTab = {}, false
 	function Window:CloseBtn()
 		local Dialog = Window:Dialog({
-			Title = "Close",
-			Text = "Deseja realmente fechar o Drip Client? Ele contém recursos essenciais e fechar agora pode interromper funções importantes, causar falhas ou perder suas configurações. Cuidado antes de prosseguir!",
+			Title = "Kapat",
+			Text = "D4rk Hub'ı kapatmak istediğinizden emin misiniz? Devam etmek ayarlarınızı kaybetmenize veya fonksiyonların durmasına neden olabilir.",
 			Options = {
-				{"Confirm", function()
+				{"Onayla", function()
 					ScreenGui:Destroy()
 				end},
-				{"Cancel"}
+				{"İptal"}
 			}
 		})
 	end
@@ -1183,8 +1185,8 @@ end
 			Window:MinimizeBtn()
 		end
 		
-		local DTitle = Configs[1] or Configs.Title or "Dialog"
-		local DText = Configs[2] or Configs.Text or "This is a Dialog"
+		local DTitle = Configs[1] or Configs.Title or "Diyalog"
+		local DText = Configs[2] or Configs.Text or "Bu bir diyalog metnidir"
 		local DOptions = Configs[3] or Configs.Options or {}
 		
 		local Frame = Create("Frame", {
@@ -2255,11 +2257,11 @@ function Tab:AddDiscordInvite(Configs)
 		end
 		
 		if MembersOnline > 0 then
-			CreateStatusIndicator(Color3.fromRGB(67, 181, 129), MembersOnline .. " Online")
+			CreateStatusIndicator(Color3.fromRGB(67, 181, 129), MembersOnline .. " Aktif")
 		end
 		
 		if TotalMembers > 0 then
-			CreateStatusIndicator(Color3.fromRGB(86, 101, 105), TotalMembers .. " Members")
+			CreateStatusIndicator(Color3.fromRGB(86, 101, 105), TotalMembers .. " Üye")
 		end
 	end
 	
@@ -2302,7 +2304,7 @@ function Tab:AddDiscordInvite(Configs)
 		Position = UDim2.new(0.5, 0, 1, -9),
 		Size = UDim2.new(1, -18, 0, 18),
 		AnchorPoint = Vector2.new(0.5, 1),
-		Text = "Join Server",
+		Text = "Sunucuya Katıl",
 		Font = Enum.Font.GothamBold,
 		TextSize = 10,
 		BackgroundColor3 = Color3.fromRGB(67, 181, 129),
@@ -2316,7 +2318,7 @@ function Tab:AddDiscordInvite(Configs)
 		clickCooldown = tick()
 		
 		local originalText = JoinButton.Text
-		JoinButton.Text = "Copied to Clipboard!"
+		JoinButton.Text = "Panoya Kopyalandı!"
 		
 		if setclipboard then
 			setclipboard(Invite)
