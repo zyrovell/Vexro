@@ -1,3 +1,4 @@
+
 --Minha Versão única - Magnus Modificações 
 --Ser tive outro igual, e meu ramake rsrsrs
 local MarketplaceService = game:GetService("MarketplaceService")
@@ -44,7 +45,7 @@ local redzlib = {
 				ColorSequenceKeypoint.new(1.00, Color3.fromRGB(1, 22, 30))
 			}),
 			["Color Hub 2"] = Color3.fromRGB(18, 69, 89),
-			["Color Stroke"] = Color3.fromRGB(89, 131, 146),
+			["Color Stroke"] = Color3.fromRGB(30, 80, 100),
 			["Color Theme"] = Color3.fromRGB(89, 131, 146),
 			["Color Text"] = Color3.fromRGB(239, 246, 224),
 			["Color Dark Text"] = Color3.fromRGB(174, 195, 176),
@@ -614,7 +615,7 @@ function redzlib:SetTheme(NewTheme)
 	SaveJson("redz library V5.json", redzlib.Save)
 	Theme = redzlib.Themes[NewTheme]
 	
-	Comnection:FireConnection("ThemeChanged", NewTheme)
+	Connection:FireConnection("ThemeChanged", NewTheme)
 	table.foreach(redzlib.Instances, function(_,Val)
 		if Val.Type == "Gradient" then
 			Val.Instance.Color = Theme["Color Hub 1"]
