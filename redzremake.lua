@@ -1149,7 +1149,7 @@ function Window:AddMinimizeButton(Configs)
 		Position = UDim2.new(0.05, 0, 0.1, 0),
 		BackgroundTransparency = 0.3,
 		BackgroundColor3 = Theme["Color Hub 2"],
-		Image = "rbxassetid://94910279410009", -- Çalışan ID
+		Image = "rbxassetid://94910279410009", -- Kullanıcının belirttiği ID
 		AutoButtonColor = true,
 		ZIndex = 2000, -- En üstte olması için
 		Visible = true 
