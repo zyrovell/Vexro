@@ -1893,7 +1893,8 @@ end
 			function Dropdown:Visible(...) Funcs:ToggleVisible(Button, ...) end
 			function Dropdown:Destroy() Button:Destroy() end
 			function Dropdown:Callback(...) Funcs:InsertCallback(Callback, ...)(Selected) end
-			
+			function Dropdown:Add(...)
+				local NewOptions = {...}
 				for _, Name in pairs(NewOptions) do
 					if type(Name) == "table" then
 						for _, SubName in pairs(Name) do
