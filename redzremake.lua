@@ -1145,14 +1145,14 @@ end
 	end
 function Window:AddMinimizeButton(Configs)
 	local Button = MakeDrag(Create("ImageButton", ScreenGui, {
-		Size = UDim2.fromOffset(45, 45), -- Biraz daha makul bir boyut
+		Size = UDim2.fromOffset(45, 45),
 		Position = UDim2.new(0.05, 0, 0.1, 0),
 		BackgroundTransparency = 0.3,
 		BackgroundColor3 = Theme["Color Hub 2"],
-		Image = "rbxassetid://10734896206",
+		Image = "rbxassetid://84966842319091", -- Çalışan ID
 		AutoButtonColor = true,
-		ZIndex = 1100, -- Daha yüksek ZIndex
-		Visible = true -- Varsayılan olarak GÖRÜNÜR yapıldı
+		ZIndex = 2000, -- En üstte olması için
+		Visible = true 
 	}))
 
 	local Stroke, Corner
