@@ -13,45 +13,141 @@ local PlayerMouse = Player:GetMouse()
 
 local redzlib = {
 	Themes = {
+		-- Premium Neon Theme (Mor/Pembe Neon)
+		Neon = {
+			["Color Hub 1"] = ColorSequence.new({
+				ColorSequenceKeypoint.new(0.00, Color3.fromRGB(15, 10, 25)),
+				ColorSequenceKeypoint.new(0.50, Color3.fromRGB(25, 15, 40)),
+				ColorSequenceKeypoint.new(1.00, Color3.fromRGB(15, 10, 25))
+			}),
+			["Color Hub 2"] = Color3.fromRGB(22, 18, 35),
+			["Color Stroke"] = Color3.fromRGB(138, 43, 226),
+			["Color Theme"] = Color3.fromRGB(255, 0, 255),
+			["Color Text"] = Color3.fromRGB(255, 255, 255),
+			["Color Dark Text"] = Color3.fromRGB(200, 150, 255),
+			["Color Dark Purple"] = Color3.fromRGB(180, 100, 255),
+			["Color Hub 9"] = Color3.fromRGB(0, 0, 0),
+			["Color Dark Greem"] = Color3.fromRGB(255, 100, 255),
+			["Color Accent"] = Color3.fromRGB(0, 255, 255)
+		},
+		-- Premium Midnight Theme (Koyu Mavi)
+		Midnight = {
+			["Color Hub 1"] = ColorSequence.new({
+				ColorSequenceKeypoint.new(0.00, Color3.fromRGB(8, 12, 25)),
+				ColorSequenceKeypoint.new(0.50, Color3.fromRGB(15, 25, 45)),
+				ColorSequenceKeypoint.new(1.00, Color3.fromRGB(8, 12, 25))
+			}),
+			["Color Hub 2"] = Color3.fromRGB(12, 18, 35),
+			["Color Stroke"] = Color3.fromRGB(30, 80, 180),
+			["Color Theme"] = Color3.fromRGB(100, 180, 255),
+			["Color Text"] = Color3.fromRGB(230, 240, 255),
+			["Color Dark Text"] = Color3.fromRGB(130, 160, 200),
+			["Color Dark Purple"] = Color3.fromRGB(100, 140, 200),
+			["Color Hub 9"] = Color3.fromRGB(0, 0, 0),
+			["Color Dark Greem"] = Color3.fromRGB(80, 200, 255),
+			["Color Accent"] = Color3.fromRGB(255, 200, 100)
+		},
+		-- Premium Emerald Theme (Yeşil)
+		Emerald = {
+			["Color Hub 1"] = ColorSequence.new({
+				ColorSequenceKeypoint.new(0.00, Color3.fromRGB(8, 20, 15)),
+				ColorSequenceKeypoint.new(0.50, Color3.fromRGB(15, 35, 25)),
+				ColorSequenceKeypoint.new(1.00, Color3.fromRGB(8, 20, 15))
+			}),
+			["Color Hub 2"] = Color3.fromRGB(12, 28, 20),
+			["Color Stroke"] = Color3.fromRGB(20, 120, 80),
+			["Color Theme"] = Color3.fromRGB(0, 255, 150),
+			["Color Text"] = Color3.fromRGB(220, 255, 240),
+			["Color Dark Text"] = Color3.fromRGB(120, 200, 160),
+			["Color Dark Purple"] = Color3.fromRGB(100, 200, 150),
+			["Color Hub 9"] = Color3.fromRGB(0, 0, 0),
+			["Color Dark Greem"] = Color3.fromRGB(100, 255, 180),
+			["Color Accent"] = Color3.fromRGB(255, 220, 100)
+		},
+		-- Classic Darker Theme
 		Darker = {
 			["Color Hub 1"] = ColorSequence.new({
-				ColorSequenceKeypoint.new(0.00, Color3.fromRGB(25, 25, 25)),
-				ColorSequenceKeypoint.new(0.50, Color3.fromRGB(32.5, 32.5, 32.5)),
-				ColorSequenceKeypoint.new(1.00, Color3.fromRGB(25, 25, 25))
+				ColorSequenceKeypoint.new(0.00, Color3.fromRGB(18, 18, 22)),
+				ColorSequenceKeypoint.new(0.50, Color3.fromRGB(28, 28, 35)),
+				ColorSequenceKeypoint.new(1.00, Color3.fromRGB(18, 18, 22))
 			}),
-			["Color Hub 2"] = Color3.fromRGB(30, 30, 30),
-			["Color Stroke"] = Color3.fromRGB(40, 40, 40),
-			["Color Theme"] = Color3.fromRGB(88, 101, 242),
-			["Color Text"] = Color3.fromRGB(243, 243, 243),
-			["Color Dark Text"] = Color3.fromRGB(180, 180, 180)
+			["Color Hub 2"] = Color3.fromRGB(24, 24, 30),
+			["Color Stroke"] = Color3.fromRGB(50, 50, 60),
+			["Color Theme"] = Color3.fromRGB(130, 100, 255),
+			["Color Text"] = Color3.fromRGB(245, 245, 250),
+			["Color Dark Text"] = Color3.fromRGB(160, 160, 180),
+			["Color Dark Purple"] = Color3.fromRGB(180, 150, 255),
+			["Color Hub 9"] = Color3.fromRGB(0, 0, 0),
+			["Color Dark Greem"] = Color3.fromRGB(200, 180, 255),
+			["Color Accent"] = Color3.fromRGB(255, 100, 150)
 		},
+		-- Dark Theme (Geliştirilmiş)
 		Dark = {
 			["Color Hub 1"] = ColorSequence.new({
-				ColorSequenceKeypoint.new(0.00, Color3.fromRGB(40, 40, 40)),
-				ColorSequenceKeypoint.new(0.50, Color3.fromRGB(47.5, 47.5, 47.5)),
-				ColorSequenceKeypoint.new(1.00, Color3.fromRGB(40, 40, 40))
+				ColorSequenceKeypoint.new(0.00, Color3.fromRGB(25, 25, 30)),
+				ColorSequenceKeypoint.new(0.50, Color3.fromRGB(38, 38, 45)),
+				ColorSequenceKeypoint.new(1.00, Color3.fromRGB(25, 25, 30))
 			}),
-			["Color Hub 2"] = Color3.fromRGB(45, 45, 45),
-			
-			["Color Stroke"] = Color3.fromRGB(65, 65, 65),
-			["Color Theme"] = Color3.fromRGB(65, 150, 255),
-			["Color Text"] = Color3.fromRGB(245, 245, 245),
-			["Color Dark Text"] = Color3.fromRGB(190, 190, 190)
+			["Color Hub 2"] = Color3.fromRGB(32, 32, 40),
+			["Color Stroke"] = Color3.fromRGB(55, 55, 70),
+			["Color Theme"] = Color3.fromRGB(90, 160, 255),
+			["Color Text"] = Color3.fromRGB(250, 250, 255),
+			["Color Dark Text"] = Color3.fromRGB(170, 175, 190),
+			["Color Dark Purple"] = Color3.fromRGB(150, 180, 255),
+			["Color Hub 9"] = Color3.fromRGB(0, 0, 0),
+			["Color Dark Greem"] = Color3.fromRGB(130, 200, 255),
+			["Color Accent"] = Color3.fromRGB(255, 180, 100)
 		},
+		-- Ocean Theme (Premium Siyah-Beyaz)
 		Ocean = {
 			["Color Hub 1"] = ColorSequence.new({
-				ColorSequenceKeypoint.new(0.00, Color3.fromRGB(10, 10, 10)),
-				ColorSequenceKeypoint.new(0.50, Color3.fromRGB(25, 25, 25)),
-				ColorSequenceKeypoint.new(1.00, Color3.fromRGB(10, 10, 10))
+				ColorSequenceKeypoint.new(0.00, Color3.fromRGB(8, 8, 12)),
+				ColorSequenceKeypoint.new(0.50, Color3.fromRGB(18, 18, 25)),
+				ColorSequenceKeypoint.new(1.00, Color3.fromRGB(8, 8, 12))
 			}),
-			["Color Hub 2"] = Color3.fromRGB(20, 20, 20),
-			["Color Stroke"] = Color3.fromRGB(45, 45, 45),
+			["Color Hub 2"] = Color3.fromRGB(15, 15, 20),
+			["Color Stroke"] = Color3.fromRGB(40, 40, 50),
 			["Color Theme"] = Color3.fromRGB(255, 255, 255),
-			["Color Text"] = Color3.fromRGB(240, 240, 240),
-			["Color Dark Text"] = Color3.fromRGB(160, 160, 160),
-			["Color Dark Purple"] = Color3.fromRGB(200, 200, 200),
-			["Color Hub 9"] = Color3.fromRGB(0, 0, 0, 0),
-			["Color Dark Greem"] = Color3.fromRGB(220, 220, 220)
+			["Color Text"] = Color3.fromRGB(250, 250, 255),
+			["Color Dark Text"] = Color3.fromRGB(150, 150, 165),
+			["Color Dark Purple"] = Color3.fromRGB(200, 200, 220),
+			["Color Hub 9"] = Color3.fromRGB(0, 0, 0),
+			["Color Dark Greem"] = Color3.fromRGB(220, 220, 240),
+			["Color Accent"] = Color3.fromRGB(100, 200, 255)
+		},
+		-- Blood Theme (Kırmızı)
+		Blood = {
+			["Color Hub 1"] = ColorSequence.new({
+				ColorSequenceKeypoint.new(0.00, Color3.fromRGB(20, 8, 10)),
+				ColorSequenceKeypoint.new(0.50, Color3.fromRGB(35, 15, 20)),
+				ColorSequenceKeypoint.new(1.00, Color3.fromRGB(20, 8, 10))
+			}),
+			["Color Hub 2"] = Color3.fromRGB(28, 12, 15),
+			["Color Stroke"] = Color3.fromRGB(120, 30, 40),
+			["Color Theme"] = Color3.fromRGB(255, 50, 80),
+			["Color Text"] = Color3.fromRGB(255, 240, 245),
+			["Color Dark Text"] = Color3.fromRGB(200, 140, 150),
+			["Color Dark Purple"] = Color3.fromRGB(255, 150, 170),
+			["Color Hub 9"] = Color3.fromRGB(0, 0, 0),
+			["Color Dark Greem"] = Color3.fromRGB(255, 120, 150),
+			["Color Accent"] = Color3.fromRGB(255, 200, 100)
+		},
+		-- Gold Theme (Altın)
+		Gold = {
+			["Color Hub 1"] = ColorSequence.new({
+				ColorSequenceKeypoint.new(0.00, Color3.fromRGB(20, 15, 8)),
+				ColorSequenceKeypoint.new(0.50, Color3.fromRGB(35, 28, 15)),
+				ColorSequenceKeypoint.new(1.00, Color3.fromRGB(20, 15, 8))
+			}),
+			["Color Hub 2"] = Color3.fromRGB(28, 22, 12),
+			["Color Stroke"] = Color3.fromRGB(180, 140, 50),
+			["Color Theme"] = Color3.fromRGB(255, 215, 0),
+			["Color Text"] = Color3.fromRGB(255, 250, 235),
+			["Color Dark Text"] = Color3.fromRGB(200, 180, 130),
+			["Color Dark Purple"] = Color3.fromRGB(255, 220, 150),
+			["Color Hub 9"] = Color3.fromRGB(0, 0, 0),
+			["Color Dark Greem"] = Color3.fromRGB(255, 230, 100),
+			["Color Accent"] = Color3.fromRGB(255, 255, 255)
 		}
 	},
 	Info = {
@@ -71,29 +167,57 @@ local redzlib = {
 	Tabs = {},
 	Icons = (function()
 		return {
+			-- Navigation & UI
 			["anchor"] = "rbxassetid://10709761530",
-			["apple"] = "rbxassetid://10709761889",
-			["car"] = "rbxassetid://10709789810",
-			["carrot"] = "rbxassetid://10709789960",
+			["home"] = "rbxassetid://10723407389",
+			["settings"] = "rbxassetid://10734950309",
+			["info"] = "rbxassetid://10723415903",
+			["eye"] = "rbxassetid://10723346959",
+			
+			-- Users
 			["usercog"] = "rbxassetid://10747372167",
 			["userminus"] = "rbxassetid://10747372346",
 			["userplus"] = "rbxassetid://10747372702",
 			["userx"] = "rbxassetid://10747372992",
-			["info"] = "rbxassetid://10723415903",
-			["eye"] = "rbxassetid://10723346959",
-    	    ["home"] = "rbxassetid://10723407389",
-    	    ["truck"] = "rbxassetid://10747364031",
-			["headphones"] = "rbxassetid://10723406165",
-			["Drip"] = "rbxassetid://72495850369898",
-			["flame"] = "rbxassetid://10723376114",
-			["shirt"] = "rbxassetid://10734952036",
-			["settings"] = "rbxassetid://10734950309",
-			["shield"] = "rbxassetid://10734951847",
-			["coffee"] = "rbxassetid://10709810814",
-			["users"] = "rbxassetid //10747373426",
-            ["baby"] = "rbxassetid://10709769732",
-			["ghost"] = "rbxassetid://10723396107",
+			["users"] = "rbxassetid://10747373426",
+			["baby"] = "rbxassetid://10709769732",
 			
+			-- Objects
+			["apple"] = "rbxassetid://10709761889",
+			["car"] = "rbxassetid://10709789810",
+			["truck"] = "rbxassetid://10747364031",
+			["carrot"] = "rbxassetid://10709789960",
+			["coffee"] = "rbxassetid://10709810814",
+			["shirt"] = "rbxassetid://10734952036",
+			
+			-- Actions & Effects
+			["flame"] = "rbxassetid://10723376114",
+			["ghost"] = "rbxassetid://10723396107",
+			["shield"] = "rbxassetid://10734951847",
+			["headphones"] = "rbxassetid://10723406165",
+			["bomb"] = "rbxassetid://10709782290",
+			
+			-- Premium Icons
+			["star"] = "rbxassetid://10734954478",
+			["heart"] = "rbxassetid://10723403556",
+			["zap"] = "rbxassetid://10747378749",
+			["music"] = "rbxassetid://10723427654",
+			["camera"] = "rbxassetid://10709787544",
+			["gift"] = "rbxassetid://10723394179",
+			["crown"] = "rbxassetid://10709811948",
+			["diamond"] = "rbxassetid://10709814098",
+			["sword"] = "rbxassetid://10734954876",
+			["wand"] = "rbxassetid://10747376096",
+			["globe"] = "rbxassetid://10723399090",
+			["server"] = "rbxassetid://10734949295",
+			["bolt"] = "rbxassetid://10709779936",
+			["target"] = "rbxassetid://10747361286",
+			["skull"] = "rbxassetid://10734952668",
+			["sparkles"] = "rbxassetid://10734953456",
+			["trophy"] = "rbxassetid://10747363128",
+			["rocket"] = "rbxassetid://10734947815",
+			["gamepad"] = "rbxassetid://10723391678",
+			["compass"] = "rbxassetid://10709810158"
 		}
 	end)()
 }
@@ -451,30 +575,54 @@ AddEle("Button", function(parent, props, ...)
 		Text = "",
 		Size = UDim2.fromScale(1, 1),
 		BackgroundColor3 = Theme["Color Hub 2"],
-		AutoButtonColor = false
+		AutoButtonColor = false,
+		BackgroundTransparency = 0
 	}), props), "Frame")
 
 	local OriginalSize = New.Size
 	local IsMouseOver = false
+	local IsPressed = false
+	
+	-- Premium hover glow efekti için stroke
+	local HoverGlow = Create("UIStroke", New, {
+		Color = Theme["Color Theme"] or Color3.fromRGB(255, 255, 255),
+		Thickness = 0,
+		Transparency = 0.5,
+		ApplyStrokeMode = "Border"
+	})
 
 	New.MouseEnter:Connect(function()
 		IsMouseOver = true
-		New.BackgroundTransparency = 0.4
+		if not IsPressed then
+			CreateTween({New, "BackgroundTransparency", 0.25, 0.15})
+			CreateTween({HoverGlow, "Thickness", 1.5, 0.2})
+			CreateTween({HoverGlow, "Transparency", 0.3, 0.2})
+		end
 	end)
 	
 	New.MouseLeave:Connect(function()
 		IsMouseOver = false
-		New.BackgroundTransparency = 0
+		if not IsPressed then
+			CreateTween({New, "BackgroundTransparency", 0, 0.15})
+			CreateTween({HoverGlow, "Thickness", 0, 0.2})
+			CreateTween({HoverGlow, "Transparency", 0.5, 0.2})
+		end
 	end)
 
 	New.MouseButton1Down:Connect(function()
-		CreateTween({New, "Size", OriginalSize - UDim2.fromOffset(4, 2), 0.1})
-		CreateTween({New, "BackgroundTransparency", 0.6, 0.1})
+		IsPressed = true
+		CreateTween({New, "Size", OriginalSize - UDim2.fromOffset(3, 1.5), 0.08})
+		CreateTween({New, "BackgroundTransparency", 0.5, 0.08})
+		CreateTween({HoverGlow, "Thickness", 2, 0.08})
+		CreateTween({HoverGlow, "Transparency", 0.1, 0.08})
 	end)
 
 	New.MouseButton1Up:Connect(function()
-		CreateTween({New, "Size", OriginalSize, 0.15})
-		CreateTween({New, "BackgroundTransparency", IsMouseOver and 0.4 or 0, 0.15})
+		IsPressed = false
+		CreateTween({New, "Size", OriginalSize, 0.12})
+		CreateTween({New, "BackgroundTransparency", IsMouseOver and 0.25 or 0, 0.12})
+		CreateTween({HoverGlow, "Thickness", IsMouseOver and 1.5 or 0, 0.12})
+		CreateTween({HoverGlow, "Transparency", IsMouseOver and 0.3 or 0.5, 0.12})
 	end)
 
 	if args[1] then
@@ -656,111 +804,196 @@ local NotificationContainer = Create("Frame", ScreenGui, {
 })
 
 function redzlib:Notify(Configs)
-	local Title = Configs[1] or Configs.Title or "Notification"
+	local Title = Configs[1] or Configs.Title or "Bildirim"
 	local Description = Configs[2] or Configs.Description or Configs.Text or ""
 	local Duration = Configs[3] or Configs.Duration or 5
 	local Type = Configs.Type or "Info"
-	local Image = Configs.Image or "rbxassetid://113449060491896"
+	local Image = Configs.Image
 	
+	-- Premium renk paleti
 	local Colors = {
-		Info = Color3.fromRGB(88, 101, 242),
-		Success = Color3.fromRGB(82, 75, 87),
-		Warning = Color3.fromRGB(255, 193, 7),
-		Error = Color3.fromRGB(255, 17, 0)
+		Info = {
+			Main = Color3.fromRGB(59, 130, 246),
+			Glow = Color3.fromRGB(96, 165, 250),
+			Icon = "rbxassetid://10723415903"
+		},
+		Success = {
+			Main = Color3.fromRGB(34, 197, 94),
+			Glow = Color3.fromRGB(74, 222, 128),
+			Icon = "rbxassetid://10709788526"
+		},
+		Warning = {
+			Main = Color3.fromRGB(245, 158, 11),
+			Glow = Color3.fromRGB(251, 191, 36),
+			Icon = "rbxassetid://10723352871"
+		},
+		Error = {
+			Main = Color3.fromRGB(239, 68, 68),
+			Glow = Color3.fromRGB(248, 113, 113),
+			Icon = "rbxassetid://10723415097"
+		}
 	}
 	
-	local TypeColor = Colors[Type] or Colors.Info
+	local TypeData = Colors[Type] or Colors.Info
+	local TypeColor = TypeData.Main
+	local TypeGlow = TypeData.Glow
+	local TypeIcon = Image or TypeData.Icon
 	
+	-- Ana bildirim frame
 	local NotificationFrame = Create("Frame", NotificationContainer, {
-		Size = UDim2.new(1, 0, 0, 45),
-		BackgroundColor3 = Color3.fromRGB(15, 15, 15),
-		BackgroundTransparency = 0,
+		Size = UDim2.new(1, 0, 0, 58),
+		BackgroundColor3 = Color3.fromRGB(18, 18, 24),
+		BackgroundTransparency = 0.05,
 		BorderSizePixel = 0,
 		ClipsDescendants = true
 	})
 	
-	Make("Corner", NotificationFrame, UDim.new(0, 12))
+	Make("Corner", NotificationFrame, UDim.new(0, 10))
 	
+	-- Gradient arka plan
+	local BGGradient = Create("UIGradient", NotificationFrame, {
+		Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 25, 35)),
+			ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 15, 22))
+		}),
+		Rotation = 45
+	})
+	
+	-- Premium glow stroke
 	local NotificationStroke = Create("UIStroke", NotificationFrame, {
-		Color = Color3.fromRGB(42, 38, 43),
-		Thickness = 2,
+		Color = TypeColor,
+		Thickness = 1.5,
+		Transparency = 0.5,
 		ApplyStrokeMode = "Border"
 	})
 	
+	-- Sol renkli kenar çubuğu
+	local AccentBar = Create("Frame", NotificationFrame, {
+		Size = UDim2.new(0, 4, 1, 0),
+		Position = UDim2.new(0, 0, 0, 0),
+		BackgroundColor3 = TypeColor,
+		BorderSizePixel = 0
+	})
+	local AccentCorner = Create("UICorner", AccentBar, {
+		CornerRadius = UDim.new(0, 2)
+	})
+	
+	-- İkon container (glow efektli)
+	local IconContainer = Create("Frame", NotificationFrame, {
+		Size = UDim2.new(0, 36, 0, 36),
+		Position = UDim2.new(0, 14, 0.5, 0),
+		AnchorPoint = Vector2.new(0, 0.5),
+		BackgroundColor3 = TypeColor,
+		BackgroundTransparency = 0.85,
+		BorderSizePixel = 0
+	})
+	Make("Corner", IconContainer, UDim.new(0.5, 0))
+	
+	local Icon = Create("ImageLabel", IconContainer, {
+		Name = "NotificationIcon",
+		Size = UDim2.new(0, 20, 0, 20),
+		Position = UDim2.new(0.5, 0, 0.5, 0),
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		BackgroundTransparency = 1,
+		Image = TypeIcon,
+		ImageColor3 = TypeColor,
+		ZIndex = 1000
+	})
+	
+	-- Başlık
 	local TitleLabel = Create("TextLabel", NotificationFrame, {
-		Size = UDim2.new(1, -50, 0, 16), 
-		Position = UDim2.new(0, 44, 0, 4),
+		Size = UDim2.new(1, -100, 0, 18), 
+		Position = UDim2.new(0, 58, 0, 10),
 		BackgroundTransparency = 1,
 		Text = Title,
 		TextColor3 = Color3.fromRGB(255, 255, 255),
-		TextSize = 11,
+		TextSize = 13,
 		Font = Enum.Font.GothamBold,
 		TextXAlignment = "Left",
 		TextTruncate = "AtEnd"
 	})
 	
+	-- Açıklama
 	local DescLabel = Create("TextLabel", NotificationFrame, {
-		Size = UDim2.new(1, -50, 0, 20), 
-		Position = UDim2.new(0, 44, 0, 15), 
+		Size = UDim2.new(1, -100, 0, 24), 
+		Position = UDim2.new(0, 58, 0, 28), 
 		BackgroundTransparency = 1,
 		Text = Description,
-		TextColor3 = Color3.fromRGB(180, 180, 180),
-		TextSize = 9,
+		TextColor3 = Color3.fromRGB(160, 165, 180),
+		TextSize = 11,
 		Font = Enum.Font.Gotham,
 		TextXAlignment = "Left",
-		TextWrapped = true
+		TextWrapped = true,
+		TextYAlignment = "Top"
 	})
 	
-	local Icon = Create("ImageLabel", NotificationFrame, {
-		Name = "NotificationIcon",
-		Size = UDim2.new(0, 32, 0, 32),
-		Position = UDim2.new(0, 6, 0.5, -20),
-		BackgroundTransparency = 1,
-		Image = Image,
-		ZIndex = 1000
+	-- Süre sayacı (progress bar tarzında)
+	local ProgressBar = Create("Frame", NotificationFrame, {
+		Size = UDim2.new(1, 0, 0, 3),
+		Position = UDim2.new(0, 0, 1, -3),
+		BackgroundColor3 = Color3.fromRGB(30, 30, 40),
+		BorderSizePixel = 0
 	})
 	
-	local CounterLabel = Create("TextLabel", NotificationFrame, {
-		Size = UDim2.new(0, 30, 0, 16),
-		Position = UDim2.new(1, -35, 0, 4),
-		BackgroundTransparency = 1,
-		Text = tostring(Duration),
-		TextColor3 = TypeColor,
-		TextSize = 10,
-		Font = Enum.Font.GothamBold,
-		TextXAlignment = "Right"
+	local ProgressFill = Create("Frame", ProgressBar, {
+		Size = UDim2.new(1, 0, 1, 0),
+		BackgroundColor3 = TypeColor,
+		BorderSizePixel = 0
 	})
+	local ProgressCorner = Create("UICorner", ProgressFill, {
+		CornerRadius = UDim.new(0, 2)
+	})
+	
+	-- Kapatma butonu
+	local CloseBtn = Create("TextButton", NotificationFrame, {
+		Size = UDim2.new(0, 24, 0, 24),
+		Position = UDim2.new(1, -30, 0, 6),
+		BackgroundTransparency = 1,
+		Text = "×",
+		TextColor3 = Color3.fromRGB(120, 120, 140),
+		TextSize = 18,
+		Font = Enum.Font.GothamBold
+	})
+	
+	CloseBtn.MouseEnter:Connect(function()
+		CreateTween({CloseBtn, "TextColor3", TypeColor, 0.15})
+	end)
+	CloseBtn.MouseLeave:Connect(function()
+		CreateTween({CloseBtn, "TextColor3", Color3.fromRGB(120, 120, 140), 0.15})
+	end)
 	
 	local function RemoveNotification()
-		CreateTween({NotificationFrame, "Position", UDim2.new(1, 50, NotificationFrame.Position.Y.Scale, 0), 0.3})
-		CreateTween({NotificationFrame, "BackgroundTransparency", 1, 0.3})
-		CreateTween({NotificationStroke, "Transparency", 1, 0.3, true})
-		NotificationFrame:Destroy()
+		CreateTween({NotificationFrame, "Position", UDim2.new(1, 50, 0, 0), 0.35})
+		CreateTween({NotificationFrame, "BackgroundTransparency", 1, 0.35})
+		CreateTween({NotificationStroke, "Transparency", 1, 0.35})
+		CreateTween({TitleLabel, "TextTransparency", 1, 0.25})
+		CreateTween({DescLabel, "TextTransparency", 1, 0.25})
+		CreateTween({Icon, "ImageTransparency", 1, 0.25, true})
+		pcall(function() NotificationFrame:Destroy() end)
 	end
 	
-	NotificationFrame.Position = UDim2.new(1, 50, 0, 0)
-	CreateTween({NotificationFrame, "Position", UDim2.new(0, 0, 0, 0), 0.4})
+	CloseBtn.Activated:Connect(RemoveNotification)
 	
+	-- Giriş animasyonu
+	NotificationFrame.Position = UDim2.new(1, 50, 0, 0)
+	NotificationStroke.Transparency = 1
+	TitleLabel.TextTransparency = 1
+	DescLabel.TextTransparency = 1
+	Icon.ImageTransparency = 1
+	
+	CreateTween({NotificationFrame, "Position", UDim2.new(0, 0, 0, 0), 0.4})
+	CreateTween({NotificationStroke, "Transparency", 0.5, 0.5})
+	CreateTween({TitleLabel, "TextTransparency", 0, 0.35})
+	CreateTween({DescLabel, "TextTransparency", 0, 0.4})
+	CreateTween({Icon, "ImageTransparency", 0, 0.35})
+	
+	-- Progress bar animasyonu
 	if Duration > 0 then
-		local timeLeft = Duration
-		local updateInterval = 0.1
-		local connection
+		CreateTween({ProgressFill, "Size", UDim2.new(0, 0, 1, 0), Duration})
 		
-		connection = task.spawn(function()
-			while timeLeft > 0 do
-				task.wait(updateInterval)
-				timeLeft = timeLeft - updateInterval
-				
-				if timeLeft <= 0 then
-					CounterLabel.Text = "0.0"
-					task.wait(0.1)
-					if NotificationFrame and NotificationFrame.Parent then
-						RemoveNotification()
-					end
-					break
-				else
-					CounterLabel.Text = string.format("%.1f", timeLeft)
-				end
+		task.delay(Duration, function()
+			if NotificationFrame and NotificationFrame.Parent then
+				RemoveNotification()
 			end
 		end)
 	end
