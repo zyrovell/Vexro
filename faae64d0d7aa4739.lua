@@ -286,8 +286,16 @@ _ScreenGui.ResetOnSpawn = false
 _ScreenGui.IgnoreGuiInset = true
 _ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild('PlayerGui')
 
+-- Mobile Friendly Scaling
+local uiScale = Instance.new("UIScale")
+local viewportSize = workspace.CurrentCamera.ViewportSize
+uiScale.Scale = math.clamp(viewportSize.Y / 450, 0.7, 1.2)
+uiScale.Parent = _ScreenGui
+
 local _MainFrame = Instance.new('Frame')
-_MainFrame.Size = UDim2.new(1, 0, 1, 0)
+_MainFrame.Size = UDim2.new(1.5, 0, 1.5, 0)
+_MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+_MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 _MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 _MainFrame.BorderSizePixel = 0
 _MainFrame.Parent = _ScreenGui
@@ -297,7 +305,7 @@ _Content.Size = UDim2.new(0, 400, 0, 400)
 _Content.Position = UDim2.new(0.5, 0, 0.45, 0)
 _Content.AnchorPoint = Vector2.new(0.5, 0.5)
 _Content.BackgroundTransparency = 1
-_Content.Parent = _MainFrame
+_Content.Parent = _ScreenGui
 
 local _Logo = Instance.new('ImageLabel')
 _Logo.Size = UDim2.new(0, 180, 0, 180)
@@ -349,12 +357,12 @@ TS:Create(_Content, TweenInfo.new(1, Enum.EasingStyle.Back), {Position = UDim2.n
 
 for v9 = 1, 100 do
     task.wait(0.01)
-    _ProgressBar.Size = UDim2.new(v9 / 100, 0, 1, 0)
+    _ProgressBar.Size = UDim2.new(v9/100, 0, 1, 0)
 end
 
 task.wait(0.3)
 _ScreenGui:Destroy()
-local _RE = game:GetService('ReplicatedStorage'):WaitForChild('RE')
+ local _RE = game:GetService('ReplicatedStorage'):WaitForChild('RE')
 local v11 = Color3.new(1, 0.5, 0)
 local v12 = Color3.new(0, 0.6, 1)
 

@@ -14,16 +14,26 @@ function LanguageLib.Show(translations, config)
     gui.DisplayOrder = 999
     gui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
     
+    -- Mobile Friendly Scaling (Inspired by RedzLib)
+    local uiScale = Instance.new("UIScale")
+    local viewportSize = workspace.CurrentCamera.ViewportSize
+    uiScale.Scale = math.clamp(viewportSize.Y / 450, 0.7, 1.2) -- Base scale on 450px height
+    uiScale.Parent = gui
+    
     -- AMOLED / Deep Black Background
     local bg = Instance.new("Frame")
-    bg.Size = UDim2.new(1, 0, 1, 0)
+    bg.Size = UDim2.new(1.5, 0, 1.5, 0) -- Extra large to cover screen during scale
+    bg.Position = UDim2.new(0.5, 0, 0.5, 0)
+    bg.AnchorPoint = Vector2.new(0.5, 0.5)
     bg.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     bg.BorderSizePixel = 0
     bg.Parent = gui
     
     -- Particle Logic (White things süzülüyor)
     local particleContainer = Instance.new("Frame")
-    particleContainer.Size = UDim2.new(1, 0, 1, 0)
+    particleContainer.Size = UDim2.new(1/uiScale.Scale, 0, 1/uiScale.Scale, 0)
+    particleContainer.Position = UDim2.new(0.5, 0, 0.5, 0)
+    particleContainer.AnchorPoint = Vector2.new(0.5, 0.5)
     particleContainer.BackgroundTransparency = 1
     particleContainer.Parent = bg
     
@@ -65,7 +75,7 @@ function LanguageLib.Show(translations, config)
     main.AnchorPoint = Vector2.new(0.5, 0.5)
     main.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
     main.BorderSizePixel = 0
-    main.Parent = bg
+    main.Parent = gui -- Parent to gui so it scales with UIScale
     
     Instance.new("UICorner", main).CornerRadius = UDim.new(0, 15)
     local mainStroke = Instance.new("UIStroke", main)
@@ -109,14 +119,13 @@ function LanguageLib.Show(translations, config)
     
     local btnContainer = Instance.new("Frame")
     btnContainer.Size = UDim2.new(1, 0, 0, 100)
-    btnContainer.Position = UDim2.new(0, 0, 0.5, 0) -- Centered vertically in panel
+    btnContainer.Position = UDim2.new(0, 0, 0.5, 0)
     btnContainer.BackgroundTransparency = 1
     btnContainer.Parent = main
     
     local function makeBtn(text, isR)
         local b = Instance.new("TextButton")
         b.Size = UDim2.new(0, 175, 0, 55)
-        -- Symmetrical centering
         b.Position = isR and UDim2.new(0.5, 10, 0.5, 0) or UDim2.new(0.5, -185, 0.5, 0)
         b.AnchorPoint = Vector2.new(0, 0.5)
         b.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
