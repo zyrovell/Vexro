@@ -135,6 +135,9 @@ local translations = {
         universal_scripts_tab = "Universal Scripts",
         bring_part = "Bring Part",
         tptool = "Tptool",
+        fps_optimizer = "FPS Optimizer",
+        fps_boost = "FPS Boost",
+        ready_messages = "Ready Messages",
     },
     tr = {
         loading = "Script Yükleniyor...",
@@ -271,6 +274,9 @@ local translations = {
         universal_scripts_tab = "Evrensel Scriptler",
         bring_part = "Parçayı Getir",
         tptool = "Işınlanma Aracı",
+        fps_optimizer = "FPS Optimize Edici",
+        fps_boost = "FPS Artır (Hızlandır)",
+        ready_messages = "Hazır Mesajlar",
     }
 }
 
@@ -3185,8 +3191,54 @@ v433:AddButton({
         workspace.Gravity = 196.2
     end,
 })
+
+v433:AddSection({
+    Name = _T('fps_optimizer'),
+})
+
+v433:AddButton({
+    Name = _T('fps_boost'),
+    Callback = function()
+        for i, v in pairs(game:GetDescendants()) do
+            if v:IsA("Part") or v:IsA("UnionOperation") or v:IsA("MeshPart") or v:IsA("CornerWedgePart") or v:IsA("TrussPart") then
+                v.Material = "Plastic"
+                v.Reflectance = 0
+            elseif v:IsA("Decal") or v:IsA("Texture") then
+                v.Transparency = 1
+            elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then
+                v.Lifetime = NumberRange.new(0)
+            elseif v:IsA("Explosion") then
+                v.Visible = false
+            end
+        end
+        workspace.Terrain.WaterWaveSize = 0
+        workspace.Terrain.WaterWaveSpeed = 0
+        workspace.Terrain.WaterReflectance = 0
+        workspace.Terrain.WaterTransparency = 0
+        game:GetService("Lighting").GlobalShadows = false
+        game:GetService("Lighting").FogEnd = 9e9
+        game:GetService("Lighting").Brightness = 0
+        settings().Physics.PhysicsEnvironmentalThrottle = 1
+        settings().Physics.AllowSleep = true
+    end,
+})
 v433:AddSection({
     Name = _T('spam_chat'),
+})
+
+v433:AddDropdown({
+    Name = _T('ready_messages'),
+    Options = {
+        "Vexro On Top!",
+        "Vexro Hub > All",
+        "Brookhaven Attack by Vexro",
+        "Vexro Hub Discord: .gg/vexro",
+        "Oyuncu15q was here!",
+        "Vexro Hub is the best!"
+    },
+    Callback = function(msg)
+        u440 = msg
+    end
 })
 
 local u440 = nil
