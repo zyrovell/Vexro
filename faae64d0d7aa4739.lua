@@ -2027,7 +2027,7 @@ v273:AddDropdown({
         'GAME ATTACKED BY ATHER HUB',
     },
     Callback = function(p280)
-        local v281 = Color3.new(0, 0.6, 1)
+        local v281 = Color3.new(0, 0, 0)
 
         game:GetService('ReplicatedStorage').RE:WaitForChild('1RPNam1eColo1r'):FireServer('PickingRPNameColor', v281)
         game:GetService('ReplicatedStorage').RE:WaitForChild('1RPNam1eTex1t'):FireServer('RolePlayName', u279[p280])
