@@ -364,7 +364,7 @@ task.wait(0.3)
 _ScreenGui:Destroy()
  local _RE = game:GetService('ReplicatedStorage'):WaitForChild('RE')
 local v11 = Color3.new(1, 0.5, 0)
-local v12 = Color3.new(0, 0.6, 1)
+local v12 = Color3.new(0, 0, 0)
 
 _RE:WaitForChild('1RPNam1eColo1r'):FireServer('PickingRPNameColor', v12)
 _RE:WaitForChild('1RPNam1eTex1t'):FireServer('RolePlayName', _T('rp_name'))
