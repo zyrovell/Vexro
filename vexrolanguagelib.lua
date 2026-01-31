@@ -2,7 +2,12 @@ local LanguageLib = {}
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 
-function LanguageLib.Show(translations)
+function LanguageLib.Show(translations, config)
+    config = config or {}
+    local TitleText = config.Title or "VEXRO HUB"
+    local TR_Color = config.TR_Color or Color3.fromRGB(200, 0, 0)
+    local EN_Color = config.EN_Color or Color3.fromRGB(0, 120, 255)
+    
     local selectedLang = nil
     
     local gui = Instance.new("ScreenGui")
@@ -11,14 +16,14 @@ function LanguageLib.Show(translations)
     gui.DisplayOrder = 999
     gui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
     
-    -- AMOLED Background
+    -- AMOLED / Deep Black Background
     local bg = Instance.new("Frame")
     bg.Size = UDim2.new(1, 0, 1, 0)
     bg.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     bg.BorderSizePixel = 0
     bg.Parent = gui
     
-    -- Floating Particles
+    -- Particle Logic (White things süzülüyor)
     local particleContainer = Instance.new("Frame")
     particleContainer.Size = UDim2.new(1, 0, 1, 0)
     particleContainer.BackgroundTransparency = 1
@@ -26,21 +31,21 @@ function LanguageLib.Show(translations)
     
     local function createParticle()
         local p = Instance.new("Frame")
-        local size = math.random(2, 5)
+        local size = math.random(1, 3)
         p.Size = UDim2.new(0, size, 0, size)
         p.Position = UDim2.new(math.random(), 0, 1.1, 0)
         p.BackgroundColor3 = Color3.new(1, 1, 1)
-        p.BackgroundTransparency = math.random(0.3, 0.7)
+        p.BackgroundTransparency = math.random(2, 7) / 10
         p.BorderSizePixel = 0
         p.Parent = particleContainer
         
         Instance.new("UICorner", p).CornerRadius = UDim.new(1, 0)
         
-        local duration = math.random(5, 15)
-        local targetPos = UDim2.new(p.Position.X.Scale + (math.random() - 0.5) * 0.2, 0, -0.1, 0)
+        local speed = math.random(8, 20)
+        local drift = (math.random() - 0.5) * 0.1
         
-        local tween = TweenService:Create(p, TweenInfo.new(duration, Enum.EasingStyle.Linear), {
-            Position = targetPos,
+        local tween = TweenService:Create(p, TweenInfo.new(speed, Enum.EasingStyle.Linear), {
+            Position = UDim2.new(p.Position.X.Scale + drift, 0, -0.1, 0),
             BackgroundTransparency = 1
         })
         
@@ -51,118 +56,113 @@ function LanguageLib.Show(translations)
     task.spawn(function()
         while gui.Parent do
             createParticle()
-            task.wait(0.2)
+            task.wait(0.15)
         end
     end)
     
-    -- Main Container
-    local container = Instance.new("Frame")
-    container.Size = UDim2.new(0, 400, 0, 250)
-    container.Position = UDim2.new(0.5, 0, 0.5, 0)
-    container.AnchorPoint = Vector2.new(0.5, 0.5)
-    container.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-    container.BorderSizePixel = 0
-    container.ClipsDescendants = true
-    container.Parent = bg
+    -- Center UI Panel
+    local main = Instance.new("Frame")
+    main.Size = UDim2.new(0, 420, 0, 260)
+    main.Position = UDim2.new(0.5, 0, 0.5, 0)
+    main.AnchorPoint = Vector2.new(0.5, 0.5)
+    main.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    main.BorderSizePixel = 0
+    main.Parent = bg
     
-    local containerCorner = Instance.new("UICorner")
-    containerCorner.CornerRadius = UDim.new(0, 12)
-    containerCorner.Parent = container
+    Instance.new("UICorner", main).CornerRadius = UDim.new(0, 15)
+    local mainStroke = Instance.new("UIStroke", main)
+    mainStroke.Color = Color3.fromRGB(50, 50, 50)
+    mainStroke.Thickness = 2
+    mainStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     
-    local containerStroke = Instance.new("UIStroke")
-    containerStroke.Color = Color3.fromRGB(45, 45, 45)
-    containerStroke.Thickness = 2
-    containerStroke.Parent = container
-    
-    -- Header Gradient
-    local headerGradient = Instance.new("Frame")
-    headerGradient.Size = UDim2.new(1, 0, 0, 60)
-    headerGradient.BackgroundColor3 = Color3.new(1, 1, 1)
-    headerGradient.BorderSizePixel = 0
-    headerGradient.Parent = container
-    
-    local grad = Instance.new("UIGradient")
-    grad.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 40, 40)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 15, 15))
-    })
-    grad.Rotation = 90
-    grad.Parent = headerGradient
+    -- Shine effect for the panel
+    local shine = Instance.new("Frame")
+    shine.Size = UDim2.new(1, 0, 0, 1)
+    shine.Position = UDim2.new(0, 0, 0, 0)
+    shine.BackgroundColor3 = Color3.new(1, 1, 1)
+    shine.BackgroundTransparency = 0.8
+    shine.BorderSizePixel = 0
+    shine.Parent = main
     
     local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(1, 0, 1, 0)
+    title.Size = UDim2.new(1, 0, 0, 70)
+    title.Position = UDim2.new(0, 0, 0, 10)
     title.BackgroundTransparency = 1
-    title.Text = "VEXRO HUB"
+    title.Text = TitleText
     title.TextColor3 = Color3.new(1, 1, 1)
     title.Font = Enum.Font.GothamBold
-    title.TextSize = 24
-    title.Parent = headerGradient
+    title.TextSize = 28
+    title.Parent = main
     
-    local subTitle = Instance.new("TextLabel")
-    subTitle.Size = UDim2.new(1, 0, 0, 30)
-    subTitle.Position = UDim2.new(0, 0, 0, 70)
-    subTitle.BackgroundTransparency = 1
-    subTitle.Text = "Select your language / Dil seçin"
-    subTitle.TextColor3 = Color3.fromRGB(200, 200, 200)
-    subTitle.Font = Enum.Font.GothamMedium
-    subTitle.TextSize = 14
-    subTitle.Parent = container
+    local sub = Instance.new("TextLabel")
+    sub.Size = UDim2.new(1, 0, 0, 20)
+    sub.Position = UDim2.new(0, 0, 0, 80)
+    sub.BackgroundTransparency = 1
+    sub.Text = "Please Select Your Language"
+    sub.TextColor3 = Color3.fromRGB(150, 150, 150)
+    sub.Font = Enum.Font.GothamMedium
+    sub.TextSize = 14
+    sub.Parent = main
     
-    local function createButton(text, pos, color)
-        local btn = Instance.new("TextButton")
-        btn.Size = UDim2.new(0, 160, 0, 50)
-        btn.Position = pos
-        btn.BackgroundColor3 = color
-        btn.Text = text
-        btn.TextColor3 = Color3.new(1, 1, 1)
-        btn.Font = Enum.Font.GothamBold
-        btn.TextSize = 16
-        btn.AutoButtonColor = false
-        btn.Parent = container
+    local btnContainer = Instance.new("Frame")
+    btnContainer.Size = UDim2.new(1, 0, 0, 100)
+    btnContainer.Position = UDim2.new(0, 0, 0, 130)
+    btnContainer.BackgroundTransparency = 1
+    btnContainer.Parent = main
+    
+    local function makeBtn(text, color, isR)
+        local b = Instance.new("TextButton")
+        b.Size = UDim2.new(0, 170, 0, 60)
+        b.Position = isR and UDim2.new(0.5, 10, 0.5, -30) or UDim2.new(0.5, -180, 0.5, -30)
+        b.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+        b.Text = text
+        b.TextColor3 = Color3.new(1, 1, 1)
+        b.Font = Enum.Font.GothamBold
+        b.TextSize = 16
+        b.AutoButtonColor = false
+        b.Parent = btnContainer
         
-        local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(0, 8)
-        corner.Parent = btn
+        Instance.new("UICorner", b).CornerRadius = UDim.new(0, 10)
+        local s = Instance.new("UIStroke", b)
+        s.Color = color
+        s.Thickness = 2
+        s.Transparency = 0.5
         
-        local stroke = Instance.new("UIStroke")
-        stroke.Thickness = 2
-        stroke.Color = Color3.new(1, 1, 1)
-        stroke.Transparency = 0.8
-        stroke.Parent = btn
-        
-        btn.MouseEnter:Connect(function()
-            TweenService:Create(btn, TweenInfo.new(0.3), {BackgroundColor3 = color:Lerp(Color3.new(1,1,1), 0.2)}):Play()
-            TweenService:Create(stroke, TweenInfo.new(0.3), {Transparency = 0}):Play()
+        b.MouseEnter:Connect(function()
+            TweenService:Create(b, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(35, 35, 35)}):Play()
+            TweenService:Create(s, TweenInfo.new(0.3), {Transparency = 0, Thickness = 3}):Play()
+        end)
+        b.MouseLeave:Connect(function()
+            TweenService:Create(b, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(25, 25, 25)}):Play()
+            TweenService:Create(s, TweenInfo.new(0.3), {Transparency = 0.5, Thickness = 2}):Play()
         end)
         
-        btn.MouseLeave:Connect(function()
-            TweenService:Create(btn, TweenInfo.new(0.3), {BackgroundColor3 = color}):Play()
-            TweenService:Create(stroke, TweenInfo.new(0.3), {Transparency = 0.8}):Play()
-        end)
-        
-        return btn
+        return b
     end
     
-    local trBtn = createButton("TÜRKÇE", UDim2.new(0.5, -170, 0.6, 0), Color3.fromRGB(180, 0, 0))
-    local enBtn = createButton("ENGLISH", UDim2.new(0.5, 10, 0.6, 0), Color3.fromRGB(0, 100, 180))
+    local tr = makeBtn("TÜRKÇE", TR_Color, false)
+    local en = makeBtn("ENGLISH", EN_Color, true)
     
     -- Animation In
-    container.Size = UDim2.new(0, 0, 0, 0)
-    bg.BackgroundTransparency = 1
-    TweenService:Create(bg, TweenInfo.new(0.5), {BackgroundTransparency = 0}):Play()
-    TweenService:Create(container, TweenInfo.new(0.6, Enum.EasingStyle.Back), {Size = UDim2.new(0, 400, 0, 250)}):Play()
+    main.Size = UDim2.new(0, 0, 0, 0)
+    main.GroupTransparency = 1
+    local group = Instance.new("CanvasGroup", bg) -- Using CanvasGroup for group transparency if supported, otherwise frame
+    main.Parent = group
+    group.Size = UDim2.new(1, 0, 1, 0)
+    group.BackgroundTransparency = 1
     
-    trBtn.MouseButton1Click:Connect(function()
-        selectedLang = translations.tr
-        gui:Destroy()
-    end)
+    TweenService:Create(main, TweenInfo.new(0.7, Enum.EasingStyle.Back), {Size = UDim2.new(0, 420, 0, 260)}):Play()
     
-    enBtn.MouseButton1Click:Connect(function()
-        selectedLang = translations.en
-        gui:Destroy()
-    end)
+    tr.MouseButton1Click:Connect(function() selectedLang = translations.tr end)
+    en.MouseButton1Click:Connect(function() selectedLang = translations.en end)
     
     while not selectedLang do task.wait() end
+    
+    -- Animation Out
+    TweenService:Create(main, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)}):Play()
+    task.wait(0.4)
+    gui:Destroy()
+    
     return selectedLang
 end
 
