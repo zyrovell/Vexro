@@ -2163,6 +2163,25 @@ function redzlib:MakeWindow(Configs)
 				WaitClick = false
 			end
 			
+			local function CalculateSize()
+				local Count = 0
+				for _,Frame in pairs(ScrollFrame:GetChildren()) do
+					if Frame:IsA("Frame") or Frame.Name == "Option" then
+						Count = Count + 1
+					end
+				end
+				
+				local ScreenSize = ScreenGui.AbsoluteSize
+				local currentScale = ScreenGui:FindFirstChild("Scale") and ScreenGui.Scale.Scale or UIScale
+				local ScaledScreenH = ScreenSize.Y / currentScale
+				local MaxItems = math.floor((ScaledScreenH * 0.5) / 25)
+				
+				ScrollSize = (math.clamp(Count, 0, math.max(10, MaxItems)) * 25) + 10
+				if NoClickFrame.Visible then
+					CalculatePos()
+				end
+			end
+			
 			local function CalculateState()
 				local currentScale = ScreenGui:FindFirstChild("Scale") and ScreenGui.Scale.Scale or UIScale
 				local FramePos = SelectedFrame.AbsolutePosition
@@ -2438,6 +2457,9 @@ function redzlib:MakeWindow(Configs)
 				elseif type(Val1) == "function" then
 					Callback = Val1
 				end
+			end
+			function Dropdown:SetOptions(...)
+				return self:Set(...)
 			end
 			return Dropdown
 		end
@@ -2723,25 +2745,3 @@ function redzlib:MakeWindow(Configs)
 					Text = "Copied to Clipboard",
 					BackgroundColor3 = Color3.fromRGB(100, 100, 100),
 					TextColor3 = Color3.fromRGB(150, 150, 150)
-				})task.wait(5)
-				SetProps(JoinButton, {
-					Text = "Join",
-					BackgroundColor3 = Color3.fromRGB(50, 150, 50),
-					TextColor3 = Color3.fromRGB(220, 220, 220)
-				})ClickDelay = false
-			end)
-			
-			local DiscordInvite = {}
-			function DiscordInvite:Destroy() InviteHolder:Destroy() end
-			function DiscordInvite:Visible(...) Funcs:ToggleVisible(InviteHolder, ...) end
-			return DiscordInvite
-		end
-		return Tab
-	end
-	
-	CloseButton.Activated:Connect(Window.CloseBtn)
-	MinimizeButton.Activated:Connect(Window.MinimizeBtn)
-	return Window
-end
-
-return redzlib
