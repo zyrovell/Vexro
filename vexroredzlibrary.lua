@@ -2167,7 +2167,12 @@ function redzlib:MakeWindow(Configs)
 						Count = Count + 1
 					end
 				end
-				ScrollSize = (math.clamp(Count, 0, 10) * 25) + 10
+				
+				local ScreenSize = ScreenGui.AbsoluteSize
+				local ScaledScreenH = ScreenSize.Y / UIScale
+				local MaxItems = math.floor((ScaledScreenH * 0.5) / 25) -- Max 50% of screen height
+				
+				ScrollSize = (math.clamp(Count, 0, math.max(10, MaxItems)) * 25) + 10
 				if NoClickFrame.Visible then
 					NoClickFrame.Visible = true
 					CreateTween({DropFrame, "Size", GetFrameSize(), 0.2, true})
@@ -2193,14 +2198,40 @@ function redzlib:MakeWindow(Configs)
 			
 			local function CalculatePos()
 				local FramePos = SelectedFrame.AbsolutePosition
+				local FrameSize = SelectedFrame.AbsoluteSize
 				local ScreenSize = ScreenGui.AbsoluteSize
-				local ClampX = math.clamp((FramePos.X / UIScale), 0, ScreenSize.X / UIScale - DropFrame.Size.X.Offset)
-				local ClampY = math.clamp((FramePos.Y / UIScale) , 0, ScreenSize.Y / UIScale)
 				
-				local NewPos = UDim2.fromOffset(ClampX, ClampY)
-				local AnchorPoint = FramePos.Y > ScreenSize.Y / 1.4 and 1 or ScrollSize > 80 and 0.5 or 0
-				DropFrame.AnchorPoint = Vector2.new(0, AnchorPoint)
-				CreateTween({DropFrame, "Position", NewPos, 0.1})
+				local ScaledX = FramePos.X / UIScale
+				local ScaledY = FramePos.Y / UIScale
+				local ScaledScreenW = ScreenSize.X / UIScale
+				local ScaledScreenH = ScreenSize.Y / UIScale
+				local ScaledFrameH = FrameSize.Y / UIScale
+				
+				local DropWidth = 152
+				local DropHeight = ScrollSize
+				
+				local ClampX = math.clamp(ScaledX, 0, ScaledScreenW - DropWidth)
+				
+				local spaceBelow = ScaledScreenH - (ScaledY + ScaledFrameH)
+				local spaceAbove = ScaledY
+				
+				local AnchorY = 0
+				local TargetY = ScaledY + ScaledFrameH
+				
+				if spaceBelow < DropHeight and spaceAbove > spaceBelow then
+					AnchorY = 1
+					TargetY = ScaledY
+				end
+				
+				-- Ensure it's within bounds
+				if AnchorY == 0 then
+					TargetY = math.clamp(TargetY, 0, ScaledScreenH - DropHeight)
+				else
+					TargetY = math.clamp(TargetY, DropHeight, ScaledScreenH)
+				end
+				
+				DropFrame.AnchorPoint = Vector2.new(0, AnchorY)
+				CreateTween({DropFrame, "Position", UDim2.fromOffset(ClampX, TargetY), 0.1})
 			end
 			
 			local AddNewOptions, GetOptions, AddOption, RemoveOption, Selected do
