@@ -903,7 +903,7 @@ NeoBlack = {
 }
 
 local ViewportSize = workspace.CurrentCamera.ViewportSize
-local UIScale = ViewportSize.Y / 450
+local UIScale = math.clamp(ViewportSize.Y / 700, 0.8, 1.1)
 
 local Settings = redzlib.Settings
 local Flags = redzlib.Flags
@@ -2167,9 +2167,19 @@ function redzlib:MakeWindow(Configs)
 						Count = Count + 1
 					end
 				end
-				ScrollSize = (math.clamp(Count, 0, 10) * 25) + 10
+				
+				local ScreenSize = ScreenGui.AbsoluteSize
+				local FramePos = SelectedFrame.AbsolutePosition
+				local SpaceBelow = (ScreenSize.Y - (FramePos.Y + SelectedFrame.AbsoluteSize.Y)) / UIScale
+				local SpaceAbove = FramePos.Y / UIScale
+				local MaxSpace = math.max(SpaceBelow, SpaceAbove)
+				
+				local MaxItems = math.min(10, math.floor((MaxSpace - 10) / 25))
+				if MaxItems < 1 then MaxItems = 1 end
+				
+				ScrollSize = (math.clamp(Count, 0, MaxItems) * 25) + 10
 				if NoClickFrame.Visible then
-					NoClickFrame.Visible = true
+					CalculatePos()
 					CreateTween({DropFrame, "Size", GetFrameSize(), 0.2, true})
 				end
 			end
@@ -2184,6 +2194,8 @@ function redzlib:MakeWindow(Configs)
 					NoClickFrame.Visible = false
 				else
 					NoClickFrame.Visible = true
+					CalculateSize()
+					CalculatePos()
 					Arrow.Image = "rbxassetid://10709790948"
 					CreateTween({Arrow, "ImageColor3", Theme["Color Theme"], 0.2})
 					CreateTween({DropFrame, "Size", GetFrameSize(), 0.2, true})
@@ -2194,12 +2206,19 @@ function redzlib:MakeWindow(Configs)
 			local function CalculatePos()
 				local FramePos = SelectedFrame.AbsolutePosition
 				local ScreenSize = ScreenGui.AbsoluteSize
-				local ClampX = math.clamp((FramePos.X / UIScale), 0, ScreenSize.X / UIScale - DropFrame.Size.X.Offset)
-				local ClampY = math.clamp((FramePos.Y / UIScale) , 0, ScreenSize.Y / UIScale)
+				local ClampX = math.clamp((FramePos.X / UIScale), 0, (ScreenSize.X / UIScale) - (DropFrame.Size.X.Offset))
+				local ClampY = math.clamp((FramePos.Y / UIScale), 0, (ScreenSize.Y / UIScale))
 				
-				local NewPos = UDim2.fromOffset(ClampX, ClampY)
-				local AnchorPoint = FramePos.Y > ScreenSize.Y / 1.4 and 1 or ScrollSize > 80 and 0.5 or 0
+				local SpaceBelow = (ScreenSize.Y - (FramePos.Y + SelectedFrame.AbsoluteSize.Y)) / UIScale
+				local SpaceAbove = FramePos.Y / UIScale
+				
+				local AnchorPoint = 0
+				if SpaceBelow < ScrollSize and SpaceAbove > SpaceBelow then
+					AnchorPoint = 1
+				end
+				
 				DropFrame.AnchorPoint = Vector2.new(0, AnchorPoint)
+				local NewPos = UDim2.fromOffset(ClampX, AnchorPoint == 1 and ClampY or ClampY + (SelectedFrame.AbsoluteSize.Y / UIScale))
 				CreateTween({DropFrame, "Position", NewPos, 0.1})
 			end
 			
