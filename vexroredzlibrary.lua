@@ -2076,7 +2076,7 @@ function redzlib:MakeWindow(Configs)
 			return Toggle
 		end
 		function Tab:AddDropdown(Configs)
-			local DName = Configs[1] or Configs.Name or Configs.Title or "Dropdown"
+			local DName = Configs[1] or Configs.Name or Configs.Title or "Dropdown!"
 			local DDesc = Configs.Desc or Configs.Description or ""
 			local DOptions = Configs[2] or Configs.Options or {}
 			local OpDefault = Configs[3] or Configs.Default or {}
@@ -2118,7 +2118,7 @@ function redzlib:MakeWindow(Configs)
 				BackgroundTransparency = 1,
 				Visible = false,
 				Text = "",
-				ZIndex = 10000 -- Ensure it's above everything
+				ZIndex = 10000 
 			})
 			
 			local DropFrame = Create("Frame", NoClickFrame, {
@@ -2152,17 +2152,50 @@ function redzlib:MakeWindow(Configs)
 				})
 			}), "ScrollBar")
 			
-			local ScrollSize, WaitClick = 5
-			local function Disable()
-				WaitClick = true
-				CreateTween({Arrow, "Rotation", 0, 0.2})
-				CreateTween({DropFrame, "Size", UDim2.new(0, 152, 0, 0), 0.2, true})
-				CreateTween({Arrow, "ImageColor3", Color3.fromRGB(255, 255, 255), 0.2})
-				Arrow.Image = "rbxassetid://10709791523"
-				NoClickFrame.Visible = false
-				WaitClick = false
+			local ScrollSize, WaitClick = 5, false
+			
+			local function CalculateState()
+				local currentScale = ScreenGui:FindFirstChild("Scale") and ScreenGui.Scale.Scale or UIScale
+				local FramePos = SelectedFrame.AbsolutePosition
+				local FrameSize = SelectedFrame.AbsoluteSize
+				local ScreenSize = ScreenGui.AbsoluteSize
+				
+				local ScaledX = (FramePos.X / currentScale)
+				local ScaledY = (FramePos.Y / currentScale)
+				local ScaledScreenW = (ScreenSize.X / currentScale)
+				local ScaledScreenH = (ScreenSize.Y / currentScale)
+				local ScaledFrameH = (FrameSize.Y / currentScale)
+				
+				local Margin = 10
+				local spaceBelow = ScaledScreenH - (ScaledY + ScaledFrameH) - Margin
+				local spaceAbove = ScaledY - Margin
+				
+				local AnchorY = 0
+				local TargetY = ScaledY + ScaledFrameH
+				
+				if spaceBelow < ScrollSize and spaceAbove > spaceBelow then
+					AnchorY = 1
+					TargetY = ScaledY
+				end
+				
+				local maxSpace = (AnchorY == 0) and spaceBelow or spaceAbove
+				local finalHeight = math.min(ScrollSize, math.max(maxSpace, 40))
+				local ClampX = math.clamp(ScaledX, Margin, ScaledScreenW - 152 - Margin)
+				
+				return {
+					Anchor = Vector2.new(0, AnchorY),
+					Pos = UDim2.fromOffset(ClampX, TargetY),
+					Size = UDim2.fromOffset(152, finalHeight)
+				}
 			end
 			
+			local function CalculatePos()
+				local State = CalculateState()
+				DropFrame.AnchorPoint = State.Anchor
+				DropFrame.Position = State.Pos
+				DropFrame.Size = State.Size
+			end
+
 			local function CalculateSize()
 				local Count = 0
 				for _,Frame in pairs(ScrollFrame:GetChildren()) do
@@ -2182,65 +2215,26 @@ function redzlib:MakeWindow(Configs)
 				end
 			end
 			
-			local function CalculateState()
-				local currentScale = ScreenGui:FindFirstChild("Scale") and ScreenGui.Scale.Scale or UIScale
-				local FramePos = SelectedFrame.AbsolutePosition
-				local FrameSize = SelectedFrame.AbsoluteSize
-				local ScreenSize = ScreenGui.AbsoluteSize
-				
-				local ScaledX = FramePos.X / currentScale
-				local ScaledY = FramePos.Y / currentScale
-				local ScaledScreenW = ScreenSize.X / currentScale
-				local ScaledScreenH = ScreenSize.Y / currentScale
-				local ScaledFrameH = FrameSize.Y / currentScale
-				
-				local Margin = 10
-				
-				local spaceBelow = ScaledScreenH - (ScaledY + ScaledFrameH) - Margin
-				local spaceAbove = ScaledY - Margin
-				
-				local AnchorY = 0
-				local TargetY = ScaledY + ScaledFrameH
-				
-				if spaceBelow < ScrollSize and spaceAbove > spaceBelow then
-					AnchorY = 1
-					TargetY = ScaledY
-				end
-				
-				local maxSpace = (AnchorY == 0) and spaceBelow or spaceAbove
-				local finalHeight = math.min(ScrollSize, math.max(maxSpace, 40))
-				
-				local ClampX = math.clamp(ScaledX, Margin, ScaledScreenW - 152 - Margin)
-				
-				return {
-					Anchor = Vector2.new(0, AnchorY),
-					Pos = UDim2.fromOffset(ClampX, TargetY),
-					Size = UDim2.fromOffset(152, finalHeight)
-				}
-			end
-			
-			local function CalculatePos()
-				local State = CalculateState()
-				DropFrame.AnchorPoint = State.Anchor
-				DropFrame.Position = State.Pos
-				DropFrame.Size = State.Size
+			local function Disable()
+				WaitClick = true
+				CreateTween({Arrow, "Rotation", 0, 0.2})
+				CreateTween({DropFrame, "Size", UDim2.new(0, 152, 0, 0), 0.2, true})
+				CreateTween({Arrow, "ImageColor3", Color3.fromRGB(255, 255, 255), 0.2})
+				Arrow.Image = "rbxassetid://10709791523"
+				NoClickFrame.Visible = false
+				WaitClick = false
 			end
 			
 			local function Minimize()
 				if WaitClick then return end
 				WaitClick = true
 				if NoClickFrame.Visible then
-					Arrow.Image = "rbxassetid://10709791523"
-					CreateTween({Arrow, "ImageColor3", Color3.fromRGB(255, 255, 255), 0.2})
-					CreateTween({DropFrame, "Size", UDim2.new(0, 152, 0, 0), 0.2, true})
-					NoClickFrame.Visible = false
+					Disable()
 				else
 					NoClickFrame.Visible = true
-					
 					local State = CalculateState()
 					DropFrame.AnchorPoint = State.Anchor
 					DropFrame.Position = State.Pos
-					-- Reset size to 0 for animation
 					DropFrame.Size = UDim2.fromOffset(152, 0)
 					
 					Arrow.Image = "rbxassetid://10709790948"
@@ -2249,163 +2243,154 @@ function redzlib:MakeWindow(Configs)
 				end
 				WaitClick = false
 			end
+
+			local Options = {}
+			local Default = type(OpDefault) ~= "table" and {OpDefault} or OpDefault
+			local MultiSelect = DMultiSelect
+			local Selected = MultiSelect and {} or CheckFlag(Flag) and GetFlag(Flag) or Default[1]
 			
-			local AddNewOptions, GetOptions, AddOption, RemoveOption, Selected do
-				local Default = type(OpDefault) ~= "table" and {OpDefault} or OpDefault
-				local MultiSelect = DMultiSelect
-				local Options = {}
-				Selected = MultiSelect and {} or CheckFlag(Flag) and GetFlag(Flag) or Default[1]
-				
+			if MultiSelect then
+				local flagVal = CheckFlag(Flag) and GetFlag(Flag) or Default
+				for index, Value in pairs(flagVal) do
+					local nameAtIdx = tostring(type(index) == "string" and index or Value)
+					Selected[nameAtIdx] = true
+				end
+			end
+			
+			local function CallbackSelected()
+				SetFlag(Flag, MultiSelect and Selected or tostring(Selected))
+				Funcs:FireCallback(Callback, Selected)
+			end
+			
+			local function UpdateLabel()
 				if MultiSelect then
-					for index, Value in pairs(CheckFlag(Flag) and GetFlag(Flag) or Default) do
-						if type(index) == "string" and (DOptions[index] or table.find(DOptions, index)) then
-							Selected[index] = Value
-						elseif DOptions[Value] then
-							Selected[Value] = true
+					local list = {}
+					for index, Value in pairs(Selected) do
+						if Value then
+							table.insert(list, index)
 						end
 					end
+					ActiveLabel.Text = #list > 0 and table.concat(list, ", ") or "..."
+				else
+					ActiveLabel.Text = tostring(Selected or "...")
 				end
-				
-				local function CallbackSelected()
-					SetFlag(Flag, MultiSelect and Selected or tostring(Selected))
-					Funcs:FireCallback(Callback, Selected)
-				end
-				
-				local function UpdateLabel()
-					if MultiSelect then
-						local list = {}
-						for index, Value in pairs(Selected) do
-							if Value then
-								table.insert(list, index)
-							end
-						end
-						ActiveLabel.Text = #list > 0 and table.concat(list, ", ") or "..."
-					else
-						ActiveLabel.Text = tostring(Selected or "...")
-					end
-				end
-				
-				local function UpdateSelected()
-					if MultiSelect then
-						for _,v in pairs(Options) do
-							local nodes, Stats = v.nodes, v.Stats
-							CreateTween({nodes[2], "BackgroundTransparency", Stats and 0 or 0.8, 0.35})
-							CreateTween({nodes[2], "Size", Stats and UDim2.fromOffset(4, 12) or UDim2.fromOffset(4, 4), 0.35})
-							CreateTween({nodes[3], "TextTransparency", Stats and 0 or 0.4, 0.35})
-						end
-					else
-						for _,v in pairs(Options) do
-							local Slt = v.Value == Selected
-							local nodes = v.nodes
-							CreateTween({nodes[2], "BackgroundTransparency", Slt and 0 or 1, 0.35})
-							CreateTween({nodes[2], "Size", Slt and UDim2.fromOffset(4, 14) or UDim2.fromOffset(4, 4), 0.35})
-							CreateTween({nodes[3], "TextTransparency", Slt and 0 or 0.4, 0.35})
-						end
-					end
-					UpdateLabel()
-				end
-				
-				local function Select(Option)
-					if MultiSelect then
-						Option.Stats = not Option.Stats
-						Option.LastCB = tick()
-						
-						Selected[Option.Name] = Option.Stats
-						CallbackSelected()
-					else
-						Option.LastCB = tick()
-						
-						Selected = Option.Value
-						CallbackSelected()
-					end
-					UpdateSelected()
-				end
-				
-				AddOption = function(index, Value)
-					local Name = tostring(type(index) == "string" and index or Value)
-					
-					if Options[Name] then return end
-					Options[Name] = {
-						index = index,
-						Value = Value,
-						Name = Name,
-						Stats = false,
-						LastCB = 0
-					}
-					
+			end
+			
+			local function UpdateSelected()
+				for Name, v in pairs(Options) do
 					if MultiSelect then
 						local Stats = Selected[Name]
-						Selected[Name] = Stats or false
-						Options[Name].Stats = Stats
-					end
-					
-					local Button = Make("Button", ScrollFrame, {
-						Name = "Option",
-						Size = UDim2.new(1, 0, 0, 21),
-						Position = UDim2.new(0, 0, 0.5),
-						AnchorPoint = Vector2.new(0, 0.5)
-					})Make("Corner", Button, UDim.new(0, 4))
-					
-					local IsSelected = InsertTheme(Create("Frame", Button, {
-						Position = UDim2.new(0, 1, 0.5),
-						Size = UDim2.new(0, 4, 0, 4),
-						BackgroundColor3 = Theme["Color Theme"],
-						BackgroundTransparency = 1,
-						AnchorPoint = Vector2.new(0, 0.5)
-					}), "Theme")Make("Corner", IsSelected, UDim.new(0.5, 0))
-					
-					local OptioneName = InsertTheme(Create("TextLabel", Button, {
-						Size = UDim2.new(1, 0, 1),
-						Position = UDim2.new(0, 10),
-						Text = Name,
-						TextColor3 = Theme["Color Text"],
-						Font = Enum.Font.GothamBold,
-						TextXAlignment = "Left",
-						BackgroundTransparency = 1,
-						TextTransparency = 0.4
-					}), "Text")
-					
-					Button.Activated:Connect(function()
-						Select(Options[Name])
-					end)
-					
-					Options[Name].nodes = {Button, IsSelected, OptioneName}
-				end
-				
-				RemoveOption = function(index, Value)
-					local Name = tostring(type(index) == "string" and index or Value)
-					if Options[Name] then
-						if MultiSelect then Selected[Name] = nil else Selected = nil end
-						Options[Name].nodes[1]:Destroy()
-						table.clear(Options[Name])
-						Options[Name] = nil
+						local nodes = v.nodes
+						CreateTween({nodes[2], "BackgroundTransparency", Stats and 0 or 0.8, 0.35})
+						CreateTween({nodes[2], "Size", Stats and UDim2.fromOffset(4, 12) or UDim2.fromOffset(4, 4), 0.35})
+						CreateTween({nodes[3], "TextTransparency", Stats and 0 or 0.4, 0.35})
+					else
+						local Slt = v.Value == Selected
+						local nodes = v.nodes
+						CreateTween({nodes[2], "BackgroundTransparency", Slt and 0 or 1, 0.35})
+						CreateTween({nodes[2], "Size", Slt and UDim2.fromOffset(4, 14) or UDim2.fromOffset(4, 4), 0.35})
+						CreateTween({nodes[3], "TextTransparency", Slt and 0 or 0.4, 0.35})
 					end
 				end
-				
-				GetOptions = function()
-					return Options
+				UpdateLabel()
+			end
+			
+			local function Select(Option)
+				if MultiSelect then
+					Option.Stats = not Option.Stats
+					Selected[Option.Name] = Option.Stats
+				else
+					Selected = Option.Value
 				end
-				
-				AddNewOptions = function(List, Clear)
-					if Clear then
-						table.foreach(Options, RemoveOption)
-					end
-					table.foreach(List, AddOption)
-					CallbackSelected()
-					UpdateSelected()
-				end
-				
-				table.foreach(DOptions, AddOption)
+				Option.LastCB = tick()
 				CallbackSelected()
 				UpdateSelected()
 			end
+			
+			local function AddOption(index, Value)
+				local Name = tostring(type(index) == "string" and index or Value)
+				if Options[Name] then return end
+				
+				local Opt = {
+					index = index,
+					Value = Value,
+					Name = Name,
+					Stats = false,
+					LastCB = 0
+				}
+				Options[Name] = Opt
+				
+				if MultiSelect then
+					local Stats = Selected[Name] or false
+					Selected[Name] = Stats
+					Opt.Stats = Stats
+				end
+				
+				local Button = Make("Button", ScrollFrame, {
+					Name = "Option",
+					Size = UDim2.new(1, 0, 0, 21),
+					Position = UDim2.new(0, 0, 0.5),
+					AnchorPoint = Vector2.new(0, 0.5)
+				})Make("Corner", Button, UDim.new(0, 4))
+				
+				local IsSelected = InsertTheme(Create("Frame", Button, {
+					Position = UDim2.new(0, 1, 0.5),
+					Size = UDim2.new(0, 4, 0, 4),
+					BackgroundColor3 = Theme["Color Theme"],
+					BackgroundTransparency = 1,
+					AnchorPoint = Vector2.new(0, 0.5)
+				}), "Theme")Make("Corner", IsSelected, UDim.new(0.5, 0))
+				
+				local OptioneName = InsertTheme(Create("TextLabel", Button, {
+					Size = UDim2.new(1, 0, 1),
+					Position = UDim2.new(0, 10),
+					Text = Name,
+					TextColor3 = Theme["Color Text"],
+					Font = Enum.Font.GothamBold,
+					TextXAlignment = "Left",
+					BackgroundTransparency = 1,
+					TextTransparency = 0.4
+				}), "Text")
+				
+				Button.Activated:Connect(function()
+					Select(Opt)
+				end)
+				
+				Opt.nodes = {Button, IsSelected, OptioneName}
+			end
+			
+			local function RemoveOption(Name)
+				if Options[Name] then
+					if MultiSelect then Selected[Name] = nil else Selected = nil end
+					if Options[Name].nodes and Options[Name].nodes[1] then
+						Options[Name].nodes[1]:Destroy()
+					end
+					Options[Name] = nil
+				end
+			end
+			
+			local function AddNewOptions(List, Clear)
+				if Clear then
+					for k,v in pairs(Options) do
+						RemoveOption(k)
+					end
+				end
+				for k,v in pairs(List) do
+					AddOption(k, v)
+				end
+				UpdateSelected()
+			end
+			
+			for k,v in pairs(DOptions) do
+				AddOption(k, v)
+			end
+			UpdateSelected()
 			
 			Button.Activated:Connect(CalculateSize)
 			Button.Activated:Connect(Minimize)
 			ScrollFrame.ChildAdded:Connect(CalculateSize)
 			ScrollFrame.ChildRemoved:Connect(CalculateSize)
 			
-			-- Close dropdown when window is dragged or closed
 			MainFrame:GetPropertyChangedSignal("Position"):Connect(Disable)
 			MainFrame:GetPropertyChangedSignal("Visible"):Connect(Disable)
 			Title:GetPropertyChangedSignal("Text"):Connect(Disable)
@@ -2418,38 +2403,20 @@ function redzlib:MakeWindow(Configs)
 			function Dropdown:Callback(...) Funcs:InsertCallback(Callback, ...)(Selected) end
 			
 			function Dropdown:Add(...)
-				local NewOptions = {...}
-				if type(NewOptions[1]) == "table" then
-					table.foreach(Option, function(_,Name)
-						AddOption(Name)
-					end)
-				else
-					table.foreach(NewOptions, function(_,Name)
-						AddOption(Name)
-					end)
+				local Args = {...}
+				local List = type(Args[1]) == "table" and Args[1] or Args
+				for k,v in pairs(List) do
+					AddOption(k, v)
 				end
+				CalculateSize()
 			end
 			function Dropdown:Remove(Option)
-				for index, Value in pairs(GetOptions()) do
-					if type(Option) == "number" and index == Option or Value.Name == "Option" then
-						RemoveOption(index, Value.Value)
+				for k,v in pairs(Options) do
+					if k == Option or v.Value == Option then
+						RemoveOption(k)
 					end
 				end
-			end
-			function Dropdown:Select(Option)
-				if type(Option) == "string" then
-					for _,Val in pairs(Options) do
-						if Val.Name == Option then
-							Val.Active()
-						end
-					end
-				elseif type(Option) == "number" then
-					for ind,Val in pairs(Options) do
-						if ind == Option then
-							Val.Active()
-						end
-					end
-				end
+				CalculateSize()
 			end
 			function Dropdown:Set(Val1, Clear)
 				if type(Val1) == "table" then
@@ -2457,12 +2424,13 @@ function redzlib:MakeWindow(Configs)
 				elseif type(Val1) == "function" then
 					Callback = Val1
 				end
+				CalculateSize()
 			end
-			function Dropdown:SetOptions(...)
-				return self:Set(...)
-			end
+			function Dropdown:SetOptions(...) return self:Set(...) end
+			
 			return Dropdown
 		end
+
 		function Tab:AddSlider(Configs)
 			local SName = Configs[1] or Configs.Name or Configs.Title or "Slider!"
 			local SDesc = Configs.Desc or Configs.Description or ""
@@ -2745,3 +2713,25 @@ function redzlib:MakeWindow(Configs)
 					Text = "Copied to Clipboard",
 					BackgroundColor3 = Color3.fromRGB(100, 100, 100),
 					TextColor3 = Color3.fromRGB(150, 150, 150)
+				})task.wait(5)
+				SetProps(JoinButton, {
+					Text = "Join",
+					BackgroundColor3 = Color3.fromRGB(50, 150, 50),
+					TextColor3 = Color3.fromRGB(220, 220, 220)
+				})ClickDelay = false
+			end)
+			
+			local DiscordInvite = {}
+			function DiscordInvite:Destroy() InviteHolder:Destroy() end
+			function DiscordInvite:Visible(...) Funcs:ToggleVisible(InviteHolder, ...) end
+			return DiscordInvite
+		end
+		return Tab
+	end
+	
+	CloseButton.Activated:Connect(Window.CloseBtn)
+	MinimizeButton.Activated:Connect(Window.MinimizeBtn)
+	return Window
+end
+
+return redzlib
