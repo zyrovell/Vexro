@@ -1109,6 +1109,7 @@ end
 
 local ScreenGui = Create("ScreenGui", CoreGui, {
 	Name = "redz Library V5",
+	IgnoreGuiInset = true,
 }, {
 	Create("UIScale", {
 		Scale = UIScale,
@@ -2169,13 +2170,13 @@ function redzlib:MakeWindow(Configs)
 				end
 				
 				local ScreenSize = ScreenGui.AbsoluteSize
-				local ScaledScreenH = ScreenSize.Y / UIScale
-				local MaxItems = math.floor((ScaledScreenH * 0.5) / 25) -- Max 50% of screen height
+				local currentScale = ScreenGui:FindFirstChild("Scale") and ScreenGui.Scale.Scale or UIScale
+				local ScaledScreenH = ScreenSize.Y / currentScale
+				local MaxItems = math.floor((ScaledScreenH * 0.5) / 25)
 				
 				ScrollSize = (math.clamp(Count, 0, math.max(10, MaxItems)) * 25) + 10
 				if NoClickFrame.Visible then
-					NoClickFrame.Visible = true
-					CreateTween({DropFrame, "Size", GetFrameSize(), 0.2, true})
+					CalculatePos()
 				end
 			end
 			
@@ -2189,48 +2190,44 @@ function redzlib:MakeWindow(Configs)
 					NoClickFrame.Visible = false
 				else
 					NoClickFrame.Visible = true
+					CalculatePos()
 					Arrow.Image = "rbxassetid://10709790948"
 					CreateTween({Arrow, "ImageColor3", Theme["Color Theme"], 0.2})
-					CreateTween({DropFrame, "Size", GetFrameSize(), 0.2, true})
+					CreateTween({DropFrame, "Size", GetFrameSize(), 0.2})
 				end
 				WaitClick = false
 			end
 			
 			local function CalculatePos()
+				local currentScale = ScreenGui:FindFirstChild("Scale") and ScreenGui.Scale.Scale or UIScale
 				local FramePos = SelectedFrame.AbsolutePosition
 				local FrameSize = SelectedFrame.AbsoluteSize
 				local ScreenSize = ScreenGui.AbsoluteSize
 				
-				local ScaledX = FramePos.X / UIScale
-				local ScaledY = FramePos.Y / UIScale
-				local ScaledScreenW = ScreenSize.X / UIScale
-				local ScaledScreenH = ScreenSize.Y / UIScale
-				local ScaledFrameH = FrameSize.Y / UIScale
+				local ScaledX = FramePos.X / currentScale
+				local ScaledY = FramePos.Y / currentScale
+				local ScaledScreenW = ScreenSize.X / currentScale
+				local ScaledScreenH = ScreenSize.Y / currentScale
+				local ScaledFrameH = FrameSize.Y / currentScale
 				
-				local DropWidth = 152
-				local DropHeight = ScrollSize
-				
-				local ClampX = math.clamp(ScaledX, 0, ScaledScreenW - DropWidth)
-				
-				local spaceBelow = ScaledScreenH - (ScaledY + ScaledFrameH)
-				local spaceAbove = ScaledY
+				local spaceBelow = ScaledScreenH - (ScaledY + ScaledFrameH) - 10
+				local spaceAbove = ScaledY - 10
 				
 				local AnchorY = 0
 				local TargetY = ScaledY + ScaledFrameH
 				
-				if spaceBelow < DropHeight and spaceAbove > spaceBelow then
+				if spaceBelow < ScrollSize and spaceAbove > spaceBelow then
 					AnchorY = 1
 					TargetY = ScaledY
 				end
 				
-				-- Ensure it's within bounds
-				if AnchorY == 0 then
-					TargetY = math.clamp(TargetY, 0, ScaledScreenH - DropHeight)
-				else
-					TargetY = math.clamp(TargetY, DropHeight, ScaledScreenH)
-				end
+				local maxSpace = (AnchorY == 0) and spaceBelow or spaceAbove
+				local finalHeight = math.min(ScrollSize, math.max(maxSpace, 50))
+				
+				local ClampX = math.clamp(ScaledX, 5, ScaledScreenW - 152 - 5)
 				
 				DropFrame.AnchorPoint = Vector2.new(0, AnchorY)
+				DropFrame.Size = UDim2.fromOffset(152, finalHeight)
 				CreateTween({DropFrame, "Position", UDim2.fromOffset(ClampX, TargetY), 0.1})
 			end
 			
