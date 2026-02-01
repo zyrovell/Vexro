@@ -2291,13 +2291,15 @@ function redzlib:MakeWindow(Configs)
 						local nodes = v.nodes
 						CreateTween({nodes[2], "BackgroundTransparency", Stats and 0 or 0.8, 0.35})
 						CreateTween({nodes[2], "Size", Stats and UDim2.fromOffset(4, 12) or UDim2.fromOffset(4, 4), 0.35})
-						CreateTween({nodes[3], "TextTransparency", Stats and 0 or 0.1, 0.35})
+						nodes[3].TextColor3 = Color3.new(1, 1, 1)
+						CreateTween({nodes[3], "TextTransparency", 0, 0.35})
 					else
 						local Slt = v.Value == Selected
 						local nodes = v.nodes
 						CreateTween({nodes[2], "BackgroundTransparency", Slt and 0 or 1, 0.35})
 						CreateTween({nodes[2], "Size", Slt and UDim2.fromOffset(4, 14) or UDim2.fromOffset(4, 4), 0.35})
-						CreateTween({nodes[3], "TextTransparency", Slt and 0 or 0.1, 0.35})
+						nodes[3].TextColor3 = Color3.new(1, 1, 1)
+						CreateTween({nodes[3], "TextTransparency", 0, 0.35})
 					end
 				end
 				UpdateLabel()
@@ -2354,11 +2356,11 @@ function redzlib:MakeWindow(Configs)
 					Size = UDim2.new(1, 0, 1),
 					Position = UDim2.new(0, 10),
 					Text = Name,
-					TextColor3 = Theme["Color Text"],
+					TextColor3 = Color3.new(1, 1, 1),
 					Font = Enum.Font.GothamBold,
 					TextXAlignment = "Left",
 					BackgroundTransparency = 1,
-					TextTransparency = 0.1
+					TextTransparency = 0
 				}), "Text")
 				
 				Button.Activated:Connect(function()
