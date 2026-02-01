@@ -2427,6 +2427,7 @@ function redzlib:MakeWindow(Configs)
 				CalculateSize()
 			end
 			function Dropdown:SetOptions(...) return self:Set(...) end
+			function Dropdown:Refresh(...) return self:Set(...) end
 			
 			return Dropdown
 		end
