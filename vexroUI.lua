@@ -285,6 +285,7 @@ function VexroUI:CreateWindow(config)
 	local sidebar = Instance.new("Frame")
 	sidebar.Size = UDim2.new(0, sideBarW, 1, 0)
 	sidebar.BackgroundColor3 = currentTheme.sidebar
+	sidebar.BackgroundTransparency = 0.2
 	sidebar.ZIndex = 8
 	sidebar.Parent = main
 	Instance.new("UICorner", sidebar).CornerRadius = UDim.new(0, 14)
@@ -295,6 +296,7 @@ function VexroUI:CreateWindow(config)
 	sideOverlay.Size = UDim2.new(0, 10, 1, 0)
 	sideOverlay.Position = UDim2.new(1, -10, 0, 0)
 	sideOverlay.BackgroundColor3 = currentTheme.sidebar
+	sideOverlay.BackgroundTransparency = 0.2
 	sideOverlay.BorderSizePixel = 0
 	sideOverlay.ZIndex = 7
 	sideOverlay.Parent = sidebar
@@ -309,6 +311,7 @@ function VexroUI:CreateWindow(config)
 	local titleBar = Instance.new("Frame")
 	titleBar.Size = UDim2.new(1, 0, 0, titleH)
 	titleBar.BackgroundColor3 = currentTheme.secondary
+	titleBar.BackgroundTransparency = 0.3
 	titleBar.ZIndex = 5
 	titleBar.Parent = content
 	Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0, 14)
@@ -317,6 +320,7 @@ function VexroUI:CreateWindow(config)
 	local titleOverlay = Instance.new("Frame")
 	titleOverlay.Size = UDim2.new(0, 14, 1, 0)
 	titleOverlay.BackgroundColor3 = currentTheme.secondary
+	titleOverlay.BackgroundTransparency = 0.3
 	titleOverlay.BorderSizePixel = 0
 	titleOverlay.ZIndex = 4
 	titleOverlay.Parent = titleBar
@@ -384,8 +388,8 @@ function VexroUI:CreateWindow(config)
 	end)
 
 	main.Rotation = -10
-	TweenService:Create(main, TweenInfo.new(0.45, Enum.EasingStyle.Back), {Size = winSize, BackgroundTransparency = 0, Rotation = 0}):Play()
-	TweenService:Create(mainStroke, TweenInfo.new(0.45), {Transparency = 0}):Play()
+	TweenService:Create(main, TweenInfo.new(0.45, Enum.EasingStyle.Back), {Size = winSize, BackgroundTransparency = 0.15, Rotation = 0}):Play()
+	TweenService:Create(mainStroke, TweenInfo.new(0.45), {Transparency = 0.5}):Play()
 	
 	-- API Methods
 	function Vexro:SaveConfig(folderName, fileName, data)
@@ -488,6 +492,7 @@ function VexroUI:CreateWindow(config)
 			local btnRow = Instance.new("TextButton")
 			btnRow.Size = UDim2.new(1, 0, 0, 45)
 			btnRow.BackgroundColor3 = currentTheme.tertiary
+			btnRow.BackgroundTransparency = 0.3
 			btnRow.Text = cfg.Name or "Button"
 			btnRow.TextColor3 = currentTheme.text
 			btnRow.Font = Enum.Font.GothamBold
@@ -517,6 +522,7 @@ function VexroUI:CreateWindow(config)
 			local row = Instance.new("Frame")
 			row.Size = UDim2.new(1, 0, 0, 45)
 			row.BackgroundColor3 = currentTheme.tertiary
+			row.BackgroundTransparency = 0.3
 			row.ZIndex = 6
 			row.Parent = scroll
 			Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
@@ -582,6 +588,7 @@ function VexroUI:CreateWindow(config)
 			local row = Instance.new("Frame")
 			row.Size = UDim2.new(1, 0, 0, 60)
 			row.BackgroundColor3 = currentTheme.tertiary
+			row.BackgroundTransparency = 0.3
 			row.ZIndex = 6
 			row.Parent = scroll
 			Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
@@ -677,6 +684,7 @@ function VexroUI:CreateWindow(config)
 			local row = Instance.new("Frame")
 			row.Size = UDim2.new(1, 0, 0, 45)
 			row.BackgroundColor3 = currentTheme.tertiary
+			row.BackgroundTransparency = 0.3
 			row.ClipsDescendants = true
 			row.ZIndex = 6
 			row.Parent = scroll
@@ -772,6 +780,7 @@ function VexroUI:CreateWindow(config)
 			local row = Instance.new("Frame")
 			row.Size = UDim2.new(1, 0, 0, 45)
 			row.BackgroundColor3 = currentTheme.tertiary
+			row.BackgroundTransparency = 0.3
 			row.ZIndex = 6
 			row.Parent = scroll
 			Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
@@ -820,6 +829,7 @@ function VexroUI:CreateWindow(config)
 			local row = Instance.new("Frame")
 			row.Size = UDim2.new(1, 0, 0, 45)
 			row.BackgroundColor3 = currentTheme.tertiary
+			row.BackgroundTransparency = 0.3
 			row.ZIndex = 6
 			row.Parent = scroll
 			Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
@@ -910,6 +920,7 @@ function VexroUI:CreateWindow(config)
 			row.Size = UDim2.new(1, 0, 0, 0)
 			row.AutomaticSize = Enum.AutomaticSize.Y
 			row.BackgroundColor3 = currentTheme.tertiary
+			row.BackgroundTransparency = 0.3
 			row.ZIndex = 6
 			row.Parent = scroll
 			Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
@@ -964,6 +975,7 @@ function VexroUI:CreateWindow(config)
 			local row = Instance.new("Frame")
 			row.Size = UDim2.new(1, 0, 0, 45)
 			row.BackgroundColor3 = currentTheme.tertiary
+			row.BackgroundTransparency = 0.3
 			row.ZIndex = 6
 			row.Parent = scroll
 			Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
