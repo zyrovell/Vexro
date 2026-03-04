@@ -10,6 +10,24 @@ local HttpService = game:GetService("HttpService")
 local player = Players.LocalPlayer
 local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 
+VexroUI.Icons = {
+	Close = "rbxassetid://73796648352684",
+	Minimize = "—",
+	Settings = "rbxassetid://99886851450444",
+	Recent = "rbxassetid://102256138245237",
+	Random = "🎲",
+	Stop = "⏹️",
+	Check = "rbxassetid://71514022902819", -- Existing check
+	Search = "rbxassetid://100759629447583",
+	FavoriteFull = "rbxassetid://131866667333572",
+}
+
+local function GetAsset(id)
+	if not id or id == "" then return "" end
+	local rawId = tostring(id):gsub("rbxassetid://", ""):gsub("([^%d])", "")
+	return rawId ~= "" and "rbxthumb://type=Asset&id=" .. rawId .. "&w=420&h=420" or id
+end
+
 VexroUI.Themes = {
 	Dark = {
 		primary = Color3.fromRGB(8, 8, 8),
@@ -343,14 +361,21 @@ function VexroUI:CreateWindow(config)
 	closeBtn.Size = UDim2.new(0, 30, 0, 30)
 	closeBtn.Position = UDim2.new(1, -40, 0.5, -15)
 	closeBtn.BackgroundColor3 = currentTheme.critical
-	closeBtn.Text = "×"
-	closeBtn.TextColor3 = Color3.new(1, 1, 1)
-	closeBtn.Font = Enum.Font.GothamBold
-	closeBtn.TextSize = 20
+	closeBtn.Text = ""
 	closeBtn.ZIndex = 10
 	closeBtn.Parent = titleBar
 	Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 8)
 	RegisterTheme(closeBtn, "BackgroundColor3", "critical")
+
+	local closeIcon = Instance.new("ImageLabel")
+	closeIcon.Size = UDim2.new(0, 28, 0, 28)
+	closeIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
+	closeIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+	closeIcon.BackgroundTransparency = 1
+	closeIcon.ImageColor3 = Color3.new(1, 1, 1)
+	closeIcon.Image = GetAsset(VexroUI.Icons.Close)
+	closeIcon.ZIndex = 110
+	closeIcon.Parent = closeBtn
 
 	closeBtn.MouseButton1Click:Connect(function()
 		TweenService:Create(main, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1, Rotation = -30}):Play()
@@ -425,8 +450,7 @@ function VexroUI:CreateWindow(config)
 		btn.Position = UDim2.new(0.5, -tabBtnS/2, 0, yPos)
 		btn.BackgroundColor3 = currentTheme.sidebar
 		btn.BackgroundTransparency = 0.8
-		btn.Text = tIcon
-		btn.TextSize = 22
+		btn.Text = ""
 		btn.ZIndex = 9
 		btn.Parent = sidebar
 		Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 10)
@@ -436,6 +460,22 @@ function VexroUI:CreateWindow(config)
 		stroke.Thickness = 2
 		stroke.Transparency = 0.7
 		stroke.Parent = btn
+
+		local isImg = tonumber(tIcon) or string.find(tIcon, "rbxassetid://") or string.find(tIcon, "http")
+		if isImg then
+			local img = Instance.new("ImageLabel")
+			img.Size = UDim2.fromScale(0.8, 0.8)
+			img.Position = UDim2.fromScale(0.5, 0.5)
+			img.AnchorPoint = Vector2.new(0.5, 0.5)
+			img.BackgroundTransparency = 1
+			img.Image = GetAsset(tIcon)
+			img.ZIndex = 110
+			img.Parent = btn
+		else
+			btn.Text = tIcon
+			btn.TextSize = 22
+			btn.TextColor3 = Color3.new(1, 1, 1)
+		end
 		
 		local scroll = Instance.new("ScrollingFrame")
 		scroll.Size = UDim2.new(1, -16, 1, -(titleH + 16))
@@ -493,15 +533,37 @@ function VexroUI:CreateWindow(config)
 			btnRow.Size = UDim2.new(1, 0, 0, 45)
 			btnRow.BackgroundColor3 = currentTheme.tertiary
 			btnRow.BackgroundTransparency = 0.3
-			btnRow.Text = cfg.Name or "Button"
-			btnRow.TextColor3 = currentTheme.text
-			btnRow.Font = Enum.Font.GothamBold
-			btnRow.TextSize = 14
+			btnRow.Text = ""
 			btnRow.ZIndex = 6
 			btnRow.Parent = scroll
 			Instance.new("UICorner", btnRow).CornerRadius = UDim.new(0, 8)
 			RegisterTheme(btnRow, "BackgroundColor3", "tertiary")
-			RegisterTheme(btnRow, "TextColor3", "text")
+			
+			local lbl = Instance.new("TextLabel")
+			lbl.Size = UDim2.new(1, -50, 1, 0)
+			lbl.Position = UDim2.new(0, 15, 0, 0)
+			lbl.BackgroundTransparency = 1
+			lbl.Text = cfg.Name or "Button"
+			lbl.TextColor3 = currentTheme.text
+			lbl.Font = Enum.Font.GothamBold
+			lbl.TextSize = 14
+			lbl.TextXAlignment = Enum.TextXAlignment.Left
+			lbl.ZIndex = 7
+			lbl.Parent = btnRow
+			RegisterTheme(lbl, "TextColor3", "text")
+
+			local iconId = cfg.Icon or ""
+			if iconId ~= "" then
+				lbl.Position = UDim2.new(0, 45, 0, 0)
+				local iconImg = Instance.new("ImageLabel")
+				iconImg.Size = UDim2.new(0, 20, 0, 20)
+				iconImg.Position = UDim2.new(0, 15, 0.5, 0)
+				iconImg.AnchorPoint = Vector2.new(0, 0.5)
+				iconImg.BackgroundTransparency = 1
+				iconImg.Image = GetAsset(iconId)
+				iconImg.ZIndex = 7
+				iconImg.Parent = btnRow
+			end
 			
 			btnRow.MouseButton1Click:Connect(function()
 				-- Click Effect
@@ -545,15 +607,24 @@ function VexroUI:CreateWindow(config)
 			togBtn.Size = UDim2.new(0, 60, 0, 30)
 			togBtn.Position = UDim2.new(1, -75, 0.5, -15)
 			togBtn.BackgroundColor3 = state and currentTheme.success or currentTheme.critical
-			togBtn.Text = state and "ON" or "OFF"
-			togBtn.TextColor3 = Color3.new(1, 1, 1)
-			togBtn.Font = Enum.Font.GothamBold
+			togBtn.Text = ""
 			togBtn.ZIndex = 8
 			togBtn.Parent = row
 			Instance.new("UICorner", togBtn).CornerRadius = UDim.new(0, 6)
+
+			local togIcon = Instance.new("ImageLabel")
+			togIcon.Size = UDim2.fromScale(0.8, 0.8)
+			togIcon.Position = UDim2.fromScale(0.5, 0.5)
+			togIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+			togIcon.BackgroundTransparency = 1
+			togIcon.ImageColor3 = Color3.new(1, 1, 1)
+			togIcon.Image = state and GetAsset(VexroUI.Icons.Check) or GetAsset(VexroUI.Icons.Close)
+			togIcon.ZIndex = 110
+			togIcon.Parent = togBtn
 			
 			local function UpdateTog()
-				togBtn.Text = state and "ON" or "OFF"
+				togIcon.ImageColor3 = Color3.new(1, 1, 1)
+				togIcon.Image = state and GetAsset(VexroUI.Icons.Check) or GetAsset(VexroUI.Icons.Close)
 				TweenService:Create(togBtn, TweenInfo.new(0.2), {
 					BackgroundColor3 = state and currentTheme.success or currentTheme.critical
 				}):Play()
