@@ -1,11 +1,19 @@
 --[[
     Vexro UI Notification Library
-    Version: 1.0.0 (Pro Edition)
+    Version: 1.0.0 (Ultimate Edition)
     
-    Kullanım Örneği:
-    local VexroUI = loadstring(game:HttpGet("GITHUB_RAW_LINKINIZ_BURAYA_GELECEK"))()
+    Features:
+    - Smart Dragging & Screen Clamping (Bounds)
+    - Swipe Up to Delete Animation
+    - Error Shake Animation
+    - Anti-Spam (Silent Update on Duplicate)
+    - Pinning System & Interactive Buttons
+    - RichText Support
     
-    VexroUI:Notify("Başlık", "Mesaj", 5, "Success")
+    Usage Example:
+    local VexroUI = loadstring(game:HttpGet("YOUR_GITHUB_RAW_LINK_HERE"))()
+    
+    VexroUI:Notify("Injected", "Vexro Hub successfully loaded.", 5, "Success")
 ]]
 
 local TweenService = game:GetService("TweenService")
@@ -14,10 +22,11 @@ local Debris = game:GetService("Debris")
 
 local VexroUI = {}
 
--- === VEXRO AYARLARI ===
+-- === VEXRO SETTINGS ===
 VexroUI.ThemeColor = Color3.fromRGB(255, 255, 255)
 VexroUI.EnableSounds = true
 
+-- Official Roblox UI Sound IDs
 local Sounds = {
     Pop = "rbxassetid://6114358883",
     Success = "rbxassetid://2865227271",
@@ -28,7 +37,7 @@ local Sounds = {
     SwipeOut = "rbxassetid://6895079853",
 }
 
--- Önceki arayüzü temizle
+-- Destroy previous UI instance if exists
 if CoreGui:FindFirstChild("VexroNotifyUI") then
     CoreGui.VexroNotifyUI:Destroy()
 end
@@ -37,9 +46,11 @@ local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "VexroNotifyUI"
 ScreenGui.Parent = CoreGui
 
+-- === NOTIFICATION CENTER (Draggable Area) ===
 local Container = Instance.new("Frame")
 Container.Name = "NotifyContainer"
-Container.Size = UDim2.new(0.25, 0, 1, -40) 
+Container.Size = UDim2.new(0.25, 0, 0, 0) 
+Container.AutomaticSize = Enum.AutomaticSize.Y 
 Container.AnchorPoint = Vector2.new(0.5, 0)
 Container.Position = UDim2.new(0.5, 0, 0, 20)
 Container.BackgroundTransparency = 1
@@ -69,7 +80,7 @@ local function PlayUISound(soundId, volume, pitch)
     Debris:AddItem(s, 2)
 end
 
--- === ÇEKİRDEK BİLDİRİM MOTORU ===
+-- === CORE TOAST ENGINE ===
 local function CreateToast(titleText, descText, duration, toastType, buttonText, buttonColor, callback)
     duration = duration or 3
     toastType = toastType or "Info"
@@ -83,11 +94,11 @@ local function CreateToast(titleText, descText, duration, toastType, buttonText,
     if toastType == "Success" then
         TypeColor = Color3.fromRGB(46, 204, 113) 
         TypeIcon = "rbxassetid://71514022902819" 
-        EnterSound = Sounds.Success
+        EnterSound = Sounds.Success 
     elseif toastType == "Error" then
         TypeColor = Color3.fromRGB(231, 76, 60) 
         TypeIcon = "rbxassetid://124605172367281" 
-        EnterSound = Sounds.Error
+        EnterSound = Sounds.Error 
     elseif toastType == "Warning" then
         TypeColor = Color3.fromRGB(243, 156, 18)
         TypeIcon = "rbxassetid://6026568210" 
@@ -104,6 +115,7 @@ local function CreateToast(titleText, descText, duration, toastType, buttonText,
         active.MultiplierLabel.Visible = true 
         active.TimeLeft = duration
         
+        -- Silent update for spam protection
         if active.ProgressTween then active.ProgressTween:Cancel() end
         active.ProgressBar.Size = UDim2.new(1, 0, 1, 0)
         active.ProgressTween = TweenService:Create(active.ProgressBar, TweenInfo.new(duration, Enum.EasingStyle.Linear), {Size = UDim2.new(0, 0, 1, 0)})
@@ -128,10 +140,11 @@ local function CreateToast(titleText, descText, duration, toastType, buttonText,
     ToastWrapper.Parent = Container
     ToastData.ToastWrapper = ToastWrapper
 
+    -- Solid Black Background
     local Toast = Instance.new("Frame")
     Toast.Size = UDim2.new(1, 0, 1, 0)
-    Toast.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    Toast.BackgroundTransparency = 0
+    Toast.BackgroundColor3 = Color3.fromRGB(0, 0, 0) 
+    Toast.BackgroundTransparency = 0 
     Toast.BorderSizePixel = 0
     Toast.Active = true
     Toast.Parent = ToastWrapper
@@ -250,7 +263,6 @@ local function CreateToast(titleText, descText, duration, toastType, buttonText,
         BtnCorner.Parent = ActionBtn
 
         ActionBtn.MouseEnter:Connect(function() PlayUISound(Sounds.Hover, 0.3, 1) end)
-
         ActionBtn.MouseButton1Click:Connect(function()
             PlayUISound(Sounds.Click, 0.6, 0.9)
             if callback then callback() end
@@ -272,6 +284,7 @@ local function CreateToast(titleText, descText, duration, toastType, buttonText,
     ProgressBar.Parent = ProgressBarBg
     ToastData.ProgressBar = ProgressBar
 
+    -- Play sound on first appearance
     PlayUISound(EnterSound, 0.6)
 
     local openInfo = TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
@@ -287,6 +300,7 @@ local function CreateToast(titleText, descText, duration, toastType, buttonText,
     ToastData.ProgressTween = TweenService:Create(ProgressBar, TweenInfo.new(duration, Enum.EasingStyle.Linear), {Size = UDim2.new(0, 0, 1, 0)})
     ToastData.ProgressTween:Play()
 
+    -- Error Shake Animation
     if toastType == "Error" then
         task.spawn(function()
             task.wait(0.3) 
@@ -323,7 +337,13 @@ local function CreateToast(titleText, descText, duration, toastType, buttonText,
         ToastData.IsClosed = true
         ActiveToasts[toastId] = nil
         
-        if isSwiped then PlayUISound(Sounds.SwipeOut, 0.4, 1.1) end
+        -- Swipe up to delete animation
+        if isSwiped then 
+            PlayUISound(Sounds.SwipeOut, 0.4, 1.1) 
+            TweenService:Create(Toast, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Position = UDim2.new(0, 0, -1.2, 0)}):Play()
+            task.wait(0.2)
+        end
+
         if ToastData.ProgressTween then ToastData.ProgressTween:Cancel() end
 
         local closeInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
@@ -345,22 +365,57 @@ local function CreateToast(titleText, descText, duration, toastType, buttonText,
         end)
     end
 
-    local startY = 0
+    -- === SMART SCREEN CLAMPING & DRAG LOGIC ===
+    local dragStartMouse = nil
+    local containerStartPos = nil
     local dragging = false
+    local isSwipeDeleteMode = false
+
     Toast.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
-            startY = input.Position.Y
-        end
-    end)
-    Toast.InputChanged:Connect(function(input)
-        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            if input.Position.Y < startY - 15 then
-                dragging = false
-                CloseToast(true)
+            dragStartMouse = input.Position
+            containerStartPos = Container.Position
+            
+            local relativeY = input.Position.Y - Toast.AbsolutePosition.Y
+            if relativeY > (Toast.AbsoluteSize.Y * 0.6) then
+                isSwipeDeleteMode = true
+            else
+                isSwipeDeleteMode = false
             end
         end
     end)
+
+    Toast.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStartMouse
+            
+            if isSwipeDeleteMode then
+                if delta.Y < -30 then
+                    dragging = false
+                    CloseToast(true) 
+                end
+            else
+                -- CALCULATE SCREEN BOUNDARIES (Clamp)
+                local screen = ScreenGui.AbsoluteSize
+                local size = Container.AbsoluteSize
+                
+                local minX = -(screen.X / 2) + (size.X / 2) + 15
+                local maxX = math.max(minX, (screen.X / 2) - (size.X / 2) - 15)
+                local minY = 15
+                local maxY = math.max(minY, screen.Y - size.Y - 15)
+                
+                local clampedX = math.clamp(containerStartPos.X.Offset + delta.X, minX, maxX)
+                local clampedY = math.clamp(containerStartPos.Y.Offset + delta.Y, minY, maxY)
+
+                Container.Position = UDim2.new(
+                    containerStartPos.X.Scale, clampedX,
+                    containerStartPos.Y.Scale, clampedY
+                )
+            end
+        end
+    end)
+
     Toast.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = false
@@ -378,12 +433,14 @@ local function CreateToast(titleText, descText, duration, toastType, buttonText,
     end)
 end
 
--- === DIŞA AKTARILAN API FONKSİYONLARI ===
+-- === EXPORTED API FUNCTIONS ===
 
+-- Standard Notification (Info, Success, Error, Warning)
 function VexroUI:Notify(title, desc, duration, toastType)
     CreateToast(title, desc, duration, toastType, nil, nil, nil)
 end
 
+-- Interactive Notification with Button
 function VexroUI:NotifyButton(title, desc, duration, toastType, buttonText, buttonColor, callback)
     CreateToast(title, desc, duration, toastType, buttonText, buttonColor, callback)
 end
