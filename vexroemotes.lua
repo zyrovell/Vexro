@@ -2,7 +2,7 @@
 -- V3 Dynamic Theme / Added Emote Player Like Video Players
 -- OPEN SOURCE FOREVER!
 
-[[
+--[[
 
 
 
