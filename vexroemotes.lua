@@ -863,12 +863,10 @@ local function LoadEmotes()
 	
 	if success and result then
 		local data = type(result) == "table" and (result.data or result)
-		local seenIds = {}  -- Aynı ID'den sadece 1 tane al
 		for _, emote in ipairs(data) do
 			if emote.id and emote.name then
 				local numId = tonumber(emote.id)
-				if numId and not seenIds[numId] then
-					seenIds[numId] = true
+				if numId then
 					Emotes[#Emotes + 1] = {
 						name          = tostring(emote.name),
 						id            = numId,
