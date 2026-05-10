@@ -1,11 +1,9 @@
 {
   "keyword": null,
-  "totalItems": 31,
-  "lastUpdate": "2026-05-10T22:46:25.599Z",
+  "totalItems": 30,
+  "lastUpdate": "2026-05-10T23:12:23.134Z",
   "data": [
     {
-      "id": 2623795,
-      "name": "adidas Community Animation Pack",
       "bundledItems": {
         "1": [
           123695349157584
@@ -28,38 +26,38 @@
         "7": [
           115715495289805
         ]
-      }
+      },
+      "taxonomy": [
+        {
+          "taxonomyId": "whf6kUVBwk2xdwKUmRYN6G",
+          "taxonomyName": "Animation Bundle"
+        }
+      ],
+      "itemCreatedUtc": "2025-06-06T16:17:14.112Z",
+      "id": 2623795,
+      "itemType": "Bundle",
+      "bundleType": 2,
+      "name": "adidas Community Animation Pack",
+      "description": "We skate, we groove, we wall-walk and we t-pose swim? Sounds about right. Introducing Roblox’s very first community inspired Animation Pack.\r\n\r\nWinners for each category from the adidas community pack competition: \r\n\r\nWalk: @ AltiWyre \r\nRun: @ AltiWyre\r\nIdle: @ grayscaIed\r\nJump: @ltsCheeks\r\nSwim: @ specialJan \r\nFall: @ e6thn \r\nClimb: @DuskEnjoyedFlowers",
+      "productId": 6167667640785567,
+      "itemStatus": [],
+      "itemRestrictions": [],
+      "creatorHasVerifiedBadge": true,
+      "creatorType": "User",
+      "creatorTargetId": 1,
+      "creatorName": "Roblox",
+      "price": 250,
+      "lowestPrice": 250,
+      "lowestResalePrice": 0,
+      "unitsAvailableForConsumption": 0,
+      "favoriteCount": 2237963,
+      "offSaleDeadline": null,
+      "collectibleItemId": "7febad2f-897f-455c-9348-dfdc102ec010",
+      "totalQuantity": 0,
+      "saleLocationType": "ShopAndAllExperiences",
+      "hasResellers": false
     },
     {
-      "id": 4294795,
-      "name": "adidas aura animation pack",
-      "bundledItems": {
-        "1": [
-          140398319728398
-        ],
-        "2": [
-          99457463463495
-        ],
-        "3": [
-          129527230938281
-        ],
-        "4": [
-          123973978164540
-        ],
-        "5": [
-          73137983344853
-        ],
-        "6": [
-          119007025452432
-        ],
-        "7": [
-          75183215343859
-        ]
-      }
-    },
-    {
-      "id": 667,
-      "name": "Oldschool Animation Pack",
       "bundledItems": {
         "1": [
           5319900634
@@ -82,227 +80,92 @@
         "7": [
           5319931619
         ]
-      }
+      },
+      "taxonomy": [
+        {
+          "taxonomyId": "whf6kUVBwk2xdwKUmRYN6G",
+          "taxonomyName": "Animation Bundle"
+        }
+      ],
+      "itemCreatedUtc": "2020-07-10T00:07:08.607Z",
+      "id": 667,
+      "itemType": "Bundle",
+      "bundleType": 2,
+      "name": "Oldschool Animation Pack",
+      "description": "Party like its 2006. Relive the glorious old days with this retro style animation pack.",
+      "productId": 2376205517933152,
+      "itemStatus": [],
+      "itemRestrictions": [],
+      "creatorHasVerifiedBadge": true,
+      "creatorType": "User",
+      "creatorTargetId": 1,
+      "creatorName": "Roblox",
+      "price": 80,
+      "lowestPrice": 80,
+      "lowestResalePrice": 0,
+      "unitsAvailableForConsumption": 0,
+      "favoriteCount": 5392602,
+      "offSaleDeadline": null,
+      "collectibleItemId": "b7bb88e6-e187-4681-bb2f-0237f318f1e0",
+      "totalQuantity": 0,
+      "saleLocationType": "ShopAndAllExperiences",
+      "hasResellers": false
     },
     {
-      "id": 1189398,
-      "name": "Wicked Popular Animation Pack",
       "bundledItems": {
         "1": [
-          135810009801094
+          140398319728398
         ],
         "2": [
-          83937116921114
+          99457463463495
         ],
         "3": [
-          130373407996664
+          129527230938281
         ],
         "4": [
-          101839542383818
+          123973978164540
         ],
         "5": [
-          136276875045281
+          73137983344853
         ],
         "6": [
-          128475661806875
+          119007025452432
         ],
         "7": [
-          133304526526319
+          75183215343859
         ]
-      }
+      },
+      "taxonomy": [
+        {
+          "taxonomyId": "whf6kUVBwk2xdwKUmRYN6G",
+          "taxonomyName": "Animation Bundle"
+        }
+      ],
+      "itemCreatedUtc": "2025-12-17T18:01:37.848Z",
+      "id": 4294795,
+      "itemType": "Bundle",
+      "bundleType": 2,
+      "name": "adidas aura animation pack",
+      "description": "This pack may give you +999.967 aura.\r\n\r\nIntroducing adidas second community inspired Animation Pack. Event winners for each category:\r\n\r\nIdle: @DuskExists\r\nJump: @Toryod_k\r\nFall: @Kdan555\r\nSwim: @Heramerry\r\nClimb: @SpaceBluu",
+      "productId": 7428210527142849,
+      "itemStatus": [],
+      "itemRestrictions": [],
+      "creatorHasVerifiedBadge": true,
+      "creatorType": "User",
+      "creatorTargetId": 1,
+      "creatorName": "Roblox",
+      "price": 250,
+      "lowestPrice": 250,
+      "lowestResalePrice": 0,
+      "unitsAvailableForConsumption": 0,
+      "favoriteCount": 434493,
+      "offSaleDeadline": null,
+      "collectibleItemId": "a265460d-5b33-4caf-a73b-69396f92d8e2",
+      "totalQuantity": 0,
+      "saleLocationType": "ShopAndAllExperiences",
+      "hasResellers": false
     },
     {
-      "id": 83,
-      "name": "Stylish Animation Pack",
-      "bundledItems": {
-        "1": [
-          619509955
-        ],
-        "2": [
-          619511417
-        ],
-        "3": [
-          619511648
-        ],
-        "4": [
-          619511974
-        ],
-        "5": [
-          619512153
-        ],
-        "6": [
-          619512450
-        ],
-        "7": [
-          619512767
-        ]
-      }
-    },
-    {
-      "id": 82,
-      "name": "Robot Animation Pack",
-      "bundledItems": {
-        "1": [
-          619521311
-        ],
-        "2": [
-          619521521
-        ],
-        "3": [
-          619521748
-        ],
-        "4": [
-          619522088
-        ],
-        "5": [
-          619522386
-        ],
-        "6": [
-          619522642
-        ],
-        "7": [
-          619522849
-        ]
-      }
-    },
-    {
-      "id": 427999,
-      "name": "adidas Sports Animation Pack",
-      "bundledItems": {
-        "1": [
-          18538133604
-        ],
-        "2": [
-          18538146480
-        ],
-        "3": [
-          18538150608
-        ],
-        "4": [
-          18538153691
-        ],
-        "5": [
-          18538158932
-        ],
-        "6": [
-          18538164337
-        ],
-        "7": [
-          18538170170
-        ]
-      }
-    },
-    {
-      "id": 43,
-      "name": "Toy Animation Pack",
-      "bundledItems": {
-        "1": [
-          973766674
-        ],
-        "2": [
-          973767371
-        ],
-        "3": [
-          973768058
-        ],
-        "4": [
-          973770652
-        ],
-        "5": [
-          973771666
-        ],
-        "6": [
-          973772659
-        ],
-        "7": [
-          973773170
-        ]
-      }
-    },
-    {
-      "id": 1601900,
-      "name": "Catwalk Glam Animation Pack by e.l.f.",
-      "bundledItems": {
-        "1": [
-          104741822987331
-        ],
-        "2": [
-          72706690305027
-        ],
-        "3": [
-          138641066989023
-        ],
-        "4": [
-          75036746190467
-        ],
-        "5": [
-          101279640971758
-        ],
-        "6": [
-          112231179705221
-        ],
-        "7": [
-          103190462987721
-        ]
-      }
-    },
-    {
-      "id": 80,
-      "name": "Zombie Animation Pack",
-      "bundledItems": {
-        "1": [
-          619535091
-        ],
-        "2": [
-          619535616
-        ],
-        "3": [
-          619535834
-        ],
-        "4": [
-          619536283
-        ],
-        "5": [
-          619536621
-        ],
-        "6": [
-          619537096
-        ],
-        "7": [
-          619537468
-        ]
-      }
-    },
-    {
-      "id": 63,
-      "name": "Mage Animation Package",
-      "bundledItems": {
-        "1": [
-          754635032
-        ],
-        "2": [
-          754636298
-        ],
-        "3": [
-          754636589
-        ],
-        "4": [
-          754637084
-        ],
-        "5": [
-          754637456
-        ],
-        "6": [
-          754638471
-        ],
-        "7": [
-          754639239
-        ]
-      }
-    },
-    {
-      "id": 356,
-      "name": "Rthro Animation Package",
       "bundledItems": {
         "1": [
           2510230574
@@ -325,443 +188,201 @@
         "7": [
           2510242378
         ]
-      }
+      },
+      "taxonomy": [
+        {
+          "taxonomyId": "whf6kUVBwk2xdwKUmRYN6G",
+          "taxonomyName": "Animation Bundle"
+        }
+      ],
+      "itemCreatedUtc": "2018-10-23T20:20:32.51Z",
+      "id": 356,
+      "itemType": "Bundle",
+      "bundleType": 2,
+      "name": "Rthro Animation Package",
+      "description": "Perfect for your shiny new Rthro avatar! Walk, run, swim... all the things... only Rthro-y.",
+      "productId": 4179067075201476,
+      "itemStatus": [],
+      "itemRestrictions": [],
+      "creatorHasVerifiedBadge": true,
+      "creatorType": "User",
+      "creatorTargetId": 1,
+      "creatorName": "Roblox",
+      "price": 0,
+      "lowestPrice": 0,
+      "lowestResalePrice": 0,
+      "priceStatus": "Free",
+      "unitsAvailableForConsumption": 0,
+      "favoriteCount": 702307,
+      "offSaleDeadline": null,
+      "collectibleItemId": "1837a713-fd2a-4e27-91ef-fa676d705e76",
+      "totalQuantity": 0,
+      "saleLocationType": "ShopAndAllExperiences",
+      "hasResellers": false
     },
     {
-      "id": 4164795,
-      "name": "Unboxed Animation Pack by Amazon",
       "bundledItems": {
         "1": [
-          117011755848398
+          619509955
         ],
         "2": [
-          125108870423182
+          619511417
         ],
         "3": [
-          110418911914024
+          619511648
         ],
         "4": [
-          114998633936467
+          619511974
         ],
         "5": [
-          82219139681769
+          619512153
         ],
         "6": [
-          137392271797713
+          619512450
         ],
         "7": [
-          128339543796138
+          619512767
         ]
-      }
+      },
+      "taxonomy": [
+        {
+          "taxonomyId": "whf6kUVBwk2xdwKUmRYN6G",
+          "taxonomyName": "Animation Bundle"
+        }
+      ],
+      "itemCreatedUtc": "2018-08-14T04:45:32.56Z",
+      "id": 83,
+      "itemType": "Bundle",
+      "bundleType": 2,
+      "name": "Stylish Animation Pack",
+      "description": "This animation pack only works with R15 avatars. Stylish, yet practical.",
+      "productId": 7065144520947721,
+      "itemStatus": [],
+      "itemRestrictions": [],
+      "creatorHasVerifiedBadge": true,
+      "creatorType": "User",
+      "creatorTargetId": 1,
+      "creatorName": "Roblox",
+      "price": 80,
+      "lowestPrice": 80,
+      "lowestResalePrice": 0,
+      "unitsAvailableForConsumption": 0,
+      "favoriteCount": 3512848,
+      "offSaleDeadline": null,
+      "collectibleItemId": "d8517bb3-eff1-466f-be38-2dbc43a86b9f",
+      "totalQuantity": 0,
+      "saleLocationType": "ShopAndAllExperiences",
+      "hasResellers": false
     },
     {
-      "id": 331856,
-      "name": "Bold Animation Pack by e.l.f.",
       "bundledItems": {
         "1": [
-          16744204409
+          135810009801094
         ],
         "2": [
-          16744207822
+          83937116921114
         ],
         "3": [
-          16744209868
+          130373407996664
         ],
         "4": [
-          16744212581
+          101839542383818
         ],
         "5": [
-          16744214662
+          136276875045281
         ],
         "6": [
-          16744217055
+          128475661806875
         ],
         "7": [
-          16744219182
+          133304526526319
         ]
-      }
+      },
+      "taxonomy": [
+        {
+          "taxonomyId": "whf6kUVBwk2xdwKUmRYN6G",
+          "taxonomyName": "Animation Bundle"
+        }
+      ],
+      "itemCreatedUtc": "2024-11-13T01:57:46.549Z",
+      "id": 1189398,
+      "itemType": "Bundle",
+      "bundleType": 2,
+      "name": "Wicked Popular Animation Pack",
+      "description": "Featuring \"Toss, Toss\" \r\n©2024 UNIVERSAL PICTURES ALL RIGHTS RESERVED \r\nBecome a magical witch and defy gravity in the immersive RP experience: http://www.roblox.com/wicked",
+      "productId": 1317662791304211,
+      "itemStatus": [],
+      "itemRestrictions": [],
+      "creatorHasVerifiedBadge": true,
+      "creatorType": "User",
+      "creatorTargetId": 1,
+      "creatorName": "Roblox",
+      "price": 200,
+      "lowestPrice": 200,
+      "lowestResalePrice": 0,
+      "unitsAvailableForConsumption": 0,
+      "favoriteCount": 1161933,
+      "offSaleDeadline": null,
+      "collectibleItemId": "75fb2f02-fd05-4700-800d-ee38cce0764f",
+      "totalQuantity": 0,
+      "saleLocationType": "ShopAndAllExperiences",
+      "hasResellers": false
     },
     {
-      "id": 56,
-      "name": "Cartoony Animation Package",
       "bundledItems": {
         "1": [
-          837009922
+          619521311
         ],
         "2": [
-          837010234
+          619521521
         ],
         "3": [
-          837010685
+          619521748
         ],
         "4": [
-          837011171
+          619522088
         ],
         "5": [
-          837011741
+          619522386
         ],
         "6": [
-          837012509
+          619522642
         ],
         "7": [
-          837013990
+          619522849
         ]
-      }
+      },
+      "taxonomy": [
+        {
+          "taxonomyId": "whf6kUVBwk2xdwKUmRYN6G",
+          "taxonomyName": "Animation Bundle"
+        }
+      ],
+      "itemCreatedUtc": "2018-08-14T04:45:32.5Z",
+      "id": 82,
+      "itemType": "Bundle",
+      "bundleType": 2,
+      "name": "Robot Animation Pack",
+      "description": "This animation pack only works with R15 avatars. Loves heavy metal, but he only knows one dance. ",
+      "productId": 8429510719773869,
+      "itemStatus": [],
+      "itemRestrictions": [],
+      "creatorHasVerifiedBadge": true,
+      "creatorType": "User",
+      "creatorTargetId": 1,
+      "creatorName": "Roblox",
+      "price": 80,
+      "lowestPrice": 80,
+      "lowestResalePrice": 0,
+      "unitsAvailableForConsumption": 0,
+      "favoriteCount": 1865007,
+      "offSaleDeadline": null,
+      "collectibleItemId": "35a9feca-9502-4c10-ae72-d0ad3120e35f",
+      "totalQuantity": 0,
+      "saleLocationType": "ShopAndAllExperiences",
+      "hasResellers": false
     },
     {
-      "id": 39,
-      "name": "Bubbly Animation Package",
-      "bundledItems": {
-        "1": [
-          1018554245
-        ],
-        "2": [
-          1018553897
-        ],
-        "3": [
-          1018553240
-        ],
-        "4": [
-          1018552770
-        ],
-        "5": [
-          1018549681
-        ],
-        "6": [
-          1018548665
-        ],
-        "7": [
-          1018554668
-        ]
-      }
-    },
-    {
-      "id": 48,
-      "name": "Elder Animation Package",
-      "bundledItems": {
-        "1": [
-          892267099
-        ],
-        "2": [
-          892267521
-        ],
-        "3": [
-          892267917
-        ],
-        "4": [
-          892268340
-        ],
-        "5": [
-          892268710
-        ],
-        "6": [
-          892269341
-        ],
-        "7": [
-          892265784
-        ]
-      }
-    },
-    {
-      "id": 33,
-      "name": "Vampire Animation Pack",
-      "bundledItems": {
-        "1": [
-          1113740510
-        ],
-        "2": [
-          1113741192
-        ],
-        "3": [
-          1113742092
-        ],
-        "4": [
-          1113742359
-        ],
-        "5": [
-          1113742618
-        ],
-        "6": [
-          1113742944
-        ],
-        "7": [
-          1113743239
-        ]
-      }
-    },
-    {
-      "id": 75,
-      "name": "Ninja Animation Package",
-      "bundledItems": {
-        "1": [
-          658830056
-        ],
-        "2": [
-          658831143
-        ],
-        "3": [
-          658831500
-        ],
-        "4": [
-          658832070
-        ],
-        "5": [
-          658832408
-        ],
-        "6": [
-          658832807
-        ],
-        "7": [
-          658833139
-        ]
-      }
-    },
-    {
-      "id": 455003,
-      "name": "No Boundaries Animation Pack by Walmart",
-      "bundledItems": {
-        "1": [
-          18755919175
-        ],
-        "2": [
-          18755922352
-        ],
-        "3": [
-          18755930927
-        ],
-        "4": [
-          18755925411
-        ],
-        "5": [
-          18755933883
-        ],
-        "6": [
-          18755938274
-        ],
-        "7": [
-          18755942776
-        ]
-      }
-    },
-    {
-      "id": 4128695,
-      "name": "Wicked \"Dancing Through Life\" Animation Pack",
-      "bundledItems": {
-        "1": [
-          123509187015792
-        ],
-        "2": [
-          124742764102674
-        ],
-        "3": [
-          79789194522561
-        ],
-        "4": [
-          111157411630082
-        ],
-        "5": [
-          82682578794949
-        ],
-        "6": [
-          135050138303161
-        ],
-        "7": [
-          94133616443608
-        ]
-      }
-    },
-    {
-      "id": 81,
-      "name": "Superhero Animation Pack",
-      "bundledItems": {
-        "1": [
-          619527470
-        ],
-        "2": [
-          619527817
-        ],
-        "3": [
-          619528125
-        ],
-        "4": [
-          619528412
-        ],
-        "5": [
-          619528716
-        ],
-        "6": [
-          619529095
-        ],
-        "7": [
-          619529601
-        ]
-      }
-    },
-    {
-      "id": 79,
-      "name": "Levitation Animation Pack",
-      "bundledItems": {
-        "1": [
-          619541458
-        ],
-        "2": [
-          619541867
-        ],
-        "3": [
-          619542203
-        ],
-        "4": [
-          619542888
-        ],
-        "5": [
-          619543231
-        ],
-        "6": [
-          619543721
-        ],
-        "7": [
-          619544080
-        ]
-      }
-    },
-    {
-      "id": 932296,
-      "name": "NFL Animation Pack",
-      "bundledItems": {
-        "1": [
-          122757794615785
-        ],
-        "2": [
-          123307994439772
-        ],
-        "3": [
-          101094325978637
-        ],
-        "4": [
-          140600227095432
-        ],
-        "5": [
-          84823630062362
-        ],
-        "6": [
-          136750772888868
-        ],
-        "7": [
-          120071305586627
-        ]
-      }
-    },
-    {
-      "id": 32,
-      "name": "Werewolf Animation Pack",
-      "bundledItems": {
-        "1": [
-          1113750642
-        ],
-        "2": [
-          1113751657
-        ],
-        "3": [
-          1113751889
-        ],
-        "4": [
-          1113752285
-        ],
-        "5": [
-          1113752682
-        ],
-        "6": [
-          1113752975
-        ],
-        "7": [
-          1113754738
-        ]
-      }
-    },
-    {
-      "id": 68,
-      "name": "Knight Animation Package",
-      "bundledItems": {
-        "1": [
-          734325948
-        ],
-        "2": [
-          734326330
-        ],
-        "3": [
-          734326679
-        ],
-        "4": [
-          734326930
-        ],
-        "5": [
-          734327140
-        ],
-        "6": [
-          734327363
-        ],
-        "7": [
-          734329002
-        ]
-      }
-    },
-    {
-      "id": 34,
-      "name": "Astronaut Animation Pack",
-      "bundledItems": {
-        "1": [
-          1090130630
-        ],
-        "2": [
-          1090131576
-        ],
-        "3": [
-          1090132063
-        ],
-        "4": [
-          1090132507
-        ],
-        "5": [
-          1090133099
-        ],
-        "6": [
-          1090133583
-        ],
-        "7": [
-          1090134016
-        ]
-      }
-    },
-    {
-      "id": 55,
-      "name": "Pirate Animation Package",
-      "bundledItems": {
-        "1": [
-          837023444
-        ],
-        "2": [
-          837023892
-        ],
-        "3": [
-          837024147
-        ],
-        "4": [
-          837024350
-        ],
-        "5": [
-          837024662
-        ],
-        "6": [
-          837025054
-        ],
-        "7": [
-          837025325
-        ]
-      }
-    },
-    {
-      "id": 4725295,
-      "name": "Glow Motion",
       "bundledItems": {
         "1": [
           122281742555667
@@ -784,38 +405,92 @@
         "7": [
           124733969277188
         ]
-      }
+      },
+      "taxonomy": [
+        {
+          "taxonomyId": "whf6kUVBwk2xdwKUmRYN6G",
+          "taxonomyName": "Animation Bundle"
+        }
+      ],
+      "itemCreatedUtc": "2026-03-17T16:44:50.637Z",
+      "id": 4725295,
+      "itemType": "Bundle",
+      "bundleType": 2,
+      "name": "Glow Motion Animation Pack",
+      "description": "The animation pack that turns every step into a statement.",
+      "productId": 654119167791330,
+      "itemStatus": [],
+      "itemRestrictions": [],
+      "creatorHasVerifiedBadge": true,
+      "creatorType": "User",
+      "creatorTargetId": 1,
+      "creatorName": "Roblox",
+      "price": 250,
+      "lowestPrice": 250,
+      "lowestResalePrice": 0,
+      "unitsAvailableForConsumption": 0,
+      "favoriteCount": 170192,
+      "offSaleDeadline": null,
+      "collectibleItemId": "e01c0ff5-1898-45f5-8ff7-db04adf4c796",
+      "totalQuantity": 0,
+      "saleLocationType": "ShopAndAllExperiences",
+      "hasResellers": false
     },
     {
-      "id": 4974195,
-      "name": "KATSEYE Animation Pack",
       "bundledItems": {
         "1": [
-          130399277423748
+          754635032
         ],
         "2": [
-          84737112249504
+          754636298
         ],
         "3": [
-          125286451593779
+          754636589
         ],
         "4": [
-          121868657321572
+          754637084
         ],
         "5": [
-          140179859838109
+          754637456
         ],
         "6": [
-          87465102258861
+          754638471
         ],
         "7": [
-          105967194765350
+          754639239
         ]
-      }
+      },
+      "taxonomy": [
+        {
+          "taxonomyId": "whf6kUVBwk2xdwKUmRYN6G",
+          "taxonomyName": "Animation Bundle"
+        }
+      ],
+      "itemCreatedUtc": "2018-08-14T04:45:31.16Z",
+      "id": 63,
+      "itemType": "Bundle",
+      "bundleType": 2,
+      "name": "Mage Animation Package",
+      "description": "This animation pack only works with R15 avatars. This guy is spellbinding - his magic show really put a spell on me!",
+      "productId": 6818529587397678,
+      "itemStatus": [],
+      "itemRestrictions": [],
+      "creatorHasVerifiedBadge": true,
+      "creatorType": "User",
+      "creatorTargetId": 1,
+      "creatorName": "Roblox",
+      "price": 250,
+      "lowestPrice": 250,
+      "lowestResalePrice": 0,
+      "unitsAvailableForConsumption": 0,
+      "favoriteCount": 1138028,
+      "offSaleDeadline": null,
+      "collectibleItemId": "8da7aeb2-27f0-492d-818f-8f495f7660cc",
+      "totalQuantity": 0,
+      "saleLocationType": "ShopAndAllExperiences",
+      "hasResellers": false
     },
     {
-      "id": 5134295,
-      "name": "Billie Eilish Animation Pack",
       "bundledItems": {
         "1": [
           95937554524959
@@ -838,7 +513,1116 @@
         "7": [
           74056522836252
         ]
-      }
+      },
+      "taxonomy": [
+        {
+          "taxonomyId": "whf6kUVBwk2xdwKUmRYN6G",
+          "taxonomyName": "Animation Bundle"
+        }
+      ],
+      "itemCreatedUtc": "2026-05-04T04:55:19.783Z",
+      "id": 5134295,
+      "itemType": "Bundle",
+      "bundleType": 2,
+      "name": "Billie Eilish Animation Pack",
+      "description": "Check out Billie's limited-time Roblox event:\r\nhttps://www.roblox.com/events/1496100726252896924\r\n\r\n💙 Billie Eilish Official Collection — shop more: www.roblox.com/catalog?Keyword=Billie&taxonomy=tZsUsd2BqGViQrJ9Vs3Wah&CreatorName=Interscope+Records+Official&salesTypeFilter=1&SortType=2&SortAggregation=1\r\n\r\nMade by TOPCAT",
+      "productId": 5367488913991954,
+      "itemStatus": [],
+      "itemRestrictions": [],
+      "creatorHasVerifiedBadge": true,
+      "creatorType": "User",
+      "creatorTargetId": 1,
+      "creatorName": "Roblox",
+      "price": 250,
+      "lowestPrice": 250,
+      "lowestResalePrice": 0,
+      "unitsAvailableForConsumption": 0,
+      "favoriteCount": 8163,
+      "offSaleDeadline": null,
+      "collectibleItemId": "4cac4b2b-5ca1-49ca-99c0-403dd16dc688",
+      "totalQuantity": 0,
+      "saleLocationType": "ShopAndAllExperiences",
+      "hasResellers": false
+    },
+    {
+      "bundledItems": {
+        "1": [
+          117011755848398
+        ],
+        "2": [
+          125108870423182
+        ],
+        "3": [
+          110418911914024
+        ],
+        "4": [
+          114998633936467
+        ],
+        "5": [
+          82219139681769
+        ],
+        "6": [
+          137392271797713
+        ],
+        "7": [
+          128339543796138
+        ]
+      },
+      "taxonomy": [
+        {
+          "taxonomyId": "whf6kUVBwk2xdwKUmRYN6G",
+          "taxonomyName": "Animation Bundle"
+        }
+      ],
+      "itemCreatedUtc": "2025-11-20T02:34:23.003Z",
+      "id": 4164795,
+      "itemType": "Bundle",
+      "bundleType": 2,
+      "name": "Amazon Unboxed Animation Pack",
+      "description": "Open the box and unleash: speed-runs, wobbly walks, dramatic jumps, and everything in between.",
+      "productId": 4353068770001354,
+      "itemStatus": [],
+      "itemRestrictions": [],
+      "creatorHasVerifiedBadge": true,
+      "creatorType": "User",
+      "creatorTargetId": 1,
+      "creatorName": "Roblox",
+      "price": 250,
+      "lowestPrice": 250,
+      "lowestResalePrice": 0,
+      "unitsAvailableForConsumption": 0,
+      "favoriteCount": 143741,
+      "offSaleDeadline": null,
+      "collectibleItemId": "cbd96275-6e64-4b4f-aec2-4c2f82af93d3",
+      "totalQuantity": 0,
+      "saleLocationType": "ShopAndAllExperiences",
+      "hasResellers": false
+    },
+    {
+      "bundledItems": {
+        "1": [
+          619535091
+        ],
+        "2": [
+          619535616
+        ],
+        "3": [
+          619535834
+        ],
+        "4": [
+          619536283
+        ],
+        "5": [
+          619536621
+        ],
+        "6": [
+          619537096
+        ],
+        "7": [
+          619537468
+        ]
+      },
+      "taxonomy": [
+        {
+          "taxonomyId": "whf6kUVBwk2xdwKUmRYN6G",
+          "taxonomyName": "Animation Bundle"
+        }
+      ],
+      "itemCreatedUtc": "2018-08-14T04:45:32.373Z",
+      "id": 80,
+      "itemType": "Bundle",
+      "bundleType": 2,
+      "name": "Zombie Animation Pack",
+      "description": "This animation pack only works with R15 avatars. Are you a fast zombie or a slow zombie? Yes.",
+      "productId": 7460034106427035,
+      "itemStatus": [],
+      "itemRestrictions": [],
+      "creatorHasVerifiedBadge": true,
+      "creatorType": "User",
+      "creatorTargetId": 1,
+      "creatorName": "Roblox",
+      "price": 500,
+      "lowestPrice": 500,
+      "lowestResalePrice": 0,
+      "unitsAvailableForConsumption": 0,
+      "favoriteCount": 1249267,
+      "offSaleDeadline": null,
+      "collectibleItemId": "d00d32a1-d77c-4777-ae42-53d87522d55f",
+      "totalQuantity": 0,
+      "saleLocationType": "ShopAndAllExperiences",
+      "hasResellers": false
+    },
+    {
+      "bundledItems": {
+        "1": [
+          104741822987331
+        ],
+        "2": [
+          72706690305027
+        ],
+        "3": [
+          138641066989023
+        ],
+        "4": [
+          75036746190467
+        ],
+        "5": [
+          101279640971758
+        ],
+        "6": [
+          112231179705221
+        ],
+        "7": [
+          103190462987721
+        ]
+      },
+      "taxonomy": [
+        {
+          "taxonomyId": "whf6kUVBwk2xdwKUmRYN6G",
+          "taxonomyName": "Animation Bundle"
+        }
+      ],
+      "itemCreatedUtc": "2024-12-19T18:18:08.804Z",
+      "id": 1601900,
+      "itemType": "Bundle",
+      "bundleType": 2,
+      "name": "Catwalk Glam Animation Pack by e.l.f.",
+      "description": "Go full glam or death drop on the runway, we won't judge 😉",
+      "productId": 6875554877917645,
+      "itemStatus": [],
+      "itemRestrictions": [],
+      "creatorHasVerifiedBadge": true,
+      "creatorType": "User",
+      "creatorTargetId": 1,
+      "creatorName": "Roblox",
+      "price": 250,
+      "lowestPrice": 250,
+      "lowestResalePrice": 0,
+      "unitsAvailableForConsumption": 0,
+      "favoriteCount": 327735,
+      "offSaleDeadline": null,
+      "collectibleItemId": "ede83267-97c2-4c0f-a02b-7346d2985061",
+      "totalQuantity": 0,
+      "saleLocationType": "ShopAndAllExperiences",
+      "hasResellers": false
+    },
+    {
+      "bundledItems": {
+        "1": [
+          18538133604
+        ],
+        "2": [
+          18538146480
+        ],
+        "3": [
+          18538150608
+        ],
+        "4": [
+          18538153691
+        ],
+        "5": [
+          18538158932
+        ],
+        "6": [
+          18538164337
+        ],
+        "7": [
+          18538170170
+        ]
+      },
+      "taxonomy": [
+        {
+          "taxonomyId": "whf6kUVBwk2xdwKUmRYN6G",
+          "taxonomyName": "Animation Bundle"
+        }
+      ],
+      "itemCreatedUtc": "2024-07-17T20:42:59.823Z",
+      "id": 427999,
+      "itemType": "Bundle",
+      "bundleType": 2,
+      "name": "adidas Sports Animation Pack",
+      "description": "Walk like a winner, swim like a worm, float like a...floaty? With this pack you become a true Roblox Athlete! Check out: https://www.roblox.com/games/15843961264/adidas-Outfit-Creator",
+      "productId": 5740554516327710,
+      "itemStatus": [],
+      "itemRestrictions": [],
+      "creatorHasVerifiedBadge": true,
+      "creatorType": "User",
+      "creatorTargetId": 1,
+      "creatorName": "Roblox",
+      "price": 250,
+      "lowestPrice": 250,
+      "lowestResalePrice": 0,
+      "unitsAvailableForConsumption": 0,
+      "favoriteCount": 772512,
+      "offSaleDeadline": null,
+      "collectibleItemId": "7b5c7d01-acf8-4328-b4ae-cc9ff0d8beb8",
+      "totalQuantity": 0,
+      "saleLocationType": "ShopAndAllExperiences",
+      "hasResellers": false
+    },
+    {
+      "bundledItems": {
+        "1": [
+          130399277423748
+        ],
+        "2": [
+          84737112249504
+        ],
+        "3": [
+          125286451593779
+        ],
+        "4": [
+          121868657321572
+        ],
+        "5": [
+          140179859838109
+        ],
+        "6": [
+          87465102258861
+        ],
+        "7": [
+          105967194765350
+        ]
+      },
+      "taxonomy": [
+        {
+          "taxonomyId": "whf6kUVBwk2xdwKUmRYN6G",
+          "taxonomyName": "Animation Bundle"
+        }
+      ],
+      "itemCreatedUtc": "2026-04-15T23:36:34.66Z",
+      "id": 4974195,
+      "itemType": "Bundle",
+      "bundleType": 2,
+      "name": "KATSEYE Animation Pack",
+      "description": "✨EYEKONIC!\r\n✨Find more KATSEYE Official Items here: https://www.roblox.com/communities/322509179/EYEKONS-world#!/store",
+      "productId": 7444898648459704,
+      "itemStatus": [],
+      "itemRestrictions": [],
+      "creatorHasVerifiedBadge": true,
+      "creatorType": "User",
+      "creatorTargetId": 1,
+      "creatorName": "Roblox",
+      "price": 250,
+      "lowestPrice": 250,
+      "lowestResalePrice": 0,
+      "unitsAvailableForConsumption": 0,
+      "favoriteCount": 28177,
+      "offSaleDeadline": null,
+      "collectibleItemId": "0e5f7aeb-143e-48cc-8690-c128da6bb113",
+      "totalQuantity": 0,
+      "saleLocationType": "ShopAndAllExperiences",
+      "hasResellers": false
+    },
+    {
+      "bundledItems": {
+        "1": [
+          973766674
+        ],
+        "2": [
+          973767371
+        ],
+        "3": [
+          973768058
+        ],
+        "4": [
+          973770652
+        ],
+        "5": [
+          973771666
+        ],
+        "6": [
+          973772659
+        ],
+        "7": [
+          973773170
+        ]
+      },
+      "taxonomy": [
+        {
+          "taxonomyId": "whf6kUVBwk2xdwKUmRYN6G",
+          "taxonomyName": "Animation Bundle"
+        }
+      ],
+      "itemCreatedUtc": "2018-08-14T04:45:29.707Z",
+      "id": 43,
+      "itemType": "Bundle",
+      "bundleType": 2,
+      "name": "Toy Animation Pack",
+      "description": "This animation pack only works with R15 avatars. It feels fantastic to be made of plastic.",
+      "productId": 8219948665726147,
+      "itemStatus": [],
+      "itemRestrictions": [],
+      "creatorHasVerifiedBadge": true,
+      "creatorType": "User",
+      "creatorTargetId": 1,
+      "creatorName": "Roblox",
+      "price": 250,
+      "lowestPrice": 250,
+      "lowestResalePrice": 0,
+      "unitsAvailableForConsumption": 0,
+      "favoriteCount": 2877398,
+      "offSaleDeadline": null,
+      "collectibleItemId": "61efeb0f-1719-408d-826e-45cffaaba740",
+      "totalQuantity": 0,
+      "saleLocationType": "ShopAndAllExperiences",
+      "hasResellers": false
+    },
+    {
+      "bundledItems": {
+        "1": [
+          16744204409
+        ],
+        "2": [
+          16744207822
+        ],
+        "3": [
+          16744209868
+        ],
+        "4": [
+          16744212581
+        ],
+        "5": [
+          16744214662
+        ],
+        "6": [
+          16744217055
+        ],
+        "7": [
+          16744219182
+        ]
+      },
+      "taxonomy": [
+        {
+          "taxonomyId": "whf6kUVBwk2xdwKUmRYN6G",
+          "taxonomyName": "Animation Bundle"
+        }
+      ],
+      "itemCreatedUtc": "2024-03-19T16:16:10.873Z",
+      "id": 331856,
+      "itemType": "Bundle",
+      "bundleType": 2,
+      "name": "Bold Animation Pack by e.l.f.",
+      "description": "This animation pack shows you can be bold everywhere, anywhere, with any avatar. Brought to you by e.l.f. UP: https://www.roblox.com/games/15218427871",
+      "productId": 2977352377333129,
+      "itemStatus": [],
+      "itemRestrictions": [],
+      "creatorHasVerifiedBadge": true,
+      "creatorType": "User",
+      "creatorTargetId": 1,
+      "creatorName": "Roblox",
+      "price": 200,
+      "lowestPrice": 200,
+      "lowestResalePrice": 0,
+      "unitsAvailableForConsumption": 0,
+      "favoriteCount": 1278218,
+      "offSaleDeadline": null,
+      "collectibleItemId": "f4d091f8-a21b-48ce-b7be-5b95f73e898c",
+      "totalQuantity": 0,
+      "saleLocationType": "ShopAndAllExperiences",
+      "hasResellers": false
+    },
+    {
+      "bundledItems": {
+        "1": [
+          837009922
+        ],
+        "2": [
+          837010234
+        ],
+        "3": [
+          837010685
+        ],
+        "4": [
+          837011171
+        ],
+        "5": [
+          837011741
+        ],
+        "6": [
+          837012509
+        ],
+        "7": [
+          837013990
+        ]
+      },
+      "taxonomy": [
+        {
+          "taxonomyId": "whf6kUVBwk2xdwKUmRYN6G",
+          "taxonomyName": "Animation Bundle"
+        }
+      ],
+      "itemCreatedUtc": "2018-08-14T04:45:30.567Z",
+      "id": 56,
+      "itemType": "Bundle",
+      "bundleType": 2,
+      "name": "Cartoony Animation Package",
+      "description": "This animation pack only works with R15 avatars. Golly, seems like its going to be a swell day! ",
+      "productId": 6517313573470948,
+      "itemStatus": [],
+      "itemRestrictions": [],
+      "creatorHasVerifiedBadge": true,
+      "creatorType": "User",
+      "creatorTargetId": 1,
+      "creatorName": "Roblox",
+      "price": 250,
+      "lowestPrice": 250,
+      "lowestResalePrice": 0,
+      "unitsAvailableForConsumption": 0,
+      "favoriteCount": 1589251,
+      "offSaleDeadline": null,
+      "collectibleItemId": "3f28509d-8743-4296-9c28-4eca3ef39c6a",
+      "totalQuantity": 0,
+      "saleLocationType": "ShopAndAllExperiences",
+      "hasResellers": false
+    },
+    {
+      "bundledItems": {
+        "1": [
+          892267099
+        ],
+        "2": [
+          892267521
+        ],
+        "3": [
+          892267917
+        ],
+        "4": [
+          892268340
+        ],
+        "5": [
+          892268710
+        ],
+        "6": [
+          892269341
+        ],
+        "7": [
+          892265784
+        ]
+      },
+      "taxonomy": [
+        {
+          "taxonomyId": "whf6kUVBwk2xdwKUmRYN6G",
+          "taxonomyName": "Animation Bundle"
+        }
+      ],
+      "itemCreatedUtc": "2018-08-14T04:45:30.033Z",
+      "id": 48,
+      "itemType": "Bundle",
+      "bundleType": 2,
+      "name": "Elder Animation Package",
+      "description": "This animation pack only works with R15 avatars. Have some respect for your elders! Back in my day... ",
+      "productId": 2589385459014048,
+      "itemStatus": [],
+      "itemRestrictions": [],
+      "creatorHasVerifiedBadge": true,
+      "creatorType": "User",
+      "creatorTargetId": 1,
+      "creatorName": "Roblox",
+      "price": 250,
+      "lowestPrice": 250,
+      "lowestResalePrice": 0,
+      "unitsAvailableForConsumption": 0,
+      "favoriteCount": 550329,
+      "offSaleDeadline": null,
+      "collectibleItemId": "e3a46c0e-8c77-4e98-80af-651ff93bfb9d",
+      "totalQuantity": 0,
+      "saleLocationType": "ShopAndAllExperiences",
+      "hasResellers": false
+    },
+    {
+      "bundledItems": {
+        "1": [
+          1018554245
+        ],
+        "2": [
+          1018553897
+        ],
+        "3": [
+          1018553240
+        ],
+        "4": [
+          1018552770
+        ],
+        "5": [
+          1018549681
+        ],
+        "6": [
+          1018548665
+        ],
+        "7": [
+          1018554668
+        ]
+      },
+      "taxonomy": [
+        {
+          "taxonomyId": "whf6kUVBwk2xdwKUmRYN6G",
+          "taxonomyName": "Animation Bundle"
+        }
+      ],
+      "itemCreatedUtc": "2018-08-14T04:45:29.423Z",
+      "id": 39,
+      "itemType": "Bundle",
+      "bundleType": 2,
+      "name": "Bubbly Animation Package",
+      "description": "This animation pack only works with R15 avatars. Bouncy and bubbly, I'm on top of the world! ",
+      "productId": 120487842729587,
+      "itemStatus": [],
+      "itemRestrictions": [],
+      "creatorHasVerifiedBadge": true,
+      "creatorType": "User",
+      "creatorTargetId": 1,
+      "creatorName": "Roblox",
+      "price": 250,
+      "lowestPrice": 250,
+      "lowestResalePrice": 0,
+      "unitsAvailableForConsumption": 0,
+      "favoriteCount": 1573991,
+      "offSaleDeadline": null,
+      "collectibleItemId": "21c7a129-6e58-4e7f-a168-12cea68f8811",
+      "totalQuantity": 0,
+      "saleLocationType": "ShopAndAllExperiences",
+      "hasResellers": false
+    },
+    {
+      "bundledItems": {
+        "1": [
+          1113740510
+        ],
+        "2": [
+          1113741192
+        ],
+        "3": [
+          1113742092
+        ],
+        "4": [
+          1113742359
+        ],
+        "5": [
+          1113742618
+        ],
+        "6": [
+          1113742944
+        ],
+        "7": [
+          1113743239
+        ]
+      },
+      "taxonomy": [
+        {
+          "taxonomyId": "whf6kUVBwk2xdwKUmRYN6G",
+          "taxonomyName": "Animation Bundle"
+        }
+      ],
+      "itemCreatedUtc": "2018-08-14T04:45:28.94Z",
+      "id": 33,
+      "itemType": "Bundle",
+      "bundleType": 2,
+      "name": "Vampire Animation Pack",
+      "description": "This animation pack only works with R15 avatars. Hanging out with vampires can be a real pain in the neck.",
+      "productId": 8000044353661768,
+      "itemStatus": [],
+      "itemRestrictions": [],
+      "creatorHasVerifiedBadge": true,
+      "creatorType": "User",
+      "creatorTargetId": 1,
+      "creatorName": "Roblox",
+      "price": 500,
+      "lowestPrice": 500,
+      "lowestResalePrice": 0,
+      "unitsAvailableForConsumption": 0,
+      "favoriteCount": 586327,
+      "offSaleDeadline": null,
+      "collectibleItemId": "0a4d334a-3ae5-4d0f-b147-0cc2fb3a1b1a",
+      "totalQuantity": 0,
+      "saleLocationType": "ShopAndAllExperiences",
+      "hasResellers": false
+    },
+    {
+      "bundledItems": {
+        "1": [
+          658830056
+        ],
+        "2": [
+          658831143
+        ],
+        "3": [
+          658831500
+        ],
+        "4": [
+          658832070
+        ],
+        "5": [
+          658832408
+        ],
+        "6": [
+          658832807
+        ],
+        "7": [
+          658833139
+        ]
+      },
+      "taxonomy": [
+        {
+          "taxonomyId": "whf6kUVBwk2xdwKUmRYN6G",
+          "taxonomyName": "Animation Bundle"
+        }
+      ],
+      "itemCreatedUtc": "2018-08-14T04:45:32.043Z",
+      "id": 75,
+      "itemType": "Bundle",
+      "bundleType": 2,
+      "name": "Ninja Animation Package",
+      "description": "This animation pack only works with R15 avatars. Swift as an arrow, silent as a cloud. The best ninja is the one you never detect. ",
+      "productId": 8261541356393346,
+      "itemStatus": [],
+      "itemRestrictions": [],
+      "creatorHasVerifiedBadge": true,
+      "creatorType": "User",
+      "creatorTargetId": 1,
+      "creatorName": "Roblox",
+      "price": 750,
+      "lowestPrice": 750,
+      "lowestResalePrice": 0,
+      "unitsAvailableForConsumption": 0,
+      "favoriteCount": 1655274,
+      "offSaleDeadline": null,
+      "collectibleItemId": "3fee3b9b-8073-4035-9504-427a7ad48e49",
+      "totalQuantity": 0,
+      "saleLocationType": "ShopAndAllExperiences",
+      "hasResellers": false
+    },
+    {
+      "bundledItems": {
+        "1": [
+          18755919175
+        ],
+        "2": [
+          18755922352
+        ],
+        "3": [
+          18755930927
+        ],
+        "4": [
+          18755925411
+        ],
+        "5": [
+          18755933883
+        ],
+        "6": [
+          18755938274
+        ],
+        "7": [
+          18755942776
+        ]
+      },
+      "taxonomy": [
+        {
+          "taxonomyId": "whf6kUVBwk2xdwKUmRYN6G",
+          "taxonomyName": "Animation Bundle"
+        }
+      ],
+      "itemCreatedUtc": "2024-08-01T19:22:51.645Z",
+      "id": 455003,
+      "itemType": "Bundle",
+      "bundleType": 2,
+      "name": "No Boundaries Animation Pack by Walmart",
+      "description": "Move without limits with the No Boundaries Animation Pack by Walmart.",
+      "productId": 6750852496666005,
+      "itemStatus": [],
+      "itemRestrictions": [],
+      "creatorHasVerifiedBadge": true,
+      "creatorType": "User",
+      "creatorTargetId": 1,
+      "creatorName": "Roblox",
+      "price": 200,
+      "lowestPrice": 200,
+      "lowestResalePrice": 0,
+      "unitsAvailableForConsumption": 0,
+      "favoriteCount": 304475,
+      "offSaleDeadline": null,
+      "collectibleItemId": "28b69dd8-0a0f-4734-be7d-23d6722e01f6",
+      "totalQuantity": 0,
+      "saleLocationType": "ShopAndAllExperiences",
+      "hasResellers": false
+    },
+    {
+      "bundledItems": {
+        "1": [
+          619527470
+        ],
+        "2": [
+          619527817
+        ],
+        "3": [
+          619528125
+        ],
+        "4": [
+          619528412
+        ],
+        "5": [
+          619528716
+        ],
+        "6": [
+          619529095
+        ],
+        "7": [
+          619529601
+        ]
+      },
+      "taxonomy": [
+        {
+          "taxonomyId": "whf6kUVBwk2xdwKUmRYN6G",
+          "taxonomyName": "Animation Bundle"
+        }
+      ],
+      "itemCreatedUtc": "2018-08-14T04:45:32.437Z",
+      "id": 81,
+      "itemType": "Bundle",
+      "bundleType": 2,
+      "name": "Superhero Animation Pack",
+      "description": "This animation pack only works with R15 avatars. Faster than a train, jumps higher than the Roblox HQ!",
+      "productId": 7941175013555213,
+      "itemStatus": [],
+      "itemRestrictions": [],
+      "creatorHasVerifiedBadge": true,
+      "creatorType": "User",
+      "creatorTargetId": 1,
+      "creatorName": "Roblox",
+      "price": 250,
+      "lowestPrice": 250,
+      "lowestResalePrice": 0,
+      "unitsAvailableForConsumption": 0,
+      "favoriteCount": 581686,
+      "offSaleDeadline": null,
+      "collectibleItemId": "f03883d0-08b1-4777-b8a4-d83a5be0975c",
+      "totalQuantity": 0,
+      "saleLocationType": "ShopAndAllExperiences",
+      "hasResellers": false
+    },
+    {
+      "bundledItems": {
+        "1": [
+          619541458
+        ],
+        "2": [
+          619541867
+        ],
+        "3": [
+          619542203
+        ],
+        "4": [
+          619542888
+        ],
+        "5": [
+          619543231
+        ],
+        "6": [
+          619543721
+        ],
+        "7": [
+          619544080
+        ]
+      },
+      "taxonomy": [
+        {
+          "taxonomyId": "whf6kUVBwk2xdwKUmRYN6G",
+          "taxonomyName": "Animation Bundle"
+        }
+      ],
+      "itemCreatedUtc": "2018-08-14T04:45:32.31Z",
+      "id": 79,
+      "itemType": "Bundle",
+      "bundleType": 2,
+      "name": "Levitation Animation Pack",
+      "description": "This animation pack only works with R15 avatars. Who wants to run when you can fly?  ",
+      "productId": 4330660115453266,
+      "itemStatus": [],
+      "itemRestrictions": [],
+      "creatorHasVerifiedBadge": true,
+      "creatorType": "User",
+      "creatorTargetId": 1,
+      "creatorName": "Roblox",
+      "price": 1000,
+      "lowestPrice": 1000,
+      "lowestResalePrice": 0,
+      "unitsAvailableForConsumption": 0,
+      "favoriteCount": 533090,
+      "offSaleDeadline": null,
+      "collectibleItemId": "730e92a1-88d5-4cd4-aa76-94b711684c47",
+      "totalQuantity": 0,
+      "saleLocationType": "ShopAndAllExperiences",
+      "hasResellers": false
+    },
+    {
+      "bundledItems": {
+        "1": [
+          123509187015792
+        ],
+        "2": [
+          124742764102674
+        ],
+        "3": [
+          79789194522561
+        ],
+        "4": [
+          111157411630082
+        ],
+        "5": [
+          82682578794949
+        ],
+        "6": [
+          135050138303161
+        ],
+        "7": [
+          94133616443608
+        ]
+      },
+      "taxonomy": [
+        {
+          "taxonomyId": "whf6kUVBwk2xdwKUmRYN6G",
+          "taxonomyName": "Animation Bundle"
+        }
+      ],
+      "itemCreatedUtc": "2025-11-14T21:48:53.738Z",
+      "id": 4128695,
+      "itemType": "Bundle",
+      "bundleType": 2,
+      "name": "Wicked \"Dancing Through Life\" Animation Pack",
+      "description": "This pack includes 5 of the top dance emotes on the platform, each with fully animated facial expressions – reimagined with an Ozian twist! It's just life, so keep on dancing through.\r\n©2025 UNIVERSAL PICTURES. ALL RIGHTS RESERVED.",
+      "productId": 4546350514449940,
+      "itemStatus": [],
+      "itemRestrictions": [],
+      "creatorHasVerifiedBadge": true,
+      "creatorType": "User",
+      "creatorTargetId": 1,
+      "creatorName": "Roblox",
+      "price": 200,
+      "lowestPrice": 200,
+      "lowestResalePrice": 0,
+      "unitsAvailableForConsumption": 0,
+      "favoriteCount": 45851,
+      "offSaleDeadline": null,
+      "collectibleItemId": "6db9163f-2737-48d2-9839-3826a6b33e9a",
+      "totalQuantity": 0,
+      "saleLocationType": "ShopAndAllExperiences",
+      "hasResellers": false
+    },
+    {
+      "bundledItems": {
+        "1": [
+          1113750642
+        ],
+        "2": [
+          1113751657
+        ],
+        "3": [
+          1113751889
+        ],
+        "4": [
+          1113752285
+        ],
+        "5": [
+          1113752682
+        ],
+        "6": [
+          1113752975
+        ],
+        "7": [
+          1113754738
+        ]
+      },
+      "taxonomy": [
+        {
+          "taxonomyId": "whf6kUVBwk2xdwKUmRYN6G",
+          "taxonomyName": "Animation Bundle"
+        }
+      ],
+      "itemCreatedUtc": "2018-08-14T04:45:28.877Z",
+      "id": 32,
+      "itemType": "Bundle",
+      "bundleType": 2,
+      "name": "Werewolf Animation Pack",
+      "description": "This animation pack only works with R15 avatars. Stay off the moors...",
+      "productId": 8561511789700667,
+      "itemStatus": [],
+      "itemRestrictions": [],
+      "creatorHasVerifiedBadge": true,
+      "creatorType": "User",
+      "creatorTargetId": 1,
+      "creatorName": "Roblox",
+      "price": 500,
+      "lowestPrice": 500,
+      "lowestResalePrice": 0,
+      "unitsAvailableForConsumption": 0,
+      "favoriteCount": 318872,
+      "offSaleDeadline": null,
+      "collectibleItemId": "e1a93a2f-c5f7-4ccc-b5ac-b44fbf2428d8",
+      "totalQuantity": 0,
+      "saleLocationType": "ShopAndAllExperiences",
+      "hasResellers": false
+    },
+    {
+      "bundledItems": {
+        "1": [
+          1090130630
+        ],
+        "2": [
+          1090131576
+        ],
+        "3": [
+          1090132063
+        ],
+        "4": [
+          1090132507
+        ],
+        "5": [
+          1090133099
+        ],
+        "6": [
+          1090133583
+        ],
+        "7": [
+          1090134016
+        ]
+      },
+      "taxonomy": [
+        {
+          "taxonomyId": "whf6kUVBwk2xdwKUmRYN6G",
+          "taxonomyName": "Animation Bundle"
+        }
+      ],
+      "itemCreatedUtc": "2018-08-14T04:45:29.003Z",
+      "id": 34,
+      "itemType": "Bundle",
+      "bundleType": 2,
+      "name": "Astronaut Animation Pack",
+      "description": "This animation pack only works with R15 avatars. Boldly going where no Robloxian has gone before.",
+      "productId": 3630884874256089,
+      "itemStatus": [],
+      "itemRestrictions": [],
+      "creatorHasVerifiedBadge": true,
+      "creatorType": "User",
+      "creatorTargetId": 1,
+      "creatorName": "Roblox",
+      "price": 500,
+      "lowestPrice": 500,
+      "lowestResalePrice": 0,
+      "unitsAvailableForConsumption": 0,
+      "favoriteCount": 387750,
+      "offSaleDeadline": null,
+      "collectibleItemId": "2c994cb6-cbce-4855-881e-13609682b318",
+      "totalQuantity": 0,
+      "saleLocationType": "ShopAndAllExperiences",
+      "hasResellers": false
+    },
+    {
+      "bundledItems": {
+        "1": [
+          734325948
+        ],
+        "2": [
+          734326330
+        ],
+        "3": [
+          734326679
+        ],
+        "4": [
+          734326930
+        ],
+        "5": [
+          734327140
+        ],
+        "6": [
+          734327363
+        ],
+        "7": [
+          734329002
+        ]
+      },
+      "taxonomy": [
+        {
+          "taxonomyId": "whf6kUVBwk2xdwKUmRYN6G",
+          "taxonomyName": "Animation Bundle"
+        }
+      ],
+      "itemCreatedUtc": "2018-08-14T04:45:31.62Z",
+      "id": 68,
+      "itemType": "Bundle",
+      "bundleType": 2,
+      "name": "Knight Animation Package",
+      "description": "This animation pack only works with R15 avatars. \"Greatness lives in one who triumphs equally over defeat and victory.\" ",
+      "productId": 4818455492204686,
+      "itemStatus": [],
+      "itemRestrictions": [],
+      "creatorHasVerifiedBadge": true,
+      "creatorType": "User",
+      "creatorTargetId": 1,
+      "creatorName": "Roblox",
+      "price": 500,
+      "lowestPrice": 500,
+      "lowestResalePrice": 0,
+      "unitsAvailableForConsumption": 0,
+      "favoriteCount": 222353,
+      "offSaleDeadline": null,
+      "collectibleItemId": "2d4065ca-9fa2-4a65-aab2-8d2b50a749a2",
+      "totalQuantity": 0,
+      "saleLocationType": "ShopAndAllExperiences",
+      "hasResellers": false
+    },
+    {
+      "bundledItems": {
+        "1": [
+          837023444
+        ],
+        "2": [
+          837023892
+        ],
+        "3": [
+          837024147
+        ],
+        "4": [
+          837024350
+        ],
+        "5": [
+          837024662
+        ],
+        "6": [
+          837025054
+        ],
+        "7": [
+          837025325
+        ]
+      },
+      "taxonomy": [
+        {
+          "taxonomyId": "whf6kUVBwk2xdwKUmRYN6G",
+          "taxonomyName": "Animation Bundle"
+        }
+      ],
+      "itemCreatedUtc": "2018-08-14T04:45:30.503Z",
+      "id": 55,
+      "itemType": "Bundle",
+      "bundleType": 2,
+      "name": "Pirate Animation Package",
+      "description": "This animation pack only works with R15 avatars. Arr, I'll wipe the deck with ya blasted swabbies!",
+      "productId": 7919452352411767,
+      "itemStatus": [],
+      "itemRestrictions": [],
+      "creatorHasVerifiedBadge": true,
+      "creatorType": "User",
+      "creatorTargetId": 1,
+      "creatorName": "Roblox",
+      "price": 750,
+      "lowestPrice": 750,
+      "lowestResalePrice": 0,
+      "unitsAvailableForConsumption": 0,
+      "favoriteCount": 144730,
+      "offSaleDeadline": null,
+      "collectibleItemId": "8a8be3e6-7228-4585-8c8b-951e2be0893a",
+      "totalQuantity": 0,
+      "saleLocationType": "ShopAndAllExperiences",
+      "hasResellers": false
     }
   ]
 }

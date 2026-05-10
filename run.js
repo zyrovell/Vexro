@@ -108,10 +108,9 @@ async function fetchFromAPI(apiInfo, existingData) {
                     if (existingData.ids.has(item.id)) {
                         duplicateCount++;
                     } else {
-                        const itemData = {
-                            id: item.id,
-                            name: item.name
-                        };
+                        
+                        // DEĞİŞEN KISIM: Sadece id ve name yerine, API'den gelen objenin tümünü alıyoruz.
+                        const itemData = { ...item };
 
                         if (item.bundledItems && Array.isArray(item.bundledItems)) {
                             const bundledAssets = {};
@@ -131,6 +130,7 @@ async function fetchFromAPI(apiInfo, existingData) {
                             });
 
                             if (Object.keys(bundledAssets).length > 0) {
+                                // Orjinal bundledItems formatını senin istediğin hale getirip üzerine yazıyoruz
                                 itemData.bundledItems = bundledAssets;
                             }
                         }
@@ -204,7 +204,6 @@ async function processAPIsByFile() {
             log(`${api.name} - New: ${result.newItems}, Duplicates: ${result.duplicates}`);
         }
 
-
         const saveSuccess = saveData(allItems, filename);
 
         results[filename] = {
@@ -263,3 +262,4 @@ process.on("uncaughtException", (error) => {
 });
 
 main();
+
