@@ -899,6 +899,78 @@ LoadEmotes()
 for _, emote in ipairs(Emotes) do
 	EmotesById[emote.id] = emote
 end
+
+-- ===============================================================
+-- EMOTE DETAILS FETCH (on-demand, by ID from Roblox API)
+-- ===============================================================
+local _detailsCache = {}
+local _detailsFetching = {}
+
+local function FetchEmoteDetails(emoteId, callback)
+	local numId = tonumber(emoteId)
+	if not numId then return end
+
+	if _detailsCache[numId] then
+		if callback then pcall(callback, _detailsCache[numId]) end
+		return
+	end
+
+	if _detailsFetching[numId] then
+		table.insert(_detailsFetching[numId], callback)
+		return
+	end
+	_detailsFetching[numId] = {callback}
+
+	task.spawn(function()
+		local details = {
+			creatorName   = "",
+			description   = "",
+			price         = nil,
+			priceStatus   = "",
+			favoriteCount = nil,
+			createdUtc    = "",
+		}
+
+		pcall(function()
+			local response = game:HttpGet("https://economy.roblox.com/v2/assets/" .. numId .. "/details")
+			local data = HttpService:JSONDecode(response)
+			if type(data) == "table" then
+				if type(data.Creator) == "table" and data.Creator.Name then
+					details.creatorName = tostring(data.Creator.Name)
+				end
+				details.description = tostring(data.Description or "")
+				details.price       = data.PriceInRobux
+				if data.IsPublicDomain or data.PriceInRobux == nil or data.PriceInRobux == 0 then
+					details.priceStatus = "Free"
+				end
+				details.createdUtc = tostring(data.Created or "")
+			end
+		end)
+
+		pcall(function()
+			local favResp = game:HttpGet("https://catalog.roblox.com/v1/favorites/assets/" .. numId .. "/count")
+			details.favoriteCount = tonumber(favResp)
+		end)
+
+		_detailsCache[numId] = details
+
+		local emote = EmotesById[numId]
+		if emote then
+			for k, v in pairs(details) do
+				emote[k] = v
+			end
+		end
+
+		local pending = _detailsFetching[numId]
+		_detailsFetching[numId] = nil
+		if pending then
+			for _, cb in ipairs(pending) do
+				if cb then pcall(cb, details) end
+			end
+		end
+	end)
+end
+
 TweenService:Create(loadingBar, TweenInfo.new(1), {Size = UDim2.new(1, 0, 1, 0)}):Play()
 task.wait(1)
 
@@ -3420,34 +3492,62 @@ local function OpenInfoPanel(emoteId, emoteName)
 		if e.id == numId then eData = e; break end
 	end
 
-	if eData then
+	local function ApplyDetailsToPanel(d)
 		-- Yaratıcı
-		infoCreatorLbl.Text = eData.creatorName ~= "" and eData.creatorName or "—"
+		infoCreatorLbl.Text = (d.creatorName and d.creatorName ~= "") and d.creatorName or "—"
 		-- Açıklama
-		infoDescLbl.Text    = eData.description ~= "" and eData.description or L.noDesc
+		infoDescLbl.Text    = (d.description and d.description ~= "") and d.description or L.noDesc
 		-- Fiyat
-		if eData.priceStatus == "Free" or eData.price == 0 then
+		if d.priceStatus == "Free" or d.price == 0 then
 			infoPriceLbl.Text       = L.freePrice
 			infoPriceLbl.TextColor3 = Color3.fromRGB(100, 220, 130)
-		elseif eData.price and eData.price > 0 then
-			infoPriceLbl.Text       = tostring(eData.price) .. " R$"
+		elseif d.price and d.price > 0 then
+			infoPriceLbl.Text       = tostring(d.price) .. " R$"
 			infoPriceLbl.TextColor3 = Color3.fromRGB(255, 200, 80)
 		else
-			infoPriceLbl.Text       = eData.priceStatus ~= "" and eData.priceStatus or "—"
+			infoPriceLbl.Text       = (d.priceStatus and d.priceStatus ~= "") and d.priceStatus or "—"
 			infoPriceLbl.TextColor3 = Color3.fromRGB(160, 160, 185)
 		end
 		-- Favori sayısı
-		infoFavLbl.Text = eData.favoriteCount
-			and ("♥ " .. tostring(eData.favoriteCount))
+		infoFavLbl.Text = d.favoriteCount
+			and ("♥ " .. tostring(d.favoriteCount))
 			or "—"
 		-- Tarih (ISO string'den sadece gün al: "2019-06-24T..." → "2019-06-24")
-		if eData.createdUtc and eData.createdUtc ~= "" then
-			infoDateLbl.Text = eData.createdUtc:sub(1, 10)
+		if d.createdUtc and d.createdUtc ~= "" then
+			infoDateLbl.Text = d.createdUtc:sub(1, 10)
 		else
 			infoDateLbl.Text = "—"
 		end
 		-- HUD creator güncelle
-		hudCreator.Text = eData.creatorName ~= "" and eData.creatorName or "Vexro Emotes"
+		hudCreator.Text = (d.creatorName and d.creatorName ~= "") and d.creatorName or "Vexro Emotes"
+	end
+
+	if eData then
+		local hasDetails = (eData.creatorName and eData.creatorName ~= "")
+			or (eData.description and eData.description ~= "")
+		if hasDetails then
+			ApplyDetailsToPanel(eData)
+		else
+			-- Loading durumu
+			infoCreatorLbl.Text = "..."
+			infoDescLbl.Text    = "..."
+			infoPriceLbl.Text   = "..."
+			infoPriceLbl.TextColor3 = Color3.fromRGB(160, 160, 185)
+			infoFavLbl.Text     = "..."
+			infoDateLbl.Text    = "..."
+			hudCreator.Text     = "Vexro Emotes"
+		end
+
+		-- Detayları ID üzerinden çek (cache varsa anında, yoksa async)
+		FetchEmoteDetails(numId, function(details)
+			-- Kullanıcı hâlâ aynı emote'a bakıyor mu?
+			if infoPanelOpen and _copyIdTarget == numId then
+				for k, v in pairs(details) do
+					eData[k] = v
+				end
+				ApplyDetailsToPanel(eData)
+			end
+		end)
 	else
 		infoCreatorLbl.Text = "—"
 		infoDescLbl.Text    = "—"
