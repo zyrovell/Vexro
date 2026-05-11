@@ -3090,8 +3090,8 @@ local hudTrackerConn = nil  -- RenderStepped bağlantısı (yönetilir)
 -- ▸ Ana HUD çerçevesi (forward declared above — do NOT add local here)
 HUD = Instance.new("Frame")
 HUD.Name                   = "VexroHUD"
-HUD.Size                   = isMobile and UDim2.new(0, 320, 0, 80) or UDim2.new(0, 500, 0, 84)
-HUD.Position               = UDim2.new(0.5, 0, 1, -105)
+HUD.Size                   = isMobile and UDim2.new(0, 290, 0, 68) or UDim2.new(0, 500, 0, 84)
+HUD.Position               = isMobile and UDim2.new(0.5, 0, 1, -40) or UDim2.new(0.5, 0, 1, -105)
 HUD.AnchorPoint            = Vector2.new(0.5, 1)
 HUD.BackgroundColor3       = Color3.fromRGB(8, 8, 12)
 HUD.BackgroundTransparency = 0.30
@@ -3735,13 +3735,15 @@ ShowEmoteHUD = function(emoteId, emoteName)
 		OpenInfoPanel(emoteId, emoteName)
 	end
 
-	HUD.Position               = UDim2.new(0.5, 0, 1, -72)
+	local hudRestPos  = isMobile and UDim2.new(0.5, 0, 1, -40) or UDim2.new(0.5, 0, 1, -105)
+	local hudStartPos = isMobile and UDim2.new(0.5, 0, 1, -15) or UDim2.new(0.5, 0, 1, -72)
+	HUD.Position               = hudStartPos
 	HUD.BackgroundTransparency = 1
 	HUD.Visible                = true
 
 	TweenService:Create(HUD,
 		TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-		{Position = UDim2.new(0.5, 0, 1, -105), BackgroundTransparency = 0.30}
+		{Position = hudRestPos, BackgroundTransparency = 0.30}
 	):Play()
 
 	RefreshHUDSpeedBtns()
