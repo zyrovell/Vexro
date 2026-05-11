@@ -931,26 +931,45 @@ local function FetchEmoteDetails(emoteId, callback)
 			createdUtc    = "",
 		}
 
+		-- Catalog details endpoint: tek istekte tüm alanları döndürür (eski emotes.json formatıyla aynı)
+		local fetched = false
 		pcall(function()
-			local response = game:HttpGet("https://economy.roblox.com/v2/assets/" .. numId .. "/details")
+			local response = game:HttpGet("https://catalog.roblox.com/v1/catalog/items/" .. numId .. "/details?itemType=Asset")
 			local data = HttpService:JSONDecode(response)
-			if type(data) == "table" then
-				if type(data.Creator) == "table" and data.Creator.Name then
-					details.creatorName = tostring(data.Creator.Name)
-				end
-				details.description = tostring(data.Description or "")
-				details.price       = data.PriceInRobux
-				if data.IsPublicDomain or data.PriceInRobux == nil or data.PriceInRobux == 0 then
-					details.priceStatus = "Free"
-				end
-				details.createdUtc = tostring(data.Created or "")
+			if type(data) == "table" and data.id then
+				details.creatorName   = tostring(data.creatorName or "")
+				details.description   = tostring(data.description or "")
+				details.price         = data.price
+				details.priceStatus   = tostring(data.priceStatus or "")
+				details.favoriteCount = tonumber(data.favoriteCount)
+				details.createdUtc    = tostring(data.itemCreatedUtc or "")
+				fetched = true
 			end
 		end)
 
-		pcall(function()
-			local favResp = game:HttpGet("https://catalog.roblox.com/v1/favorites/assets/" .. numId .. "/count")
-			details.favoriteCount = tonumber(favResp)
-		end)
+		-- Fallback: economy + favorites count (catalog hata verirse)
+		if not fetched then
+			pcall(function()
+				local response = game:HttpGet("https://economy.roblox.com/v2/assets/" .. numId .. "/details")
+				local data = HttpService:JSONDecode(response)
+				if type(data) == "table" then
+					if type(data.Creator) == "table" and data.Creator.Name then
+						details.creatorName = tostring(data.Creator.Name)
+					end
+					details.description = tostring(data.Description or "")
+					details.price       = data.PriceInRobux
+					if data.IsPublicDomain or data.PriceInRobux == nil or data.PriceInRobux == 0 then
+						details.priceStatus = "Free"
+					end
+					details.createdUtc = tostring(data.Created or "")
+				end
+			end)
+
+			pcall(function()
+				local favResp = game:HttpGet("https://catalog.roblox.com/v1/favorites/assets/" .. numId .. "/count")
+				details.favoriteCount = tonumber(favResp)
+			end)
+		end
 
 		_detailsCache[numId] = details
 
@@ -3090,8 +3109,8 @@ local hudTrackerConn = nil  -- RenderStepped bağlantısı (yönetilir)
 -- ▸ Ana HUD çerçevesi (forward declared above — do NOT add local here)
 HUD = Instance.new("Frame")
 HUD.Name                   = "VexroHUD"
-HUD.Size                   = isMobile and UDim2.new(0, 290, 0, 68) or UDim2.new(0, 500, 0, 84)
-HUD.Position               = isMobile and UDim2.new(0.5, 0, 1, -40) or UDim2.new(0.5, 0, 1, -105)
+HUD.Size                   = isMobile and UDim2.new(0, 370, 0, 68) or UDim2.new(0, 500, 0, 84)
+HUD.Position               = isMobile and UDim2.new(0.5, 0, 1, -20) or UDim2.new(0.5, 0, 1, -105)
 HUD.AnchorPoint            = Vector2.new(0.5, 1)
 HUD.BackgroundColor3       = Color3.fromRGB(8, 8, 12)
 HUD.BackgroundTransparency = 0.30
@@ -3735,8 +3754,8 @@ ShowEmoteHUD = function(emoteId, emoteName)
 		OpenInfoPanel(emoteId, emoteName)
 	end
 
-	local hudRestPos  = isMobile and UDim2.new(0.5, 0, 1, -40) or UDim2.new(0.5, 0, 1, -105)
-	local hudStartPos = isMobile and UDim2.new(0.5, 0, 1, -15) or UDim2.new(0.5, 0, 1, -72)
+	local hudRestPos  = isMobile and UDim2.new(0.5, 0, 1, -20) or UDim2.new(0.5, 0, 1, -105)
+	local hudStartPos = isMobile and UDim2.new(0.5, 0, 1, 5)   or UDim2.new(0.5, 0, 1, -72)
 	HUD.Position               = hudStartPos
 	HUD.BackgroundTransparency = 1
 	HUD.Visible                = true
