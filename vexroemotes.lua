@@ -618,8 +618,6 @@ local L = {
 	noDesc      = isTR and "Açıklama yok"  or (isES and "Sin descripción" or (isAR and "لا يوجد وصف"   or (isFR and "Sans description" or (isHI and "कोई विवरण नहीं" or (isPT and "Sem descrição"   or (isRU and "Нет описания"   or "No description")))))),
 	freePrice   = isTR and "Ücretsiz"      or (isES and "Gratis"          or (isAR and "مجاني"          or (isFR and "Gratuit"          or (isHI and "मुफ़्त"          or (isPT and "Grátis"          or (isRU and "Бесплатно"      or "Free")))))),
 	copyId      = isTR and "ID Kopyala"    or (isES and "Copiar ID"       or (isAR and "نسخ المعرف"     or (isFR and "Copier ID"        or (isHI and "ID कॉपी करें"   or (isPT and "Copiar ID"       or (isRU and "Скопировать ID" or "Copy ID")))))),
-	previewTip   = isTR and "Önizlemek için basılı tutun" or (isES and "Mantén para previsualizar" or (isAR and "اضغط مطولاً للمعاينة" or (isFR and "Maintenir pour prévisualiser" or (isHI and "पूर्वावलोकन के लिए दबाएं" or (isPT and "Segure para pré-visualizar" or (isRU and "Удерживайте для предпросмотра" or "Hold to preview")))))),
-	previewTitle = isTR and "Önizleme" or (isES and "Vista Previa" or (isAR and "معاينة" or (isFR and "Aperçu" or (isHI and "पूर्वावलोकन" or (isPT and "Pré-visualização" or (isRU and "Предпросмотр" or "Preview")))))),
 }
 
 local Icons = {
@@ -901,97 +899,6 @@ LoadEmotes()
 for _, emote in ipairs(Emotes) do
 	EmotesById[emote.id] = emote
 end
-
--- ===============================================================
--- EMOTE DETAILS FETCH (on-demand, by ID from Roblox API)
--- ===============================================================
-local _detailsCache = {}
-local _detailsFetching = {}
-
-local function FetchEmoteDetails(emoteId, callback)
-	local numId = tonumber(emoteId)
-	if not numId then return end
-
-	if _detailsCache[numId] then
-		if callback then pcall(callback, _detailsCache[numId]) end
-		return
-	end
-
-	if _detailsFetching[numId] then
-		table.insert(_detailsFetching[numId], callback)
-		return
-	end
-	_detailsFetching[numId] = {callback}
-
-	task.spawn(function()
-		local details = {
-			creatorName   = "",
-			description   = "",
-			price         = nil,
-			priceStatus   = "",
-			favoriteCount = nil,
-			createdUtc    = "",
-		}
-
-		-- Catalog details endpoint: tek istekte tüm alanları döndürür (eski emotes.json formatıyla aynı)
-		local fetched = false
-		pcall(function()
-			local response = game:HttpGet("https://catalog.roblox.com/v1/catalog/items/" .. numId .. "/details?itemType=Asset")
-			local data = HttpService:JSONDecode(response)
-			if type(data) == "table" and data.id then
-				details.creatorName   = tostring(data.creatorName or "")
-				details.description   = tostring(data.description or "")
-				details.price         = data.price
-				details.priceStatus   = tostring(data.priceStatus or "")
-				details.favoriteCount = tonumber(data.favoriteCount)
-				details.createdUtc    = tostring(data.itemCreatedUtc or "")
-				fetched = true
-			end
-		end)
-
-		-- Fallback: economy + favorites count (catalog hata verirse)
-		if not fetched then
-			pcall(function()
-				local response = game:HttpGet("https://economy.roblox.com/v2/assets/" .. numId .. "/details")
-				local data = HttpService:JSONDecode(response)
-				if type(data) == "table" then
-					if type(data.Creator) == "table" and data.Creator.Name then
-						details.creatorName = tostring(data.Creator.Name)
-					end
-					details.description = tostring(data.Description or "")
-					details.price       = data.PriceInRobux
-					if data.IsPublicDomain or data.PriceInRobux == nil or data.PriceInRobux == 0 then
-						details.priceStatus = "Free"
-					end
-					details.createdUtc = tostring(data.Created or "")
-				end
-			end)
-
-			pcall(function()
-				local favResp = game:HttpGet("https://catalog.roblox.com/v1/favorites/assets/" .. numId .. "/count")
-				details.favoriteCount = tonumber(favResp)
-			end)
-		end
-
-		_detailsCache[numId] = details
-
-		local emote = EmotesById[numId]
-		if emote then
-			for k, v in pairs(details) do
-				emote[k] = v
-			end
-		end
-
-		local pending = _detailsFetching[numId]
-		_detailsFetching[numId] = nil
-		if pending then
-			for _, cb in ipairs(pending) do
-				if cb then pcall(cb, details) end
-			end
-		end
-	end)
-end
-
 TweenService:Create(loadingBar, TweenInfo.new(1), {Size = UDim2.new(1, 0, 1, 0)}):Play()
 task.wait(1)
 
@@ -1021,8 +928,6 @@ local page, perPage, pages, cols = 1, 14, 1, 7 -- Default to 7 cols
 local cards = {}
 local sideBarW = math.floor((isMobile and 50 or 60) * BUTTON_SCALE)
 local bottomBarH = isMobile and 26 or 22
-local PREVIEW_W = isMobile and 130 or 220  -- right preview panel width
-local tipH      = isMobile and 14  or 16   -- preview tip label height
 local currentCardSize = 0 -- Dynamic card size
 
 -- ===============================================================
@@ -1208,7 +1113,7 @@ local function GetDefaultSize()
 	local perfectWidth = (targetCard * 7) + (PAD * 6) + sideBarW + 20
 	
 	local vp = workspace.CurrentCamera.ViewportSize
-	local finalW = math.clamp(perfectWidth + PREVIEW_W + 6, 400, vp.X * 0.97)
+	local finalW = math.clamp(perfectWidth, 400, vp.X * 0.95)
 	
 	-- Height for 2 rows approx
 	local cardH = targetCard + (targetCard * 0.3 * 2) + PAD -- approx card total height
@@ -1392,7 +1297,7 @@ CreateTabBtn(Icons.Settings, "settings", 8 + (tabBtnS + 6) * 3)
 -- ===============================================================
 
 local content = Instance.new("Frame")
-content.Size = UDim2.new(1, -(sideBarW + PREVIEW_W + 6), 1, 0)
+content.Size = UDim2.new(1, -sideBarW, 1, 0)
 content.Position = UDim2.new(0, sideBarW, 0, 0)
 content.BackgroundTransparency = 1
 content.Parent = main
@@ -1588,19 +1493,6 @@ Instance.new("UICorner", search).CornerRadius = UDim.new(0, 10)
 Instance.new("UIPadding", search).PaddingLeft = UDim.new(0, 10)
 RegisterTheme(search, "BackgroundColor3", "tertiary")
 RegisterTheme(search, "TextColor3", "text")
-
-local previewTipLbl = Instance.new("TextLabel")
-previewTipLbl.Size               = UDim2.new(1, -16, 0, tipH)
-previewTipLbl.Position           = UDim2.new(0, 8, 0, titleH + 6 + searchH + 3)
-previewTipLbl.BackgroundTransparency = 1
-previewTipLbl.Text               = utf8.char(0x1F441) .. " " .. L.previewTip
-previewTipLbl.TextColor3         = currentTheme.textDim
-previewTipLbl.Font               = Enum.Font.GothamSemibold
-previewTipLbl.TextSize           = isMobile and 10 or 11
-previewTipLbl.TextXAlignment     = Enum.TextXAlignment.Left
-previewTipLbl.ZIndex             = 5
-previewTipLbl.Parent             = content
-RegisterTheme(previewTipLbl, "TextColor3", "textDim")
 
 local pageH = isMobile and 30 or 36
 local pageBar = Instance.new("Frame")
@@ -2015,7 +1907,7 @@ grip.Parent = bottomBar
 Instance.new("UICorner", grip).CornerRadius = UDim.new(1, 0)
 RegisterTheme(grip, "BackgroundColor3", "textDim")
 
-local scrollY = titleH + searchH + tipH + 17
+local scrollY = titleH + searchH + 14
 local scroll = Instance.new("ScrollingFrame")
 scroll.Size = UDim2.new(1, -16, 1, -(scrollY + pageH + bottomBarH + 18))
 scroll.Position = UDim2.new(0, 8, 0, scrollY)
@@ -2028,274 +1920,8 @@ scroll.Parent = content
 RegisterTheme(scroll, "ScrollBarImageColor3", "stroke")
 
 -- ===============================================================
--- PREVIEW PANEL (right side — camera shows world-space dummy through it)
--- ===============================================================
-local previewPanel = Instance.new("Frame")
-previewPanel.Name                   = "PreviewPanel"
-previewPanel.Size                   = UDim2.new(0, PREVIEW_W - 8, 1, -8)
-previewPanel.Position               = UDim2.new(1, -(PREVIEW_W - 2), 0, 4)
-previewPanel.BackgroundColor3       = Color3.fromRGB(8, 8, 14)
-previewPanel.BackgroundTransparency = 0.55
-previewPanel.BorderSizePixel        = 0
-previewPanel.ZIndex                 = 4
-previewPanel.Parent                 = main
-Instance.new("UICorner", previewPanel).CornerRadius = UDim.new(0, 14)
-
-local previewPanelStroke = Instance.new("UIStroke")
-previewPanelStroke.Color       = currentTheme.stroke
-previewPanelStroke.Thickness   = 1.5
-previewPanelStroke.Transparency = 0.35
-previewPanelStroke.Parent       = previewPanel
-RegisterTheme(previewPanelStroke, "Color", "stroke")
-
-local previewTitleLbl = Instance.new("TextLabel")
-previewTitleLbl.Size                   = UDim2.new(1, 0, 0, 22)
-previewTitleLbl.Position               = UDim2.new(0, 0, 0, 8)
-previewTitleLbl.BackgroundTransparency = 1
-previewTitleLbl.Text                   = L.previewTitle
-previewTitleLbl.TextColor3             = currentTheme.text
-previewTitleLbl.Font                   = Enum.Font.GothamBold
-previewTitleLbl.TextSize               = isMobile and 12 or 14
-previewTitleLbl.ZIndex                 = 5
-previewTitleLbl.Parent                 = previewPanel
-RegisterTheme(previewTitleLbl, "TextColor3", "text")
-
-local previewIdleLbl = Instance.new("TextLabel")
-previewIdleLbl.Size                   = UDim2.new(1, -10, 0, isMobile and 36 or 44)
-previewIdleLbl.Position               = UDim2.new(0, 5, 0.5, -(isMobile and 18 or 22))
-previewIdleLbl.BackgroundTransparency = 1
-previewIdleLbl.Text                   = L.previewTip
-previewIdleLbl.TextColor3             = currentTheme.textDim
-previewIdleLbl.Font                   = Enum.Font.GothamSemibold
-previewIdleLbl.TextSize               = isMobile and 9 or 10
-previewIdleLbl.TextWrapped            = true
-previewIdleLbl.ZIndex                 = 5
-previewIdleLbl.Parent                 = previewPanel
-RegisterTheme(previewIdleLbl, "TextColor3", "textDim")
-
-local previewNameLbl = Instance.new("TextLabel")
-previewNameLbl.Size                   = UDim2.new(1, -10, 0, isMobile and 18 or 22)
-previewNameLbl.Position               = UDim2.new(0, 5, 1, -(isMobile and 28 or 34))
-previewNameLbl.BackgroundTransparency = 1
-previewNameLbl.Text                   = ""
-previewNameLbl.TextColor3             = currentTheme.accent
-previewNameLbl.Font                   = Enum.Font.GothamBold
-previewNameLbl.TextSize               = isMobile and 10 or 12
-previewNameLbl.TextWrapped            = true
-previewNameLbl.Visible                = false
-previewNameLbl.ZIndex                 = 5
-previewNameLbl.Parent                 = previewPanel
-RegisterTheme(previewNameLbl, "TextColor3", "accent")
-
--- ===============================================================
--- PREVIEW SYSTEM (world-space dummy — no ViewportFrame)
--- ===============================================================
-local PREVIEW_ORIGIN    = Vector3.new(10000, 1000, 10000)
-local _previewDummy         = nil
-local _previewActive        = false
-local _previewEmoteId       = nil
-local _origCamType          = nil
-local _previewAnimTrack     = nil
-local _activePreviewOverlay = nil  -- şu an ■ gösteren overlay butonu
-
-local function _CreatePreviewDummy()
-    -- Önceki dummy varsa tekrar oluşturma
-    if _previewDummy and _previewDummy.Parent then return end
-    local char = player.Character
-    if not char then return end
-
-    local ok, err = pcall(function()
-        local dummy = char:Clone()
-        dummy.Name = "VexroPreviewDummy"
-
-        -- Script'leri temizle
-        for _, s in ipairs(dummy:GetDescendants()) do
-            if s:IsA("BaseScript") or s:IsA("ModuleScript") then
-                pcall(function() s:Destroy() end)
-            end
-        end
-
-        -- HumanoidRootPart kontrolü
-        local root = dummy:FindFirstChild("HumanoidRootPart")
-        if not root then dummy:Destroy(); return end
-
-        -- Workspace'e parent et, sonra PivotTo ile taşı (CFrame hataları önlenir)
-        dummy.Parent = workspace
-        pcall(function()
-            dummy:PivotTo(CFrame.new(PREVIEW_ORIGIN))
-        end)
-
-        -- Tüm BasePart'ları sabitle (gravity'den korunmak için)
-        for _, p in ipairs(dummy:GetDescendants()) do
-            if p:IsA("BasePart") then
-                pcall(function()
-                    p.Anchored   = true
-                    p.CanCollide = false
-                    p.CanTouch   = false
-                    p.Massless   = true
-                end)
-            end
-        end
-
-        -- Humanoid ayarları
-        local hum = dummy:FindFirstChildWhichIsA("Humanoid")
-        if hum then
-            pcall(function()
-                hum.WalkSpeed  = 0
-                hum.JumpHeight = 0
-                hum.AutoJumpEnabled = false
-            end)
-            if not hum:FindFirstChildWhichIsA("Animator") then
-                pcall(function() Instance.new("Animator").Parent = hum end)
-            end
-        end
-
-        _previewDummy = dummy
-    end)
-
-    if not ok then
-        -- Dummy oluşturma başarısız, temizle
-        if _previewDummy then pcall(function() _previewDummy:Destroy() end) end
-        _previewDummy = nil
-    end
-end
-
-local function StartPreview(emoteId, emoteName)
-    if _previewActive then StopPreview() end
-    _previewActive  = true
-    _previewEmoteId = emoteId
-
-    _CreatePreviewDummy()
-
-    -- Dummy hazır değilse de UI güncelle (kamera switch atlansın)
-    local dummyOk = _previewDummy and _previewDummy.Parent
-
-    if dummyOk then
-        pcall(function()
-            local hum = _previewDummy:FindFirstChildWhichIsA("Humanoid")
-            if not hum then return end
-            local animator = hum:FindFirstChildWhichIsA("Animator")
-            if not animator then
-                animator = Instance.new("Animator")
-                animator.Parent = hum
-            end
-            if _previewAnimTrack and _previewAnimTrack.IsPlaying then
-                _previewAnimTrack:Stop(0)
-            end
-            local a = Instance.new("Animation")
-            a.AnimationId = "rbxassetid://" .. tostring(emoteId)
-            _previewAnimTrack = animator:LoadAnimation(a)
-            _previewAnimTrack.Looped = true
-            _previewAnimTrack:Play()
-        end)
-
-        pcall(function()
-            local cam = workspace.CurrentCamera
-            _origCamType   = cam.CameraType
-            cam.CameraType = Enum.CameraType.Scriptable
-            cam.CFrame     = CFrame.new(
-                PREVIEW_ORIGIN + Vector3.new(0, 2.2, 5.5),
-                PREVIEW_ORIGIN + Vector3.new(0, 2.0, 0)
-            )
-        end)
-    end
-
-    previewIdleLbl.Visible = false
-    previewNameLbl.Text    = emoteName or "?"
-    previewNameLbl.Visible = true
-end
-
-local function StopPreview()
-    if not _previewActive then return end
-    _previewActive  = false
-    _previewEmoteId = nil
-    if _activePreviewOverlay then
-        pcall(function()
-            _activePreviewOverlay.Text = "▶"
-            _activePreviewOverlay.BackgroundTransparency = 0.35
-            _activePreviewOverlay.BackgroundColor3 = Color3.fromRGB(0,0,0)
-        end)
-        _activePreviewOverlay = nil
-    end
-    pcall(function()
-        if _previewAnimTrack and _previewAnimTrack.IsPlaying then
-            _previewAnimTrack:Stop(0.25)
-        end
-    end)
-    pcall(function()
-        if _origCamType then
-            workspace.CurrentCamera.CameraType = _origCamType
-            _origCamType = nil
-        end
-    end)
-    previewIdleLbl.Visible = true
-    previewNameLbl.Visible = false
-end
-
--- ===============================================================
--- INPUT MANAGER (single handler for hold-to-preview)
--- ===============================================================
-local _cardToEmote      = {}   -- card ImageButton → {id, name}
-local _holdId           = nil
-local _holdName         = nil
-local _holdTimer        = nil
-local _suppressNextClick = false  -- hold-to-preview sonrası click'i engeller
-
-local function _RegisterCard(cardBtn, id, name)
-    _cardToEmote[cardBtn] = {id = id, name = name}
-end
-
-local function _GetCardAt(x, y)
-    local objs = playerGui:GetGuiObjectsAtPosition(x, y)
-    for _, o in ipairs(objs) do
-        if _cardToEmote[o] then return _cardToEmote[o] end
-    end
-end
-
-UserInputService.InputBegan:Connect(function(inp, _gpe)
-    if inp.UserInputType ~= Enum.UserInputType.MouseButton1
-    and inp.UserInputType ~= Enum.UserInputType.Touch then return end
-    local data = _GetCardAt(inp.Position.X, inp.Position.Y)
-    if not data then return end
-    _holdId, _holdName = data.id, data.name
-    _holdTimer = task.delay(0.25, function()
-        _holdTimer = nil
-        if _holdId then
-            _suppressNextClick = true
-            StartPreview(_holdId, _holdName)
-        end
-    end)
-end)
-
-UserInputService.InputEnded:Connect(function(inp)
-    if inp.UserInputType ~= Enum.UserInputType.MouseButton1
-    and inp.UserInputType ~= Enum.UserInputType.Touch then return end
-    if _holdTimer then
-        task.cancel(_holdTimer)
-        _holdTimer = nil
-        _suppressNextClick = false  -- kısa tıklama, normal click olsun
-    end
-    _holdId, _holdName = nil, nil
-    StopPreview()
-end)
-
--- ===============================================================
 -- CARD SYSTEM (RESPONSIVE GRID)
 -- ===============================================================
-
--- Card pool: reuse containers across page turns
-local _cardPool          = {}   -- array of pool entries
-local _containerToEntry  = {}   -- container Frame → pool entry
-local _lastCardSize      = 0
-
-local function _FlushPool()
-    for _, e in ipairs(_cardPool) do
-        if e.container and e.container.Parent then e.container:Destroy() end
-        _containerToEntry[e.container] = nil
-        _cardToEmote[e.card] = nil
-    end
-    _cardPool = {}
-end
 
 local function CalcLayout()
 	local PAD = isMobile and 4 or 6
@@ -2324,11 +1950,6 @@ local function CalcLayout()
 	
 	pages = math.max(1, math.ceil(#filtered / perPage))
 	page = math.clamp(page, 1, pages)
-	-- Invalidate pool when card size changes
-	if currentCardSize ~= _lastCardSize then
-		_lastCardSize = currentCardSize
-		_FlushPool()
-	end
 end
 
 local function UpdatePageUI()
@@ -2353,80 +1974,39 @@ local function UpdatePageUI()
 end
 
 local function ClearCards()
-    for _, c in pairs(cards) do
-        if c and c.Parent then
-            local e = _containerToEntry[c]
-            if e then
-                c.Visible = false
-                c.Parent  = nil  -- detach from scroll
-                table.insert(_cardPool, e)
-            else
-                c:Destroy()
-            end
-        end
-    end
-    cards = {}
+	for _, c in pairs(cards) do
+		if c and c.Parent then c:Destroy() end
+	end
+	cards = {}
 end
 
 local function MakeCard(emote, ci, animate)
 	local CARD = currentCardSize
 	local PAD = isMobile and 4 or 6
-
+	
 	-- Dynamic text height based on card size, but capped
 	local NAME_H = math.clamp(CARD * 0.35, 18, 28)
 	local FAV_H = math.clamp(CARD * 0.3, 18, 24)
 	local CARD_TOTAL_H = CARD + NAME_H + FAV_H
-
-	-- Position logic for grid (must be before pool check)
-	local col = ci % cols
-	local row = math.floor(ci / cols)
-	local targetX = col * (CARD + PAD)
-	local targetY = PAD + row * (CARD_TOTAL_H + PAD)
-
-	-- Try to reuse from pool
-	local _poolEntry = table.remove(_cardPool)
-	if _poolEntry then
-		local _ref = _poolEntry._ref
-		_ref.emote  = emote
-		_ref.isFav  = IsFavorite(emote.id)
-		_poolEntry.card.Image       = "rbxthumb://type=Asset&id=" .. emote.id .. "&w=420&h=420"
-		_poolEntry.nameLbl.Text     = emote.name
-		_poolEntry.favIcon.Text     = _ref.isFav and utf8.char(0x2605) or utf8.char(0x2606)
-		_poolEntry.favIcon.TextColor3 = _ref.isFav and Color3.fromRGB(255,215,0) or currentTheme.accent
-		_poolEntry.favBtn.BackgroundColor3 = _ref.isFav and currentTheme.tertiary or currentTheme.stroke
-		_poolEntry.container.Size   = UDim2.new(0, CARD, 0, CARD_TOTAL_H)
-		if animate then
-			_poolEntry.container.Position    = UDim2.new(0, targetX, 0, targetY + 30)
-			_poolEntry.card.ImageTransparency = 1
-			task.delay(ci * 0.02, function()
-				if _poolEntry.container.Parent then
-					TweenService:Create(_poolEntry.container, TweenInfo.new(0.25, Enum.EasingStyle.Back),
-						{Position = UDim2.new(0, targetX, 0, targetY)}):Play()
-					TweenService:Create(_poolEntry.card, TweenInfo.new(0.25), {ImageTransparency = 0}):Play()
-				end
-			end)
-		else
-			_poolEntry.container.Position    = UDim2.new(0, targetX, 0, targetY)
-			_poolEntry.card.ImageTransparency = 0
-		end
-		_poolEntry.container.Visible = true
-		_poolEntry.container.Parent  = scroll
-		_containerToEntry[_poolEntry.container] = _poolEntry
-		_cardToEmote[_poolEntry.card] = {id = emote.id, name = emote.name}
-		return _poolEntry.container
-	end
-
+	
 	-- Ana kart container
 	local cardContainer = Instance.new("Frame")
 	cardContainer.Size = UDim2.new(0, CARD, 0, CARD_TOTAL_H)
 	cardContainer.BackgroundTransparency = 1
 	cardContainer.ZIndex = 2
 	cardContainer.Parent = scroll
-
+	
+	local col = ci % cols
+	local row = math.floor(ci / cols)
+	
+	-- Position logic for grid
+	local targetX = col * (CARD + PAD)
+	local targetY = PAD + row * (CARD_TOTAL_H + PAD)
+	
 	if animate then
 		cardContainer.Position = UDim2.new(0, targetX, 0, targetY + 30)
 		cardContainer.BackgroundTransparency = 1
-
+		
 		task.delay(ci * 0.02, function()
 			if cardContainer.Parent then
 				TweenService:Create(cardContainer, TweenInfo.new(0.25, Enum.EasingStyle.Back), {
@@ -2437,7 +2017,7 @@ local function MakeCard(emote, ci, animate)
 	else
 		cardContainer.Position = UDim2.new(0, targetX, 0, targetY)
 	end
-
+	
 	local card = Instance.new("ImageButton")
 	card.Size = UDim2.new(1, 0, 0, CARD)
 	card.Position = UDim2.new(0, 0, 0, 0)
@@ -2496,8 +2076,7 @@ local function MakeCard(emote, ci, animate)
 	end)
 	
 	
-	local _ref = {emote = emote, isFav = IsFavorite(emote.id)}
-	local isFav = _ref.isFav
+	local isFav = IsFavorite(emote.id)
 	local favBtn = Instance.new("TextButton")
 	favBtn.Size = UDim2.new(1, 0, 0, FAV_H)
 	favBtn.Position = UDim2.new(0, 0, 0, CARD + NAME_H)
@@ -2509,7 +2088,7 @@ local function MakeCard(emote, ci, animate)
 	Instance.new("UICorner", favBtn).CornerRadius = UDim.new(0, 4)
 
 	local favIcon = Instance.new("TextLabel")
-	local iconSize = math.min(isMobile and 28 or 34, FAV_H - 2)
+	local iconSize = isMobile and 28 or 34
 	favIcon.Size = UDim2.new(0, iconSize, 0, iconSize)
 	favIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
 	favIcon.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -2517,43 +2096,43 @@ local function MakeCard(emote, ci, animate)
 	favIcon.Text = isFav and utf8.char(0x2605) or utf8.char(0x2606)
 	favIcon.TextColor3 = isFav and Color3.fromRGB(255, 215, 0) or currentTheme.accent
 	favIcon.Font = Enum.Font.SourceSansLight
-	favIcon.TextSize = math.min(isMobile and 26 or 32, FAV_H - 4)
+	favIcon.TextSize = isMobile and 26 or 32
 	favIcon.TextScaled = false
 	favIcon.ZIndex = 50
 	favIcon.Parent = favBtn
 	
 	favBtn.MouseEnter:Connect(function()
 		TweenService:Create(favBtn, TweenInfo.new(0.15, Enum.EasingStyle.Back), {
-			BackgroundColor3 = _ref.isFav and currentTheme.tertiary or currentTheme.accent,
+			BackgroundColor3 = isFav and currentTheme.tertiary or currentTheme.accent,
 			Size = UDim2.new(1, 6, 0, FAV_H + 6),
 			Rotation = math.random(-2, 2)
 		}):Play()
 	end)
 	favBtn.MouseLeave:Connect(function()
 		TweenService:Create(favBtn, TweenInfo.new(0.15, Enum.EasingStyle.Quad), {
-			BackgroundColor3 = _ref.isFav and currentTheme.tertiary or currentTheme.stroke,
+			BackgroundColor3 = isFav and currentTheme.tertiary or currentTheme.stroke,
 			Size = UDim2.new(1, 0, 0, FAV_H),
 			Rotation = 0
 		}):Play()
 	end)
-
+	
 	favBtn.MouseButton1Click:Connect(function()
-		_ref.isFav = ToggleFavorite(_ref.emote.id)
-
-		if _ref.isFav then
+		isFav = ToggleFavorite(emote.id)
+		
+		if isFav then
 			favIcon.Text = utf8.char(0x2605)
 			favIcon.TextColor3 = Color3.fromRGB(255, 215, 0)
 		else
 			favIcon.Text = utf8.char(0x2606)
 			favIcon.TextColor3 = currentTheme.accent
 		end
-
+		
 		TweenService:Create(favBtn, TweenInfo.new(0.2), {
-			BackgroundColor3 = _ref.isFav and currentTheme.tertiary or currentTheme.stroke
+			BackgroundColor3 = isFav and currentTheme.tertiary or currentTheme.stroke
 		}):Play()
 		
 		-- YILDIZ PATLAMA ANİMASYONU
-		if _ref.isFav then
+		if isFav then
 			favIcon.Size = UDim2.new(0, 0, 0, 0)
 			TweenService:Create(favIcon, TweenInfo.new(0.5, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), {
 				Size = UDim2.new(0, iconSize + 6, 0, iconSize + 6)
@@ -2635,63 +2214,9 @@ local function MakeCard(emote, ci, animate)
 			end
 		end)
 		
-		if _suppressNextClick then _suppressNextClick = false; return end
-		if _ref.emote then PlayEmote(_ref.emote.id, _ref.emote.name) end
+		PlayEmote(emote.id, emote.name)
 	end)
-
-	-- Preview overlay butonu (kart üzerinde sol üst köşe)
-	local prevS = isMobile and 20 or 24
-	local previewOverlay = Instance.new("TextButton")
-	previewOverlay.Size = UDim2.new(0, prevS, 0, prevS)
-	previewOverlay.Position = UDim2.new(0, 3, 0, 3)
-	previewOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-	previewOverlay.BackgroundTransparency = 0.35
-	previewOverlay.Text = "▶"
-	previewOverlay.TextColor3 = Color3.new(1, 1, 1)
-	previewOverlay.Font = Enum.Font.GothamBold
-	previewOverlay.TextSize = isMobile and 9 or 11
-	previewOverlay.ZIndex = 10
-	previewOverlay.Parent = card
-	Instance.new("UICorner", previewOverlay).CornerRadius = UDim.new(0, 5)
-
-	previewOverlay.MouseEnter:Connect(function()
-		TweenService:Create(previewOverlay, TweenInfo.new(0.12), {BackgroundTransparency = 0, BackgroundColor3 = currentTheme.accent}):Play()
-	end)
-	previewOverlay.MouseLeave:Connect(function()
-		TweenService:Create(previewOverlay, TweenInfo.new(0.12), {BackgroundTransparency = 0.35, BackgroundColor3 = Color3.fromRGB(0,0,0)}):Play()
-	end)
-
-	previewOverlay.MouseButton1Click:Connect(function()
-		if not _ref.emote then return end
-		if _previewActive and _previewEmoteId == _ref.emote.id then
-			StopPreview()
-			previewOverlay.Text = "▶"
-			TweenService:Create(previewOverlay, TweenInfo.new(0.12), {BackgroundTransparency = 0.35, BackgroundColor3 = Color3.fromRGB(0,0,0)}):Play()
-		else
-			if _activePreviewOverlay and _activePreviewOverlay ~= previewOverlay then
-				_activePreviewOverlay.Text = "▶"
-			end
-			_activePreviewOverlay = previewOverlay
-			StartPreview(_ref.emote.id, _ref.emote.name)
-			previewOverlay.Text = "■"
-			TweenService:Create(previewOverlay, TweenInfo.new(0.12), {BackgroundTransparency = 0, BackgroundColor3 = currentTheme.critical}):Play()
-		end
-	end)
-
-	-- Register in pool tracking
-	local _poolEntry = {
-		container       = cardContainer,
-		card            = card,
-		nameLbl         = nameLbl,
-		favBtn          = favBtn,
-		favIcon         = favIcon,
-		previewOverlay  = previewOverlay,
-		stroke          = stroke,
-		_ref            = _ref,
-	}
-	_containerToEntry[cardContainer] = _poolEntry
-	_cardToEmote[card] = {id = emote.id, name = emote.name}
-
+	
 	return cardContainer
 end
 
@@ -2714,7 +2239,7 @@ local function UpdateCards(animate)
 	local NAME_H = math.clamp(CARD * 0.35, 18, 28)
 	local FAV_H = math.clamp(CARD * 0.3, 18, 24)
 	local CARD_TOTAL_H = CARD + NAME_H + FAV_H
-
+	
 	local rows = math.ceil(ci / math.max(cols, 1))
 	scroll.CanvasSize = UDim2.new(0, 0, 0, rows * (CARD_TOTAL_H + PAD) + PAD)
 	scroll.CanvasPosition = Vector2.zero
@@ -2908,7 +2433,6 @@ end)
 -- ===============================================================
 -- MINI ICON
 -- ===============================================================
-do -- Scope: register limiti için yerel değişkenleri serbest bırakır
 
 local iconS = isMobile and 50 or 60
 local miniIcon = Instance.new("ImageButton")
@@ -3017,8 +2541,6 @@ minBtn.MouseButton1Click:Connect(function()
 	end)
 end)
 
-end -- MINI ICON do block
-
 closeBtn.MouseButton1Click:Connect(function()
 	TweenService:Create(main, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1, Rotation = -30}):Play()
 	task.wait(0.25)
@@ -3056,7 +2578,6 @@ UserInputService.InputEnded:Connect(function(input)
 	end
 end)
 
-do -- Scope: resize değişkenleri için register limiti optimizasyonu
 local resizeS = isMobile and 28 or 22
 local resizeBtn = Instance.new("TextButton")
 resizeBtn.Size = UDim2.new(0, resizeS, 0, resizeS)
@@ -3087,7 +2608,7 @@ UserInputService.InputChanged:Connect(function(input)
 		local newW = math.clamp(sizeStart.X + delta.X, 400, 1200) -- Expanded max width
 		local newH = math.clamp(sizeStart.Y + delta.Y, 300, 800)
 		main.Size = UDim2.new(0, newW, 0, newH)
-
+		
 		local now = tick()
 		if now - lastRefreshTime > 0.1 then
 			lastRefreshTime = now
@@ -3102,7 +2623,6 @@ UserInputService.InputEnded:Connect(function(input)
 		if currentTab ~= "settings" then Refresh(false) end
 	end
 end)
-end -- resize do block
 
 -- ===============================================================
 -- CHARACTER RESPAWN & AUTO-RELOAD
@@ -3498,8 +3018,8 @@ local hudTrackerConn = nil  -- RenderStepped bağlantısı (yönetilir)
 -- ▸ Ana HUD çerçevesi (forward declared above — do NOT add local here)
 HUD = Instance.new("Frame")
 HUD.Name                   = "VexroHUD"
-HUD.Size                   = isMobile and UDim2.new(0, 370, 0, 68) or UDim2.new(0, 500, 0, 84)
-HUD.Position               = isMobile and UDim2.new(0.5, 0, 1, -20) or UDim2.new(0.5, 0, 1, -105)
+HUD.Size                   = isMobile and UDim2.new(0, 320, 0, 80) or UDim2.new(0, 500, 0, 84)
+HUD.Position               = UDim2.new(0.5, 0, 1, -105)
 HUD.AnchorPoint            = Vector2.new(0.5, 1)
 HUD.BackgroundColor3       = Color3.fromRGB(8, 8, 12)
 HUD.BackgroundTransparency = 0.30
@@ -3900,62 +3420,34 @@ local function OpenInfoPanel(emoteId, emoteName)
 		if e.id == numId then eData = e; break end
 	end
 
-	local function ApplyDetailsToPanel(d)
+	if eData then
 		-- Yaratıcı
-		infoCreatorLbl.Text = (d.creatorName and d.creatorName ~= "") and d.creatorName or "—"
+		infoCreatorLbl.Text = eData.creatorName ~= "" and eData.creatorName or "—"
 		-- Açıklama
-		infoDescLbl.Text    = (d.description and d.description ~= "") and d.description or L.noDesc
+		infoDescLbl.Text    = eData.description ~= "" and eData.description or L.noDesc
 		-- Fiyat
-		if d.priceStatus == "Free" or d.price == 0 then
+		if eData.priceStatus == "Free" or eData.price == 0 then
 			infoPriceLbl.Text       = L.freePrice
 			infoPriceLbl.TextColor3 = Color3.fromRGB(100, 220, 130)
-		elseif d.price and d.price > 0 then
-			infoPriceLbl.Text       = tostring(d.price) .. " R$"
+		elseif eData.price and eData.price > 0 then
+			infoPriceLbl.Text       = tostring(eData.price) .. " R$"
 			infoPriceLbl.TextColor3 = Color3.fromRGB(255, 200, 80)
 		else
-			infoPriceLbl.Text       = (d.priceStatus and d.priceStatus ~= "") and d.priceStatus or "—"
+			infoPriceLbl.Text       = eData.priceStatus ~= "" and eData.priceStatus or "—"
 			infoPriceLbl.TextColor3 = Color3.fromRGB(160, 160, 185)
 		end
 		-- Favori sayısı
-		infoFavLbl.Text = d.favoriteCount
-			and ("♥ " .. tostring(d.favoriteCount))
+		infoFavLbl.Text = eData.favoriteCount
+			and ("♥ " .. tostring(eData.favoriteCount))
 			or "—"
 		-- Tarih (ISO string'den sadece gün al: "2019-06-24T..." → "2019-06-24")
-		if d.createdUtc and d.createdUtc ~= "" then
-			infoDateLbl.Text = d.createdUtc:sub(1, 10)
+		if eData.createdUtc and eData.createdUtc ~= "" then
+			infoDateLbl.Text = eData.createdUtc:sub(1, 10)
 		else
 			infoDateLbl.Text = "—"
 		end
 		-- HUD creator güncelle
-		hudCreator.Text = (d.creatorName and d.creatorName ~= "") and d.creatorName or "Vexro Emotes"
-	end
-
-	if eData then
-		local hasDetails = (eData.creatorName and eData.creatorName ~= "")
-			or (eData.description and eData.description ~= "")
-		if hasDetails then
-			ApplyDetailsToPanel(eData)
-		else
-			-- Loading durumu
-			infoCreatorLbl.Text = "..."
-			infoDescLbl.Text    = "..."
-			infoPriceLbl.Text   = "..."
-			infoPriceLbl.TextColor3 = Color3.fromRGB(160, 160, 185)
-			infoFavLbl.Text     = "..."
-			infoDateLbl.Text    = "..."
-			hudCreator.Text     = "Vexro Emotes"
-		end
-
-		-- Detayları ID üzerinden çek (cache varsa anında, yoksa async)
-		FetchEmoteDetails(numId, function(details)
-			-- Kullanıcı hâlâ aynı emote'a bakıyor mu?
-			if infoPanelOpen and _copyIdTarget == numId then
-				for k, v in pairs(details) do
-					eData[k] = v
-				end
-				ApplyDetailsToPanel(eData)
-			end
-		end)
+		hudCreator.Text = eData.creatorName ~= "" and eData.creatorName or "Vexro Emotes"
 	else
 		infoCreatorLbl.Text = "—"
 		infoDescLbl.Text    = "—"
@@ -4143,15 +3635,13 @@ ShowEmoteHUD = function(emoteId, emoteName)
 		OpenInfoPanel(emoteId, emoteName)
 	end
 
-	local hudRestPos  = isMobile and UDim2.new(0.5, 0, 1, -20) or UDim2.new(0.5, 0, 1, -105)
-	local hudStartPos = isMobile and UDim2.new(0.5, 0, 1, 5)   or UDim2.new(0.5, 0, 1, -72)
-	HUD.Position               = hudStartPos
+	HUD.Position               = UDim2.new(0.5, 0, 1, -72)
 	HUD.BackgroundTransparency = 1
 	HUD.Visible                = true
 
 	TweenService:Create(HUD,
 		TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-		{Position = hudRestPos, BackgroundTransparency = 0.30}
+		{Position = UDim2.new(0.5, 0, 1, -105), BackgroundTransparency = 0.30}
 	):Play()
 
 	RefreshHUDSpeedBtns()
