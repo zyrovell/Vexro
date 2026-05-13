@@ -2093,6 +2093,7 @@ RegisterTheme(previewNameLbl, "TextColor3", "accent")
 local PREVIEW_ORIGIN    = Vector3.new(10000, 1000, 10000)
 local _previewDummy     = nil
 local _previewActive    = false
+local _previewEmoteId   = nil
 local _origCamType      = nil
 local _previewAnimTrack = nil
 
@@ -2131,8 +2132,9 @@ local function _CreatePreviewDummy()
 end
 
 local function StartPreview(emoteId, emoteName)
-    if _previewActive then return end
-    _previewActive = true
+    if _previewActive then StopPreview() end
+    _previewActive  = true
+    _previewEmoteId = emoteId
     _CreatePreviewDummy()
     if not (_previewDummy and _previewDummy.Parent) then
         _previewActive = false; return
@@ -2166,7 +2168,8 @@ end
 
 local function StopPreview()
     if not _previewActive then return end
-    _previewActive = false
+    _previewActive  = false
+    _previewEmoteId = nil
     pcall(function()
         if _previewAnimTrack and _previewAnimTrack.IsPlaying then
             _previewAnimTrack:Stop(0.25)
@@ -2256,7 +2259,8 @@ local function CalcLayout()
 	-- Calculate rows based on available height to fill page mostly
 	local NAME_H = math.clamp(currentCardSize * 0.35, 18, 28)
 	local FAV_H = math.clamp(currentCardSize * 0.3, 18, 24)
-	local CARD_TOTAL_H = currentCardSize + NAME_H + FAV_H
+	local PREV_H = math.clamp(currentCardSize * 0.28, 18, 22)
+	local CARD_TOTAL_H = currentCardSize + NAME_H + FAV_H + PREV_H
 	
 	local rowsVisible = math.floor(scroll.AbsoluteSize.Y / (CARD_TOTAL_H + PAD))
 	if rowsVisible < 2 then rowsVisible = 2 end
@@ -2317,7 +2321,8 @@ local function MakeCard(emote, ci, animate)
 	-- Dynamic text height based on card size, but capped
 	local NAME_H = math.clamp(CARD * 0.35, 18, 28)
 	local FAV_H = math.clamp(CARD * 0.3, 18, 24)
-	local CARD_TOTAL_H = CARD + NAME_H + FAV_H
+	local PREV_H = math.clamp(CARD * 0.28, 18, 22)
+	local CARD_TOTAL_H = CARD + NAME_H + FAV_H + PREV_H
 
 	-- Position logic for grid (must be before pool check)
 	local col = ci % cols
@@ -2336,6 +2341,8 @@ local function MakeCard(emote, ci, animate)
 		_poolEntry.favIcon.Text     = _ref.isFav and utf8.char(0x2605) or utf8.char(0x2606)
 		_poolEntry.favIcon.TextColor3 = _ref.isFav and Color3.fromRGB(255,215,0) or currentTheme.accent
 		_poolEntry.favBtn.BackgroundColor3 = _ref.isFav and currentTheme.tertiary or currentTheme.stroke
+		_poolEntry.prevBtn.Position = UDim2.new(0, 0, 0, CARD + NAME_H + FAV_H)
+		_poolEntry.prevBtn.Size     = UDim2.new(1, 0, 0, PREV_H)
 		_poolEntry.container.Size   = UDim2.new(0, CARD, 0, CARD_TOTAL_H)
 		if animate then
 			_poolEntry.container.Position    = UDim2.new(0, targetX, 0, targetY + 30)
@@ -2580,6 +2587,41 @@ local function MakeCard(emote, ci, animate)
 		if _ref.emote then PlayEmote(_ref.emote.id, _ref.emote.name) end
 	end)
 
+	-- Preview butonu
+	local prevBtn = Instance.new("TextButton")
+	prevBtn.Size = UDim2.new(1, 0, 0, PREV_H)
+	prevBtn.Position = UDim2.new(0, 0, 0, CARD + NAME_H + FAV_H)
+	prevBtn.BackgroundColor3 = currentTheme.tertiary
+	prevBtn.BackgroundTransparency = 0.3
+	prevBtn.Text = "▶ Preview"
+	prevBtn.TextColor3 = currentTheme.accent
+	prevBtn.Font = Enum.Font.GothamSemibold
+	prevBtn.TextSize = isMobile and 9 or 11
+	prevBtn.ZIndex = 4
+	prevBtn.Parent = cardContainer
+	Instance.new("UICorner", prevBtn).CornerRadius = UDim.new(0, 4)
+
+	prevBtn.MouseEnter:Connect(function()
+		TweenService:Create(prevBtn, TweenInfo.new(0.15), {BackgroundTransparency = 0, BackgroundColor3 = currentTheme.accent, TextColor3 = currentTheme.primary}):Play()
+	end)
+	prevBtn.MouseLeave:Connect(function()
+		TweenService:Create(prevBtn, TweenInfo.new(0.15), {BackgroundTransparency = 0.3, BackgroundColor3 = currentTheme.tertiary, TextColor3 = currentTheme.accent}):Play()
+	end)
+
+	prevBtn.MouseButton1Click:Connect(function()
+		if not _ref.emote then return end
+		if _previewActive and _previewEmoteId == _ref.emote.id then
+			StopPreview()
+			prevBtn.Text = "▶ Preview"
+		else
+			StartPreview(_ref.emote.id, _ref.emote.name)
+			prevBtn.Text = "■ Durdur"
+			task.delay(0.1, function()
+				if _previewEmoteId ~= _ref.emote.id then prevBtn.Text = "▶ Preview" end
+			end)
+		end
+	end)
+
 	-- Register in pool tracking
 	local _poolEntry = {
 		container = cardContainer,
@@ -2587,6 +2629,7 @@ local function MakeCard(emote, ci, animate)
 		nameLbl   = nameLbl,
 		favBtn    = favBtn,
 		favIcon   = favIcon,
+		prevBtn   = prevBtn,
 		stroke    = stroke,
 		_ref      = _ref,
 	}
@@ -2614,8 +2657,9 @@ local function UpdateCards(animate)
 	local PAD = isMobile and 4 or 6
 	local NAME_H = math.clamp(CARD * 0.35, 18, 28)
 	local FAV_H = math.clamp(CARD * 0.3, 18, 24)
-	local CARD_TOTAL_H = CARD + NAME_H + FAV_H
-	
+	local PREV_H = math.clamp(CARD * 0.28, 18, 22)
+	local CARD_TOTAL_H = CARD + NAME_H + FAV_H + PREV_H
+
 	local rows = math.ceil(ci / math.max(cols, 1))
 	scroll.CanvasSize = UDim2.new(0, 0, 0, rows * (CARD_TOTAL_H + PAD) + PAD)
 	scroll.CanvasPosition = Vector2.zero
