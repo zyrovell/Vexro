@@ -2099,71 +2099,109 @@ local _previewAnimTrack     = nil
 local _activePreviewOverlay = nil  -- şu an ■ gösteren overlay butonu
 
 local function _CreatePreviewDummy()
+    -- Önceki dummy varsa tekrar oluşturma
     if _previewDummy and _previewDummy.Parent then return end
     local char = player.Character
     if not char then return end
-    pcall(function()
+
+    local ok, err = pcall(function()
         local dummy = char:Clone()
         dummy.Name = "VexroPreviewDummy"
+
+        -- Script'leri temizle
         for _, s in ipairs(dummy:GetDescendants()) do
-            if s:IsA("BaseScript") or s:IsA("ModuleScript") then s:Destroy() end
+            if s:IsA("BaseScript") or s:IsA("ModuleScript") then
+                pcall(function() s:Destroy() end)
+            end
         end
+
+        -- HumanoidRootPart kontrolü
         local root = dummy:FindFirstChild("HumanoidRootPart")
         if not root then dummy:Destroy(); return end
-        local origin = root.Position
+
+        -- Workspace'e parent et, sonra PivotTo ile taşı (CFrame hataları önlenir)
+        dummy.Parent = workspace
+        pcall(function()
+            dummy:PivotTo(CFrame.new(PREVIEW_ORIGIN))
+        end)
+
+        -- Tüm BasePart'ları sabitle (gravity'den korunmak için)
         for _, p in ipairs(dummy:GetDescendants()) do
             if p:IsA("BasePart") then
-                p.CFrame        = CFrame.new(PREVIEW_ORIGIN) * CFrame.new(p.Position - origin)
-                p.Anchored      = false
-                p.CanCollide    = false
-                p.CanTouch      = false
+                pcall(function()
+                    p.Anchored   = true
+                    p.CanCollide = false
+                    p.CanTouch   = false
+                    p.Massless   = true
+                end)
             end
         end
+
+        -- Humanoid ayarları
         local hum = dummy:FindFirstChildWhichIsA("Humanoid")
         if hum then
-            hum.WalkSpeed  = 0
-            hum.JumpHeight = 0
+            pcall(function()
+                hum.WalkSpeed  = 0
+                hum.JumpHeight = 0
+                hum.AutoJumpEnabled = false
+            end)
             if not hum:FindFirstChildWhichIsA("Animator") then
-                Instance.new("Animator").Parent = hum
+                pcall(function() Instance.new("Animator").Parent = hum end)
             end
         end
-        dummy.Parent  = workspace
+
         _previewDummy = dummy
     end)
+
+    if not ok then
+        -- Dummy oluşturma başarısız, temizle
+        if _previewDummy then pcall(function() _previewDummy:Destroy() end) end
+        _previewDummy = nil
+    end
 end
 
 local function StartPreview(emoteId, emoteName)
     if _previewActive then StopPreview() end
     _previewActive  = true
     _previewEmoteId = emoteId
+
     _CreatePreviewDummy()
-    if not (_previewDummy and _previewDummy.Parent) then
-        _previewActive = false; return
+
+    -- Dummy hazır değilse de UI güncelle (kamera switch atlansın)
+    local dummyOk = _previewDummy and _previewDummy.Parent
+
+    if dummyOk then
+        pcall(function()
+            local hum = _previewDummy:FindFirstChildWhichIsA("Humanoid")
+            if not hum then return end
+            local animator = hum:FindFirstChildWhichIsA("Animator")
+            if not animator then
+                animator = Instance.new("Animator")
+                animator.Parent = hum
+            end
+            if _previewAnimTrack and _previewAnimTrack.IsPlaying then
+                _previewAnimTrack:Stop(0)
+            end
+            local a = Instance.new("Animation")
+            a.AnimationId = "rbxassetid://" .. tostring(emoteId)
+            _previewAnimTrack = animator:LoadAnimation(a)
+            _previewAnimTrack.Looped = true
+            _previewAnimTrack:Play()
+        end)
+
+        pcall(function()
+            local cam = workspace.CurrentCamera
+            _origCamType   = cam.CameraType
+            cam.CameraType = Enum.CameraType.Scriptable
+            cam.CFrame     = CFrame.new(
+                PREVIEW_ORIGIN + Vector3.new(0, 2.2, 5.5),
+                PREVIEW_ORIGIN + Vector3.new(0, 2.0, 0)
+            )
+        end)
     end
-    pcall(function()
-        local hum = _previewDummy:FindFirstChildWhichIsA("Humanoid")
-        local anim_obj = Instance.new("Animator", hum)  -- gets existing or creates
-        local animator = hum:FindFirstChildWhichIsA("Animator") or anim_obj
-        if _previewAnimTrack and _previewAnimTrack.IsPlaying then
-            _previewAnimTrack:Stop(0)
-        end
-        local a = Instance.new("Animation")
-        a.AnimationId  = "rbxassetid://" .. tostring(emoteId)
-        _previewAnimTrack = animator:LoadAnimation(a)
-        _previewAnimTrack.Looped = true
-        _previewAnimTrack:Play()
-    end)
-    pcall(function()
-        local cam = workspace.CurrentCamera
-        _origCamType    = cam.CameraType
-        cam.CameraType  = Enum.CameraType.Scriptable
-        cam.CFrame      = CFrame.new(
-            PREVIEW_ORIGIN + Vector3.new(0, 2.2, 5.5),
-            PREVIEW_ORIGIN + Vector3.new(0, 2, 0)
-        )
-    end)
+
     previewIdleLbl.Visible = false
-    previewNameLbl.Text    = emoteName or ""
+    previewNameLbl.Text    = emoteName or "?"
     previewNameLbl.Visible = true
 end
 
