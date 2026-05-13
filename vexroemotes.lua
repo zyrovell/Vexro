@@ -2091,11 +2091,12 @@ RegisterTheme(previewNameLbl, "TextColor3", "accent")
 -- PREVIEW SYSTEM (world-space dummy — no ViewportFrame)
 -- ===============================================================
 local PREVIEW_ORIGIN    = Vector3.new(10000, 1000, 10000)
-local _previewDummy     = nil
-local _previewActive    = false
-local _previewEmoteId   = nil
-local _origCamType      = nil
-local _previewAnimTrack = nil
+local _previewDummy         = nil
+local _previewActive        = false
+local _previewEmoteId       = nil
+local _origCamType          = nil
+local _previewAnimTrack     = nil
+local _activePreviewOverlay = nil  -- şu an ■ gösteren overlay butonu
 
 local function _CreatePreviewDummy()
     if _previewDummy and _previewDummy.Parent then return end
@@ -2170,6 +2171,14 @@ local function StopPreview()
     if not _previewActive then return end
     _previewActive  = false
     _previewEmoteId = nil
+    if _activePreviewOverlay then
+        pcall(function()
+            _activePreviewOverlay.Text = "▶"
+            _activePreviewOverlay.BackgroundTransparency = 0.35
+            _activePreviewOverlay.BackgroundColor3 = Color3.fromRGB(0,0,0)
+        end)
+        _activePreviewOverlay = nil
+    end
     pcall(function()
         if _previewAnimTrack and _previewAnimTrack.IsPlaying then
             _previewAnimTrack:Stop(0.25)
@@ -2188,10 +2197,11 @@ end
 -- ===============================================================
 -- INPUT MANAGER (single handler for hold-to-preview)
 -- ===============================================================
-local _cardToEmote  = {}   -- card ImageButton → {id, name}
-local _holdId       = nil
-local _holdName     = nil
-local _holdTimer    = nil
+local _cardToEmote      = {}   -- card ImageButton → {id, name}
+local _holdId           = nil
+local _holdName         = nil
+local _holdTimer        = nil
+local _suppressNextClick = false  -- hold-to-preview sonrası click'i engeller
 
 local function _RegisterCard(cardBtn, id, name)
     _cardToEmote[cardBtn] = {id = id, name = name}
@@ -2212,14 +2222,21 @@ UserInputService.InputBegan:Connect(function(inp, _gpe)
     _holdId, _holdName = data.id, data.name
     _holdTimer = task.delay(0.25, function()
         _holdTimer = nil
-        if _holdId then StartPreview(_holdId, _holdName) end
+        if _holdId then
+            _suppressNextClick = true
+            StartPreview(_holdId, _holdName)
+        end
     end)
 end)
 
 UserInputService.InputEnded:Connect(function(inp)
     if inp.UserInputType ~= Enum.UserInputType.MouseButton1
     and inp.UserInputType ~= Enum.UserInputType.Touch then return end
-    if _holdTimer then task.cancel(_holdTimer); _holdTimer = nil end
+    if _holdTimer then
+        task.cancel(_holdTimer)
+        _holdTimer = nil
+        _suppressNextClick = false  -- kısa tıklama, normal click olsun
+    end
     _holdId, _holdName = nil, nil
     StopPreview()
 end)
@@ -2259,8 +2276,7 @@ local function CalcLayout()
 	-- Calculate rows based on available height to fill page mostly
 	local NAME_H = math.clamp(currentCardSize * 0.35, 18, 28)
 	local FAV_H = math.clamp(currentCardSize * 0.3, 18, 24)
-	local PREV_H = math.clamp(currentCardSize * 0.28, 18, 22)
-	local CARD_TOTAL_H = currentCardSize + NAME_H + FAV_H + PREV_H
+	local CARD_TOTAL_H = currentCardSize + NAME_H + FAV_H
 	
 	local rowsVisible = math.floor(scroll.AbsoluteSize.Y / (CARD_TOTAL_H + PAD))
 	if rowsVisible < 2 then rowsVisible = 2 end
@@ -2321,8 +2337,7 @@ local function MakeCard(emote, ci, animate)
 	-- Dynamic text height based on card size, but capped
 	local NAME_H = math.clamp(CARD * 0.35, 18, 28)
 	local FAV_H = math.clamp(CARD * 0.3, 18, 24)
-	local PREV_H = math.clamp(CARD * 0.28, 18, 22)
-	local CARD_TOTAL_H = CARD + NAME_H + FAV_H + PREV_H
+	local CARD_TOTAL_H = CARD + NAME_H + FAV_H
 
 	-- Position logic for grid (must be before pool check)
 	local col = ci % cols
@@ -2341,8 +2356,6 @@ local function MakeCard(emote, ci, animate)
 		_poolEntry.favIcon.Text     = _ref.isFav and utf8.char(0x2605) or utf8.char(0x2606)
 		_poolEntry.favIcon.TextColor3 = _ref.isFav and Color3.fromRGB(255,215,0) or currentTheme.accent
 		_poolEntry.favBtn.BackgroundColor3 = _ref.isFav and currentTheme.tertiary or currentTheme.stroke
-		_poolEntry.prevBtn.Position = UDim2.new(0, 0, 0, CARD + NAME_H + FAV_H)
-		_poolEntry.prevBtn.Size     = UDim2.new(1, 0, 0, PREV_H)
 		_poolEntry.container.Size   = UDim2.new(0, CARD, 0, CARD_TOTAL_H)
 		if animate then
 			_poolEntry.container.Position    = UDim2.new(0, targetX, 0, targetY + 30)
@@ -2458,7 +2471,7 @@ local function MakeCard(emote, ci, animate)
 	Instance.new("UICorner", favBtn).CornerRadius = UDim.new(0, 4)
 
 	local favIcon = Instance.new("TextLabel")
-	local iconSize = isMobile and 28 or 34
+	local iconSize = math.min(isMobile and 28 or 34, FAV_H - 2)
 	favIcon.Size = UDim2.new(0, iconSize, 0, iconSize)
 	favIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
 	favIcon.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -2466,7 +2479,7 @@ local function MakeCard(emote, ci, animate)
 	favIcon.Text = isFav and utf8.char(0x2605) or utf8.char(0x2606)
 	favIcon.TextColor3 = isFav and Color3.fromRGB(255, 215, 0) or currentTheme.accent
 	favIcon.Font = Enum.Font.SourceSansLight
-	favIcon.TextSize = isMobile and 26 or 32
+	favIcon.TextSize = math.min(isMobile and 26 or 32, FAV_H - 4)
 	favIcon.TextScaled = false
 	favIcon.ZIndex = 50
 	favIcon.Parent = favBtn
@@ -2584,54 +2597,59 @@ local function MakeCard(emote, ci, animate)
 			end
 		end)
 		
+		if _suppressNextClick then _suppressNextClick = false; return end
 		if _ref.emote then PlayEmote(_ref.emote.id, _ref.emote.name) end
 	end)
 
-	-- Preview butonu
-	local prevBtn = Instance.new("TextButton")
-	prevBtn.Size = UDim2.new(1, 0, 0, PREV_H)
-	prevBtn.Position = UDim2.new(0, 0, 0, CARD + NAME_H + FAV_H)
-	prevBtn.BackgroundColor3 = currentTheme.tertiary
-	prevBtn.BackgroundTransparency = 0.3
-	prevBtn.Text = "▶ Preview"
-	prevBtn.TextColor3 = currentTheme.accent
-	prevBtn.Font = Enum.Font.GothamSemibold
-	prevBtn.TextSize = isMobile and 9 or 11
-	prevBtn.ZIndex = 4
-	prevBtn.Parent = cardContainer
-	Instance.new("UICorner", prevBtn).CornerRadius = UDim.new(0, 4)
+	-- Preview overlay butonu (kart üzerinde sol üst köşe)
+	local prevS = isMobile and 20 or 24
+	local previewOverlay = Instance.new("TextButton")
+	previewOverlay.Size = UDim2.new(0, prevS, 0, prevS)
+	previewOverlay.Position = UDim2.new(0, 3, 0, 3)
+	previewOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	previewOverlay.BackgroundTransparency = 0.35
+	previewOverlay.Text = "▶"
+	previewOverlay.TextColor3 = Color3.new(1, 1, 1)
+	previewOverlay.Font = Enum.Font.GothamBold
+	previewOverlay.TextSize = isMobile and 9 or 11
+	previewOverlay.ZIndex = 10
+	previewOverlay.Parent = card
+	Instance.new("UICorner", previewOverlay).CornerRadius = UDim.new(0, 5)
 
-	prevBtn.MouseEnter:Connect(function()
-		TweenService:Create(prevBtn, TweenInfo.new(0.15), {BackgroundTransparency = 0, BackgroundColor3 = currentTheme.accent, TextColor3 = currentTheme.primary}):Play()
+	previewOverlay.MouseEnter:Connect(function()
+		TweenService:Create(previewOverlay, TweenInfo.new(0.12), {BackgroundTransparency = 0, BackgroundColor3 = currentTheme.accent}):Play()
 	end)
-	prevBtn.MouseLeave:Connect(function()
-		TweenService:Create(prevBtn, TweenInfo.new(0.15), {BackgroundTransparency = 0.3, BackgroundColor3 = currentTheme.tertiary, TextColor3 = currentTheme.accent}):Play()
+	previewOverlay.MouseLeave:Connect(function()
+		TweenService:Create(previewOverlay, TweenInfo.new(0.12), {BackgroundTransparency = 0.35, BackgroundColor3 = Color3.fromRGB(0,0,0)}):Play()
 	end)
 
-	prevBtn.MouseButton1Click:Connect(function()
+	previewOverlay.MouseButton1Click:Connect(function()
 		if not _ref.emote then return end
 		if _previewActive and _previewEmoteId == _ref.emote.id then
 			StopPreview()
-			prevBtn.Text = "▶ Preview"
+			previewOverlay.Text = "▶"
+			TweenService:Create(previewOverlay, TweenInfo.new(0.12), {BackgroundTransparency = 0.35, BackgroundColor3 = Color3.fromRGB(0,0,0)}):Play()
 		else
+			if _activePreviewOverlay and _activePreviewOverlay ~= previewOverlay then
+				_activePreviewOverlay.Text = "▶"
+			end
+			_activePreviewOverlay = previewOverlay
 			StartPreview(_ref.emote.id, _ref.emote.name)
-			prevBtn.Text = "■ Durdur"
-			task.delay(0.1, function()
-				if _previewEmoteId ~= _ref.emote.id then prevBtn.Text = "▶ Preview" end
-			end)
+			previewOverlay.Text = "■"
+			TweenService:Create(previewOverlay, TweenInfo.new(0.12), {BackgroundTransparency = 0, BackgroundColor3 = currentTheme.critical}):Play()
 		end
 	end)
 
 	-- Register in pool tracking
 	local _poolEntry = {
-		container = cardContainer,
-		card      = card,
-		nameLbl   = nameLbl,
-		favBtn    = favBtn,
-		favIcon   = favIcon,
-		prevBtn   = prevBtn,
-		stroke    = stroke,
-		_ref      = _ref,
+		container       = cardContainer,
+		card            = card,
+		nameLbl         = nameLbl,
+		favBtn          = favBtn,
+		favIcon         = favIcon,
+		previewOverlay  = previewOverlay,
+		stroke          = stroke,
+		_ref            = _ref,
 	}
 	_containerToEntry[cardContainer] = _poolEntry
 	_cardToEmote[card] = {id = emote.id, name = emote.name}
@@ -2657,8 +2675,7 @@ local function UpdateCards(animate)
 	local PAD = isMobile and 4 or 6
 	local NAME_H = math.clamp(CARD * 0.35, 18, 28)
 	local FAV_H = math.clamp(CARD * 0.3, 18, 24)
-	local PREV_H = math.clamp(CARD * 0.28, 18, 22)
-	local CARD_TOTAL_H = CARD + NAME_H + FAV_H + PREV_H
+	local CARD_TOTAL_H = CARD + NAME_H + FAV_H
 
 	local rows = math.ceil(ci / math.max(cols, 1))
 	scroll.CanvasSize = UDim2.new(0, 0, 0, rows * (CARD_TOTAL_H + PAD) + PAD)
