@@ -2810,6 +2810,7 @@ end)
 -- ===============================================================
 -- MINI ICON
 -- ===============================================================
+do -- Scope: register limiti için yerel değişkenleri serbest bırakır
 
 local iconS = isMobile and 50 or 60
 local miniIcon = Instance.new("ImageButton")
@@ -2918,6 +2919,8 @@ minBtn.MouseButton1Click:Connect(function()
 	end)
 end)
 
+end -- MINI ICON do block
+
 closeBtn.MouseButton1Click:Connect(function()
 	TweenService:Create(main, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1, Rotation = -30}):Play()
 	task.wait(0.25)
@@ -2955,6 +2958,7 @@ UserInputService.InputEnded:Connect(function(input)
 	end
 end)
 
+do -- Scope: resize değişkenleri için register limiti optimizasyonu
 local resizeS = isMobile and 28 or 22
 local resizeBtn = Instance.new("TextButton")
 resizeBtn.Size = UDim2.new(0, resizeS, 0, resizeS)
@@ -2985,7 +2989,7 @@ UserInputService.InputChanged:Connect(function(input)
 		local newW = math.clamp(sizeStart.X + delta.X, 400, 1200) -- Expanded max width
 		local newH = math.clamp(sizeStart.Y + delta.Y, 300, 800)
 		main.Size = UDim2.new(0, newW, 0, newH)
-		
+
 		local now = tick()
 		if now - lastRefreshTime > 0.1 then
 			lastRefreshTime = now
@@ -3000,6 +3004,7 @@ UserInputService.InputEnded:Connect(function(input)
 		if currentTab ~= "settings" then Refresh(false) end
 	end
 end)
+end -- resize do block
 
 -- ===============================================================
 -- CHARACTER RESPAWN & AUTO-RELOAD
