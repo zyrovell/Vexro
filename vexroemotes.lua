@@ -2201,8 +2201,7 @@ local function _GetCardAt(x, y)
     end
 end
 
-UserInputService.InputBegan:Connect(function(inp, gpe)
-    if gpe then return end
+UserInputService.InputBegan:Connect(function(inp, _gpe)
     if inp.UserInputType ~= Enum.UserInputType.MouseButton1
     and inp.UserInputType ~= Enum.UserInputType.Touch then return end
     local data = _GetCardAt(inp.Position.X, inp.Position.Y)
