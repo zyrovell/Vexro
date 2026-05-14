@@ -97,6 +97,9 @@ for _, v in ipairs(Favorites) do FavoritesSet[v] = true end
 -- Lookup table for O(1) emote-by-ID access (populated after emotes load)
 local EmotesById = {}
 
+-- Cache for async-fetched Roblox catalog metadata (keyed by numeric asset ID)
+local _emoteMetaCache = {}
+
 -- ===============================================================
 -- UTILITIES
 -- ===============================================================
@@ -3406,6 +3409,78 @@ local INFO_CLOSE_POS = UDim2.new(0, -290, 1, -270)
 
 local _copyIdTarget = 0  -- Copy ID için mevcut emote id'si
 
+local function _applyMetaToInfoPanel(meta)
+	-- Yaratıcı
+	infoCreatorLbl.Text = (meta.creatorName and meta.creatorName ~= "") and meta.creatorName or "—"
+	-- Açıklama
+	infoDescLbl.Text    = (meta.description and meta.description ~= "") and meta.description or L.noDesc
+	-- Fiyat
+	if meta.priceStatus == "Free" or meta.price == 0 then
+		infoPriceLbl.Text       = L.freePrice
+		infoPriceLbl.TextColor3 = Color3.fromRGB(100, 220, 130)
+	elseif meta.price and meta.price > 0 then
+		infoPriceLbl.Text       = tostring(meta.price) .. " R$"
+		infoPriceLbl.TextColor3 = Color3.fromRGB(255, 200, 80)
+	else
+		infoPriceLbl.Text       = (meta.priceStatus and meta.priceStatus ~= "") and meta.priceStatus or "—"
+		infoPriceLbl.TextColor3 = Color3.fromRGB(160, 160, 185)
+	end
+	-- Favori sayısı
+	infoFavLbl.Text = meta.favoriteCount
+		and ("♥ " .. tostring(meta.favoriteCount))
+		or "—"
+	-- Tarih
+	if meta.createdUtc and meta.createdUtc ~= "" then
+		infoDateLbl.Text = meta.createdUtc:sub(1, 10)
+	else
+		infoDateLbl.Text = "—"
+	end
+	-- HUD creator
+	hudCreator.Text = (meta.creatorName and meta.creatorName ~= "") and meta.creatorName or "Vexro Emotes"
+end
+
+local function _fetchAndCacheMeta(numId, targetId)
+	-- Roblox economy API'den metadata çek
+	local ok, res = pcall(function()
+		return game:HttpGet("https://economy.roblox.com/v2/assets/" .. tostring(numId) .. "/details")
+	end)
+	if not ok or not res then return end
+	local ok2, parsed = pcall(function() return HttpService:JSONDecode(res) end)
+	if not ok2 or not parsed then return end
+
+	local meta = {
+		creatorName   = tostring((parsed.Creator and parsed.Creator.Name) or ""),
+		description   = tostring(parsed.Description or ""),
+		price         = parsed.PriceInRobux,
+		priceStatus   = parsed.IsForSale == false and "Not for sale" or (parsed.IsPublicDomain and "Free" or ""),
+		favoriteCount = parsed.FavoriteCount,
+		createdUtc    = tostring(parsed.Created or ""),
+	}
+	-- priceStatus "Free" kontrolü: IsPublicDomain veya PriceInRobux==0
+	if parsed.IsPublicDomain or (parsed.PriceInRobux and parsed.PriceInRobux == 0) then
+		meta.priceStatus = "Free"
+		meta.price       = 0
+	end
+
+	_emoteMetaCache[numId] = meta
+
+	-- emotes tablosunu da güncelle (gelecekteki arama için)
+	local eData = EmotesById[numId]
+	if eData then
+		eData.creatorName   = meta.creatorName
+		eData.description   = meta.description
+		eData.price         = meta.price
+		eData.priceStatus   = meta.priceStatus
+		eData.favoriteCount = meta.favoriteCount
+		eData.createdUtc    = meta.createdUtc
+	end
+
+	-- Panel hâlâ aynı emote için açıksa UI'yi güncelle
+	if infoPanelOpen and _copyIdTarget == numId then
+		_applyMetaToInfoPanel(meta)
+	end
+end
+
 local function OpenInfoPanel(emoteId, emoteName)
 	infoEmoteName.Text  = emoteName or "—"
 	infoSpeedLbl.Text   = L.speed .. ": " .. tostring(Settings.speed) .. "x"
@@ -3413,47 +3488,32 @@ local function OpenInfoPanel(emoteId, emoteName)
 	infoPanelTitle.BackgroundColor3 = currentTheme.accent
 	_copyIdTarget = tonumber(emoteId) or 0
 
-	-- Emotes tablosundan ID ile direkt bul
 	local numId = tonumber(emoteId)
-	local eData = nil
-	for _, e in ipairs(Emotes) do
-		if e.id == numId then eData = e; break end
+
+	-- Önce önbellekten veya Emotes tablosundan bak
+	local meta = _emoteMetaCache[numId]
+	if not meta then
+		local eData = EmotesById[numId]
+		if eData and eData.creatorName ~= "" then
+			-- Emotes tablosunda zaten tam veri var
+			meta = eData
+		end
 	end
 
-	if eData then
-		-- Yaratıcı
-		infoCreatorLbl.Text = eData.creatorName ~= "" and eData.creatorName or "—"
-		-- Açıklama
-		infoDescLbl.Text    = eData.description ~= "" and eData.description or L.noDesc
-		-- Fiyat
-		if eData.priceStatus == "Free" or eData.price == 0 then
-			infoPriceLbl.Text       = L.freePrice
-			infoPriceLbl.TextColor3 = Color3.fromRGB(100, 220, 130)
-		elseif eData.price and eData.price > 0 then
-			infoPriceLbl.Text       = tostring(eData.price) .. " R$"
-			infoPriceLbl.TextColor3 = Color3.fromRGB(255, 200, 80)
-		else
-			infoPriceLbl.Text       = eData.priceStatus ~= "" and eData.priceStatus or "—"
-			infoPriceLbl.TextColor3 = Color3.fromRGB(160, 160, 185)
-		end
-		-- Favori sayısı
-		infoFavLbl.Text = eData.favoriteCount
-			and ("♥ " .. tostring(eData.favoriteCount))
-			or "—"
-		-- Tarih (ISO string'den sadece gün al: "2019-06-24T..." → "2019-06-24")
-		if eData.createdUtc and eData.createdUtc ~= "" then
-			infoDateLbl.Text = eData.createdUtc:sub(1, 10)
-		else
-			infoDateLbl.Text = "—"
-		end
-		-- HUD creator güncelle
-		hudCreator.Text = eData.creatorName ~= "" and eData.creatorName or "Vexro Emotes"
+	if meta then
+		_applyMetaToInfoPanel(meta)
 	else
-		infoCreatorLbl.Text = "—"
-		infoDescLbl.Text    = "—"
-		infoPriceLbl.Text   = "—"
-		infoFavLbl.Text     = "—"
-		infoDateLbl.Text    = "—"
+		-- Placeholder göster, arka planda çek
+		infoCreatorLbl.Text = "…"
+		infoDescLbl.Text    = "…"
+		infoPriceLbl.Text   = "…"
+		infoPriceLbl.TextColor3 = Color3.fromRGB(160, 160, 185)
+		infoFavLbl.Text     = "…"
+		infoDateLbl.Text    = "…"
+		hudCreator.Text     = "Vexro Emotes"
+		if numId and numId > 0 then
+			task.spawn(_fetchAndCacheMeta, numId, numId)
+		end
 	end
 
 	-- Copy ID buton tıklama
