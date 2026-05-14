@@ -1468,7 +1468,20 @@ RegisterTheme(randBtn, "BackgroundColor3", "accent")
 RegisterTheme(minBtn, "BackgroundColor3", "stroke")
 RegisterTheme(closeBtn, "BackgroundColor3", "critical")
 
-stopBtn.MouseButton1Click:Connect(function() StopEmote(true) end)
+local _isPaused = false
+stopBtn.MouseButton1Click:Connect(function()
+	if currentAnimTrack and currentAnimTrack.IsPlaying then
+		-- Çalan emoteyi mevcut pozisyonda dondur (hız=0)
+		pcall(function() currentAnimTrack:AdjustSpeed(0) end)
+		_isPaused = true
+	elseif currentAnimTrack and _isPaused then
+		-- Zaten dondurulmuşsa devam ettir
+		pcall(function() currentAnimTrack:AdjustSpeed(Settings.speed) end)
+		_isPaused = false
+	else
+		StopEmote(true)
+	end
+end)
 randBtn.MouseButton1Click:Connect(function()
 	if #currentData > 0 then
 		local r = currentData[math.random(#currentData)]
@@ -3440,27 +3453,24 @@ local function _applyMetaToInfoPanel(meta)
 end
 
 local function _fetchAndCacheMeta(numId, targetId)
-	-- Roblox economy API'den metadata çek
-	local ok, res = pcall(function()
-		return game:HttpGet("https://economy.roblox.com/v2/assets/" .. tostring(numId) .. "/details")
+	-- MarketplaceService ile metadata çek (native Roblox, HTTP'ye gerek yok)
+	local ok, info = pcall(function()
+		return game:GetService("MarketplaceService"):GetProductInfo(numId)
 	end)
-	if not ok or not res then return end
-	local ok2, parsed = pcall(function() return HttpService:JSONDecode(res) end)
-	if not ok2 or not parsed then return end
+	if not ok or not info then return end
+
+	local price      = info.PriceInRobux
+	local isFree     = info.IsPublicDomain or (price and price == 0)
+	local isNotSale  = info.IsForSale == false and not isFree
 
 	local meta = {
-		creatorName   = tostring((parsed.Creator and parsed.Creator.Name) or ""),
-		description   = tostring(parsed.Description or ""),
-		price         = parsed.PriceInRobux,
-		priceStatus   = parsed.IsForSale == false and "Not for sale" or (parsed.IsPublicDomain and "Free" or ""),
-		favoriteCount = parsed.FavoriteCount,
-		createdUtc    = tostring(parsed.Created or ""),
+		creatorName   = tostring((info.Creator and info.Creator.Name) or ""),
+		description   = tostring(info.Description or ""),
+		price         = isFree and 0 or price,
+		priceStatus   = isFree and "Free" or (isNotSale and "Not for sale" or ""),
+		favoriteCount = nil,
+		createdUtc    = "",
 	}
-	-- priceStatus "Free" kontrolü: IsPublicDomain veya PriceInRobux==0
-	if parsed.IsPublicDomain or (parsed.PriceInRobux and parsed.PriceInRobux == 0) then
-		meta.priceStatus = "Free"
-		meta.price       = 0
-	end
 
 	_emoteMetaCache[numId] = meta
 
@@ -3655,6 +3665,15 @@ local function StartHUDTracking()
 		hudTrackerConn = nil
 	end
 
+	-- Animasyon uzunluğuna göre slider'ı göster/gizle
+	-- Kısa emoteler (pose gibi, Length<=0) için slider gereksiz
+	task.defer(function()
+		if not currentAnimTrack then return end
+		local len = currentAnimTrack.Length
+		local showSlider = len and len > 0
+		hudSliderBg.Visible = showSlider
+	end)
+
 	hudTrackerConn = RunService.RenderStepped:Connect(function()
 		if not currentAnimTrack or not currentAnimTrack.IsPlaying then return end
 		local len = currentAnimTrack.Length
@@ -3710,6 +3729,8 @@ end
 
 -- HideEmoteHUD: HUD'u asagiya kaydirarak gizle
 HideEmoteHUD = function()
+	_isPaused = false
+	hudSliderBg.Visible = true  -- sonraki emote için sıfırla
 	StopHUDTracking()
 	TweenService:Create(HUD,
 		TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
