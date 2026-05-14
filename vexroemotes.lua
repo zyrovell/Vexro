@@ -3665,15 +3665,6 @@ local function StartHUDTracking()
 		hudTrackerConn = nil
 	end
 
-	-- Animasyon uzunluğuna göre slider'ı göster/gizle
-	-- Kısa emoteler (pose gibi, Length<=0) için slider gereksiz
-	task.defer(function()
-		if not currentAnimTrack then return end
-		local len = currentAnimTrack.Length
-		local showSlider = len and len > 0
-		hudSliderBg.Visible = showSlider
-	end)
-
 	hudTrackerConn = RunService.RenderStepped:Connect(function()
 		if not currentAnimTrack or not currentAnimTrack.IsPlaying then return end
 		local len = currentAnimTrack.Length
@@ -3730,7 +3721,6 @@ end
 -- HideEmoteHUD: HUD'u asagiya kaydirarak gizle
 HideEmoteHUD = function()
 	_isPaused = false
-	hudSliderBg.Visible = true  -- sonraki emote için sıfırla
 	StopHUDTracking()
 	TweenService:Create(HUD,
 		TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
