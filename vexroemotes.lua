@@ -2811,6 +2811,7 @@ end
 
 -- Forward declarations: BÖLÜM 3'te tanımlanır; SetDynamicTransparency closure'ı için gerekli
 local HUD, infoPanel, infoSpeedLbl, comboSlots, comboQueue_UI
+local _currentInfoId, _currentInfoName
 local _comboLoopEnabled = false   -- combo döngü modu
 local _comboLoopList    = {}      -- döngü için orijinal liste kopyası
 
@@ -3052,10 +3053,40 @@ hudStroke.Thickness    = 1.5
 hudStroke.Transparency = 0.25
 hudStroke.Parent       = HUD
 
--- ▸ Sol: "i" bilgi ikonu
+-- ▸ Sol üst: Favori yıldızı
+local hudFavBtn = Instance.new("TextButton")
+hudFavBtn.Size                   = UDim2.new(0, 22, 0, 22)
+hudFavBtn.Position               = UDim2.new(0, 9, 0, 6)
+hudFavBtn.BackgroundColor3       = Color3.fromRGB(30, 30, 46)
+hudFavBtn.BackgroundTransparency = 0.20
+hudFavBtn.Text                   = utf8.char(0x2606)
+hudFavBtn.TextColor3             = currentTheme.accent
+hudFavBtn.Font                   = Enum.Font.GothamBold
+hudFavBtn.TextSize               = 14
+hudFavBtn.ZIndex                 = 502
+hudFavBtn.Parent                 = HUD
+Instance.new("UICorner", hudFavBtn).CornerRadius = UDim.new(1, 0)
+
+local function RefreshHUDFavBtn()
+	if not _currentInfoId then return end
+	local isFav = IsFavorite(_currentInfoId)
+	hudFavBtn.Text       = isFav and utf8.char(0x2605) or utf8.char(0x2606)
+	hudFavBtn.TextColor3 = isFav and Color3.fromRGB(255, 215, 0) or currentTheme.accent
+	TweenService:Create(hudFavBtn, TweenInfo.new(0.15), {
+		BackgroundColor3 = isFav and Color3.fromRGB(55, 45, 10) or Color3.fromRGB(30, 30, 46)
+	}):Play()
+end
+
+hudFavBtn.MouseButton1Click:Connect(function()
+	if not _currentInfoId then return end
+	ToggleFavorite(_currentInfoId)
+	RefreshHUDFavBtn()
+end)
+
+-- ▸ Sol alt: "i" bilgi ikonu
 local hudInfoBtn = Instance.new("TextButton")
-hudInfoBtn.Size                   = UDim2.new(0, 26, 0, 26)
-hudInfoBtn.Position               = UDim2.new(0, 10, 0.5, -13)
+hudInfoBtn.Size                   = UDim2.new(0, 22, 0, 22)
+hudInfoBtn.Position               = UDim2.new(0, 9, 0, 32)
 hudInfoBtn.BackgroundColor3       = currentTheme.accent
 hudInfoBtn.BackgroundTransparency = 0.40
 hudInfoBtn.Text                   = "i"
@@ -3573,7 +3604,6 @@ local function CloseInfoPanel()
 end
 
 -- "i" butonuna tıklayınca panel aç/kapat
-local _currentInfoId, _currentInfoName = nil, nil
 hudInfoBtn.MouseButton1Click:Connect(function()
 	if infoPanelOpen then
 		CloseInfoPanel()
@@ -3698,6 +3728,7 @@ ShowEmoteHUD = function(emoteId, emoteName)
 	_currentInfoId   = emoteId
 	_currentInfoName = emoteName
 
+	RefreshHUDFavBtn()
 	hudName.Text    = emoteName or "Emote"
 	hudCreator.Text = "Vexro Emotes"
 
