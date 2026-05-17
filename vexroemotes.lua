@@ -3054,15 +3054,13 @@ hudStroke.Transparency = 0.25
 hudStroke.Parent       = HUD
 
 -- ▸ Sol üst: Favori yıldızı
-local hudFavBtn = Instance.new("TextButton")
+local hudFavBtn = Instance.new("ImageButton")
 hudFavBtn.Size                   = UDim2.new(0, 22, 0, 22)
 hudFavBtn.Position               = UDim2.new(0, 9, 0, 6)
 hudFavBtn.BackgroundColor3       = Color3.fromRGB(30, 30, 46)
 hudFavBtn.BackgroundTransparency = 0.20
-hudFavBtn.Text                   = utf8.char(0x2606)
-hudFavBtn.TextColor3             = currentTheme.accent
-hudFavBtn.Font                   = Enum.Font.GothamBold
-hudFavBtn.TextSize               = 14
+hudFavBtn.Image                  = ResolveAssetImage(Icons.FavoriteEmpty)
+hudFavBtn.ImageColor3            = currentTheme.accent
 hudFavBtn.ZIndex                 = 502
 hudFavBtn.Parent                 = HUD
 Instance.new("UICorner", hudFavBtn).CornerRadius = UDim.new(1, 0)
@@ -3070,9 +3068,9 @@ Instance.new("UICorner", hudFavBtn).CornerRadius = UDim.new(1, 0)
 local function RefreshHUDFavBtn()
 	if not _currentInfoId then return end
 	local isFav = IsFavorite(_currentInfoId)
-	hudFavBtn.Text       = isFav and utf8.char(0x2605) or utf8.char(0x2606)
-	hudFavBtn.TextColor3 = isFav and Color3.fromRGB(255, 215, 0) or currentTheme.accent
+	hudFavBtn.Image      = ResolveAssetImage(isFav and Icons.FavoriteFull or Icons.FavoriteEmpty)
 	TweenService:Create(hudFavBtn, TweenInfo.new(0.15), {
+		ImageColor3      = isFav and Color3.fromRGB(255, 215, 0) or currentTheme.accent,
 		BackgroundColor3 = isFav and Color3.fromRGB(55, 45, 10) or Color3.fromRGB(30, 30, 46)
 	}):Play()
 end
