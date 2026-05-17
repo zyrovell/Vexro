@@ -620,7 +620,10 @@ local L = {
 	infoTitle   = isTR and "Emote Bilgisi" or (isES and "Info del Emote" or (isAR and "معلومات الحركة" or (isFR and "Infos de l'Emote" or (isHI and "इमोट जानकारी"   or (isPT and "Info do Emote"  or (isRU and "Инфо Эмоции"    or "Emote Info")))))),
 	noDesc      = isTR and "Açıklama yok"  or (isES and "Sin descripción" or (isAR and "لا يوجد وصف"   or (isFR and "Sans description" or (isHI and "कोई विवरण नहीं" or (isPT and "Sem descrição"   or (isRU and "Нет описания"   or "No description")))))),
 	freePrice   = isTR and "Ücretsiz"      or (isES and "Gratis"          or (isAR and "مجاني"          or (isFR and "Gratuit"          or (isHI and "मुफ़्त"          or (isPT and "Grátis"          or (isRU and "Бесплатно"      or "Free")))))),
-	copyId      = isTR and "ID Kopyala"    or (isES and "Copiar ID"       or (isAR and "نسخ المعرف"     or (isFR and "Copier ID"        or (isHI and "ID कॉपी करें"   or (isPT and "Copiar ID"       or (isRU and "Скопировать ID" or "Copy ID")))))),
+	copyId           = isTR and "ID Kopyala"         or (isES and "Copiar ID"              or (isAR and "نسخ المعرف"          or (isFR and "Copier ID"             or (isHI and "ID कॉपी करें"      or (isPT and "Copiar ID"            or (isRU and "Скопировать ID"    or "Copy ID")))))),
+	copyEmote        = isTR and "Emote Kopyala"      or (isES and "Copiar Emote"           or (isAR and "نسخ الحركة"           or (isFR and "Copier Emote"          or (isHI and "इमोट कॉपी करें"    or (isPT and "Copiar Emote"         or (isRU and "Скопировать"       or "Copy Emote")))))),
+	copyEmoteDesc    = isTR and "Bir oyuncunun kullandığı emote'u kopyalar" or (isES and "Copia el emote que usa otro jugador" or (isAR and "ينسخ حركة يستخدمها لاعب آخر" or (isFR and "Copie l'émote utilisé par un autre joueur" or (isHI and "किसी खिलाड़ी का इमोट कॉपी करता है" or (isPT and "Copia o emote de outro jogador" or (isRU and "Копирует эмоцию другого игрока" or "Copies the emote used by another player")))))),
+	copyEmoteNotFound= isTR and "Bulunamadı"         or (isES and "No encontrado"           or (isAR and "لم يُعثر"             or (isFR and "Introuvable"           or (isHI and "नहीं मिला"          or (isPT and "Não encontrado"      or (isRU and "Не найдено"        or "Not found")))))),
 }
 
 local Icons = {
@@ -1891,6 +1894,79 @@ langResetBtn.MouseButton1Click:Connect(function()
 		end
 	end)
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/zyrovell/Vexro/main/vexroemotes.lua"))()
+end)
+
+-- Copy Emote butonu
+local copyEmoteRow, copyEmoteTitleLbl = MakeSettingRow("", L.copyEmote, 6, 68)
+copyEmoteTitleLbl.Size     = UDim2.new(0.52, -12, 0, 24)
+copyEmoteTitleLbl.Position = UDim2.new(0, 12, 0, 6)
+
+local copyEmoteDescLbl = Instance.new("TextLabel")
+copyEmoteDescLbl.Size                   = UDim2.new(0.52, -12, 0, 34)
+copyEmoteDescLbl.Position               = UDim2.new(0, 12, 0, 28)
+copyEmoteDescLbl.BackgroundTransparency = 1
+copyEmoteDescLbl.Text                   = L.copyEmoteDesc
+copyEmoteDescLbl.TextColor3             = Color3.fromRGB(110, 110, 135)
+copyEmoteDescLbl.Font                   = Enum.Font.Gotham
+copyEmoteDescLbl.TextSize               = isMobile and 10 or 11
+copyEmoteDescLbl.TextXAlignment         = Enum.TextXAlignment.Left
+copyEmoteDescLbl.TextYAlignment         = Enum.TextYAlignment.Top
+copyEmoteDescLbl.TextWrapped            = true
+copyEmoteDescLbl.ZIndex                 = 7
+copyEmoteDescLbl.Parent                 = copyEmoteRow
+RegisterTheme(copyEmoteDescLbl, "TextColor3", "textDim")
+
+local copyEmoteBtn = Instance.new("TextButton")
+copyEmoteBtn.Size             = UDim2.new(0.4, 0, 0, 36)
+copyEmoteBtn.Position         = UDim2.new(0.56, 0, 0.5, -18)
+copyEmoteBtn.BackgroundColor3 = currentTheme.accent
+copyEmoteBtn.Text             = L.copyEmote
+copyEmoteBtn.TextColor3       = Color3.new(1, 1, 1)
+copyEmoteBtn.Font             = Enum.Font.GothamBold
+copyEmoteBtn.TextSize         = isMobile and 11 or 13
+copyEmoteBtn.ZIndex           = 8
+copyEmoteBtn.Parent           = copyEmoteRow
+Instance.new("UICorner", copyEmoteBtn).CornerRadius = UDim.new(0, 10)
+RegisterTheme(copyEmoteBtn, "BackgroundColor3", "accent")
+
+copyEmoteBtn.MouseButton1Click:Connect(function()
+	local found = false
+	for _, p in ipairs(Players:GetPlayers()) do
+		if p ~= player and p.Character then
+			local h = p.Character:FindFirstChildOfClass("Humanoid")
+			if h then
+				local anim = h:FindFirstChildOfClass("Animator")
+				if anim then
+					for _, track in ipairs(anim:GetPlayingAnimationTracks()) do
+						local animId = tonumber(track.Animation.AnimationId:match("%d+"))
+						if animId and EmotesById[animId] then
+							local emote = EmotesById[animId]
+							PlayEmote(animId, emote.name)
+							found = true
+							local orig = copyEmoteBtn.Text
+							copyEmoteBtn.Text      = emote.name
+							copyEmoteBtn.TextColor3 = Color3.fromRGB(100, 220, 130)
+							task.delay(2, function()
+								copyEmoteBtn.Text       = orig
+								copyEmoteBtn.TextColor3 = Color3.new(1, 1, 1)
+							end)
+							break
+						end
+					end
+				end
+			end
+			if found then break end
+		end
+	end
+	if not found then
+		local orig = copyEmoteBtn.Text
+		copyEmoteBtn.Text       = L.copyEmoteNotFound
+		copyEmoteBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
+		task.delay(1.5, function()
+			copyEmoteBtn.Text       = orig
+			copyEmoteBtn.TextColor3 = Color3.new(1, 1, 1)
+		end)
+	end
 end)
 
 -- ===============================================================
@@ -3797,7 +3873,7 @@ end
 -- comboQueue_UI forward declared above; reset here
 comboQueue_UI = {}
 
-local comboRow = MakeSettingRow("", L.comboTitle, 6, 196)
+local comboRow = MakeSettingRow("", L.comboTitle, 7, 196)
 comboRow.Size             = UDim2.new(1, 0, 0, 196)
 comboRow.ClipsDescendants = true
 
