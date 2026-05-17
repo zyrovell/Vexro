@@ -30,14 +30,10 @@ local playerGui = player:WaitForChild("PlayerGui", 10)
 if not playerGui then return end
 
 -- ===============================================================
--- SYNC CONFIGURATION
--- Koda yazmak yerine script'ten önce şunu çalıştır:
---   getgenv().VexroSyncURL = "https://xxx.ngrok-free.app"
---   getgenv().VexroSyncKey = "senin-api-keyin"
+-- SYNC CONFIGURATION  (Raspberry Pi URL ve API key'i buraya gir)
 -- ===============================================================
 local SYNC_URL     = (getgenv and getgenv().VexroSyncURL)  or ""
 local SYNC_API_KEY = (getgenv and getgenv().VexroSyncKey)  or ""
-
 local old = playerGui:FindFirstChild("VexroEmotes")
 if old then old:Destroy() end
 
@@ -1038,6 +1034,10 @@ local function ToggleFavorite(id)
 		end
 		SaveData()
 		SyncPush()
+		return false
+	end
+	if #Favorites >= MAX_FAVORITES then
+		Notify("⭐ " .. L.favLimit, "")
 		return false
 	end
 	if #Favorites >= MAX_FAVORITES then
