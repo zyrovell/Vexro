@@ -37,7 +37,7 @@ if old then old:Destroy() end
 -- ===============================================================
 
 local DATA_FILE = "VexroEmotes_Data.json"
-local Settings = {theme = "Dark", speed = 1, notifications = true, loopEmote = true, language = nil}
+local Settings = {theme = "Dark", speed = 1, notifications = true, loopEmote = true, language = nil, copyEmoteEnabled = false}
 local Favorites = {}
 local RecentEmotes = {}
 -- Bridge: _VexroExtend içindeki HUD fonksiyonlarını dış kapsama bağlar
@@ -82,6 +82,7 @@ local function LoadData()
 					Settings.notifications = data.settings.notifications ~= false
 					Settings.loopEmote = data.settings.loopEmote ~= false
 					Settings.language = data.settings.language or nil
+					Settings.copyEmoteEnabled = data.settings.copyEmoteEnabled == true
 				end
 			end
 		end
@@ -1896,7 +1897,7 @@ langResetBtn.MouseButton1Click:Connect(function()
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/zyrovell/Vexro/main/vexroemotes.lua"))()
 end)
 
--- Copy Emote butonu
+-- Copy Emote toggle + ProximityPrompt sistemi
 local copyEmoteRow, copyEmoteTitleLbl = MakeSettingRow("", L.copyEmote, 6, 68)
 copyEmoteTitleLbl.Size     = UDim2.new(0.52, -12, 0, 24)
 copyEmoteTitleLbl.Position = UDim2.new(0, 12, 0, 6)
@@ -1916,57 +1917,104 @@ copyEmoteDescLbl.ZIndex                 = 7
 copyEmoteDescLbl.Parent                 = copyEmoteRow
 RegisterTheme(copyEmoteDescLbl, "TextColor3", "textDim")
 
-local copyEmoteBtn = Instance.new("TextButton")
-copyEmoteBtn.Size             = UDim2.new(0.4, 0, 0, 36)
-copyEmoteBtn.Position         = UDim2.new(0.56, 0, 0.5, -18)
-copyEmoteBtn.BackgroundColor3 = currentTheme.accent
-copyEmoteBtn.Text             = L.copyEmote
-copyEmoteBtn.TextColor3       = Color3.new(1, 1, 1)
-copyEmoteBtn.Font             = Enum.Font.GothamBold
-copyEmoteBtn.TextSize         = isMobile and 11 or 13
-copyEmoteBtn.ZIndex           = 8
-copyEmoteBtn.Parent           = copyEmoteRow
-Instance.new("UICorner", copyEmoteBtn).CornerRadius = UDim.new(0, 10)
-RegisterTheme(copyEmoteBtn, "BackgroundColor3", "accent")
+local copyEmoteToggleBtn = Instance.new("TextButton")
+copyEmoteToggleBtn.Size             = UDim2.new(0.4, 0, 0, 36)
+copyEmoteToggleBtn.Position         = UDim2.new(0.56, 0, 0.5, -18)
+copyEmoteToggleBtn.BackgroundColor3 = Settings.copyEmoteEnabled and currentTheme.success or currentTheme.critical
+copyEmoteToggleBtn.Text             = Settings.copyEmoteEnabled and L.on or L.off
+copyEmoteToggleBtn.TextColor3       = Color3.new(1, 1, 1)
+copyEmoteToggleBtn.Font             = Enum.Font.GothamBold
+copyEmoteToggleBtn.TextSize         = isMobile and 12 or 14
+copyEmoteToggleBtn.ZIndex           = 8
+copyEmoteToggleBtn.Parent           = copyEmoteRow
+Instance.new("UICorner", copyEmoteToggleBtn).CornerRadius = UDim.new(0, 10)
 
-copyEmoteBtn.MouseButton1Click:Connect(function()
-	local found = false
+local PROMPT_TAG = "VexroCopyEmotePrompt"
+
+local function MakeCopyPrompt(targetChar)
+	local root = targetChar:FindFirstChild("HumanoidRootPart")
+	if not root then return end
+	if root:FindFirstChild(PROMPT_TAG) then return end
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.Name              = PROMPT_TAG
+	prompt.ActionText        = L.copyEmote
+	prompt.ObjectText        = ""
+	prompt.MaxActivationDistance = 10
+	prompt.HoldDuration      = 0
+	prompt.RequiresLineOfSight = false
+	prompt.Enabled           = true
+	prompt.Parent            = root
+	prompt.Triggered:Connect(function()
+		local h = targetChar:FindFirstChildOfClass("Humanoid")
+		if not h then return end
+		local anim = h:FindFirstChildOfClass("Animator")
+		if not anim then return end
+		for _, track in ipairs(anim:GetPlayingAnimationTracks()) do
+			local animId = tonumber(track.Animation.AnimationId:match("%d+"))
+			if animId and EmotesById[animId] then
+				PlayEmote(animId, EmotesById[animId].name)
+				return
+			end
+		end
+	end)
+end
+
+local function RemoveCopyPrompt(targetChar)
+	local root = targetChar:FindFirstChild("HumanoidRootPart")
+	if root then
+		local p = root:FindFirstChild(PROMPT_TAG)
+		if p then p:Destroy() end
+	end
+end
+
+local _copyEmoteConns = {}
+
+local function EnableCopyEmotePrompts()
 	for _, p in ipairs(Players:GetPlayers()) do
 		if p ~= player and p.Character then
-			local h = p.Character:FindFirstChildOfClass("Humanoid")
-			if h then
-				local anim = h:FindFirstChildOfClass("Animator")
-				if anim then
-					for _, track in ipairs(anim:GetPlayingAnimationTracks()) do
-						local animId = tonumber(track.Animation.AnimationId:match("%d+"))
-						if animId and EmotesById[animId] then
-							local emote = EmotesById[animId]
-							PlayEmote(animId, emote.name)
-							found = true
-							local orig = copyEmoteBtn.Text
-							copyEmoteBtn.Text      = emote.name
-							copyEmoteBtn.TextColor3 = Color3.fromRGB(100, 220, 130)
-							task.delay(2, function()
-								copyEmoteBtn.Text       = orig
-								copyEmoteBtn.TextColor3 = Color3.new(1, 1, 1)
-							end)
-							break
-						end
-					end
-				end
-			end
-			if found then break end
+			MakeCopyPrompt(p.Character)
 		end
 	end
-	if not found then
-		local orig = copyEmoteBtn.Text
-		copyEmoteBtn.Text       = L.copyEmoteNotFound
-		copyEmoteBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
-		task.delay(1.5, function()
-			copyEmoteBtn.Text       = orig
-			copyEmoteBtn.TextColor3 = Color3.new(1, 1, 1)
+	_copyEmoteConns[#_copyEmoteConns + 1] = Players.PlayerAdded:Connect(function(p)
+		_copyEmoteConns[#_copyEmoteConns + 1] = p.CharacterAdded:Connect(function(char)
+			if Settings.copyEmoteEnabled then MakeCopyPrompt(char) end
 		end)
+	end)
+	for _, p in ipairs(Players:GetPlayers()) do
+		if p ~= player then
+			_copyEmoteConns[#_copyEmoteConns + 1] = p.CharacterAdded:Connect(function(char)
+				if Settings.copyEmoteEnabled then MakeCopyPrompt(char) end
+			end)
+		end
 	end
+end
+
+local function DisableCopyEmotePrompts()
+	for _, conn in ipairs(_copyEmoteConns) do conn:Disconnect() end
+	_copyEmoteConns = {}
+	for _, p in ipairs(Players:GetPlayers()) do
+		if p ~= player and p.Character then
+			RemoveCopyPrompt(p.Character)
+		end
+	end
+end
+
+if Settings.copyEmoteEnabled then
+	EnableCopyEmotePrompts()
+end
+
+copyEmoteToggleBtn.MouseButton1Click:Connect(function()
+	Settings.copyEmoteEnabled = not Settings.copyEmoteEnabled
+	copyEmoteToggleBtn.Text = Settings.copyEmoteEnabled and L.on or L.off
+	TweenService:Create(copyEmoteToggleBtn, TweenInfo.new(0.2), {
+		BackgroundColor3 = Settings.copyEmoteEnabled and currentTheme.success or currentTheme.critical
+	}):Play()
+	if Settings.copyEmoteEnabled then
+		EnableCopyEmotePrompts()
+	else
+		DisableCopyEmotePrompts()
+	end
+	SaveData()
 end)
 
 -- ===============================================================
