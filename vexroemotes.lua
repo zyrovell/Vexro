@@ -30,10 +30,13 @@ local playerGui = player:WaitForChild("PlayerGui", 10)
 if not playerGui then return end
 
 -- ===============================================================
--- SYNC CONFIGURATION  (Raspberry Pi URL ve API key'i buraya gir)
+-- SYNC CONFIGURATION
+-- Koda yazmak yerine script'ten önce şunu çalıştır:
+--   getgenv().VexroSyncURL = "https://xxx.ngrok-free.app"
+--   getgenv().VexroSyncKey = "senin-api-keyin"
 -- ===============================================================
-local SYNC_URL     = ""          -- örn: "http://192.168.1.50:5000"  veya ngrok URL
-local SYNC_API_KEY = "change-me-before-deploy"
+local SYNC_URL     = (getgenv and getgenv().VexroSyncURL)  or ""
+local SYNC_API_KEY = (getgenv and getgenv().VexroSyncKey)  or ""
 
 local old = playerGui:FindFirstChild("VexroEmotes")
 if old then old:Destroy() end
