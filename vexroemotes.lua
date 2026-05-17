@@ -29,6 +29,12 @@ local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui", 10)
 if not playerGui then return end
 
+-- ===============================================================
+-- SYNC CONFIGURATION  (Raspberry Pi URL ve API key'i buraya gir)
+-- ===============================================================
+local SYNC_URL     = ""          -- örn: "http://192.168.1.50:5000"  veya ngrok URL
+local SYNC_API_KEY = "change-me-before-deploy"
+
 local old = playerGui:FindFirstChild("VexroEmotes")
 if old then old:Destroy() end
 
@@ -90,6 +96,71 @@ local function LoadData()
 end
 
 LoadData()
+
+-- ===============================================================
+-- SYNC HELPERS
+-- ===============================================================
+
+local function _httpRequest(options)
+	if request then return request(options) end
+	if http and http.request then return http.request(options) end
+	if syn and syn.request then return syn.request(options) end
+	return nil
+end
+
+local function SyncPush()
+	if SYNC_URL == "" then return end
+	task.spawn(function()
+		pcall(function()
+			_httpRequest({
+				Url     = SYNC_URL .. "/favorites",
+				Method  = "POST",
+				Headers = {
+					["Content-Type"] = "application/json",
+					["X-Api-Key"]    = SYNC_API_KEY,
+				},
+				Body = HttpService:JSONEncode({
+					userId    = tostring(player.UserId),
+					favorites = Favorites,
+				}),
+			})
+		end)
+	end)
+end
+
+local _syncLoaded = false
+local function SyncPull(onDone)
+	if SYNC_URL == "" then return end
+	task.spawn(function()
+		local ok, res = pcall(function()
+			return _httpRequest({
+				Url     = SYNC_URL .. "/favorites?userId=" .. tostring(player.UserId),
+				Method  = "GET",
+				Headers = { ["X-Api-Key"] = SYNC_API_KEY },
+			})
+		end)
+		if not ok or not res or res.StatusCode ~= 200 then return end
+		local parsed = pcall(function()
+			local data = HttpService:JSONDecode(res.Body)
+			if not data or not data.favorites then return end
+			-- Sunucudan gelen favorilerle yerel listeyi birleştir (sunucu öncelikli)
+			local newFavs = {}
+			local newSet  = {}
+			for _, idRaw in ipairs(data.favorites) do
+				local id = tonumber(idRaw)
+				if id and not newSet[id] and #newFavs < MAX_FAVORITES then
+					newSet[id] = true
+					newFavs[#newFavs + 1] = id
+				end
+			end
+			Favorites    = newFavs
+			FavoritesSet = newSet
+			SaveData()
+			_syncLoaded  = true
+		end)
+		if onDone then task.defer(onDone) end
+	end)
+end
 
 -- Hash set for O(1) favorite lookups
 local FavoritesSet = {}
@@ -917,6 +988,11 @@ TweenService:Create(splashBox, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.Ea
 task.wait(0.5)
 splash:Destroy()
 
+-- Emotes yüklendi → sunucudan favorileri çek, UI güncelle
+SyncPull(function()
+	if UpdateTabData then UpdateTabData() end
+end)
+
 -- ===============================================================
 -- UI SIZE SETTINGS
 -- ===============================================================
@@ -958,6 +1034,11 @@ local function ToggleFavorite(id)
 			end
 		end
 		SaveData()
+		SyncPush()
+		return false
+	end
+	if #Favorites >= MAX_FAVORITES then
+		Notify("⭐ " .. L.favLimit, "")
 		return false
 	end
 	if #Favorites >= MAX_FAVORITES then
@@ -967,6 +1048,7 @@ local function ToggleFavorite(id)
 	FavoritesSet[id] = true
 	Favorites[#Favorites + 1] = id
 	SaveData()
+	SyncPush()
 	return true
 end
 
