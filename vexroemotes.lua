@@ -1,5 +1,5 @@
 --Made by Zyrovell Roblox:Oyuncu15q Discord:_ege.
--- V3 Dynamic Theme / Added Emote Player Like Video Players
+-- V3.1 Server Sync for Favorites
 -- OPEN SOURCE FOREVER!
 
 --[[
