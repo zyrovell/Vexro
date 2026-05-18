@@ -37,11 +37,12 @@ if old then old:Destroy() end
 -- ===============================================================
 
 local DATA_FILE = "VexroEmotes_Data.json"
-local Settings = {theme = "Dark", speed = 1, notifications = true, loopEmote = true, language = nil, copyEmoteEnabled = false}
+local Settings = {theme = "Dark", speed = 1, notifications = true, loopEmote = true, language = nil, copyEmoteEnabled = false, stopOnWalk = true}
 local Favorites = {}
 local RecentEmotes = {}
 -- Bridge: _VexroExtend içindeki HUD fonksiyonlarını dış kapsama bağlar
 local _onSpeedChanged  -- function(); HUD hız butonlarını + info panel'i günceller
+local _onPauseStateChanged  -- function(isPaused); HUD duraklat butonunu günceller
 local MAX_RECENT = 20
 
 local function SaveData()
@@ -83,6 +84,7 @@ local function LoadData()
 					Settings.loopEmote = data.settings.loopEmote ~= false
 					Settings.language = data.settings.language or nil
 					Settings.copyEmoteEnabled = data.settings.copyEmoteEnabled == true
+					Settings.stopOnWalk = data.settings.stopOnWalk ~= false
 				end
 			end
 		end
@@ -625,6 +627,8 @@ local L = {
 	copyEmote        = isTR and "Emote Kopyala"      or (isES and "Copiar Emote"           or (isAR and "نسخ الحركة"           or (isFR and "Copier Emote"          or (isHI and "इमोट कॉपी करें"    or (isPT and "Copiar Emote"         or (isRU and "Скопировать"       or "Copy Emote")))))),
 	favLimit         = isTR and "Maksimum 25 favori!" or (isES and "¡Máximo 25 favoritos!"  or (isAR and "الحد الأقصى 25!"       or (isFR and "Maximum 25 favoris!"   or (isHI and "अधिकतम 25 पसंदीदा!" or (isPT and "Máximo 25 favoritos!" or (isRU and "Максимум 25!"       or "Max 25 favorites!")))))),
 	copyEmoteDesc    = isTR and "Bir oyuncunun kullandığı emote'u kopyalar" or (isES and "Copia el emote que usa otro jugador" or (isAR and "ينسخ حركة يستخدمها لاعب آخر" or (isFR and "Copie l'émote utilisé par un autre joueur" or (isHI and "किसी खिलाड़ी का इमोट कॉपी करता है" or (isPT and "Copia o emote de outro jogador" or (isRU and "Копирует эмоцию другого игрока" or "Copies the emote used by another player")))))),
+	stopOnWalk       = isTR and "Yuruyunce Emote Dur" or (isES and "Parar emote al caminar" or (isAR and "ايقاف الحركة عند المشي" or (isFR and "Arreter emote en marchant" or (isHI and "चलने पर इमोट रोकें" or (isPT and "Parar emote ao andar" or (isRU and "Остановить эмоцию при ходьбе" or "Stop emote when walking")))))),
+	stopOnWalkDesc   = isTR and "Oyuncu yururken emote otomatik durur" or (isES and "El emote se detiene al caminar" or (isAR and "تتوقف الحركة تلقائيا عند المشي" or (isFR and "L'emote s'arrete automatiquement en marchant" or (isHI and "चलने पर इमोट अपने आप रुक जाता है" or (isPT and "O emote para automaticamente ao andar" or (isRU and "Эмоция останавливается при ходьбе" or "Emote stops automatically when walking")))))),
 }
 
 local Icons = {
@@ -1032,7 +1036,7 @@ local function StopEmote(showNotif)
 end
 
 RunService.Heartbeat:Connect(function()
-	if currentAnimTrack and currentAnimTrack.IsPlaying then
+	if Settings.stopOnWalk and currentAnimTrack and currentAnimTrack.IsPlaying then
 		local character = player.Character
 		if character then
 			local humanoid = character:FindFirstChildOfClass("Humanoid")
@@ -1479,15 +1483,28 @@ RegisterTheme(minBtn, "BackgroundColor3", "stroke")
 RegisterTheme(closeBtn, "BackgroundColor3", "critical")
 
 local _isPaused = false
+-- stopBtn içindeki stop karesi (duraklat/devam durumuna göre gizlenir)
+local _stopBtnSquare = stopBtn:FindFirstChildWhichIsA("Frame")
+
+local function _SetPauseState(paused)
+	_isPaused = paused
+	-- stopBtn görselini güncelle: duraklat = kare, devam = ">"
+	if _stopBtnSquare then _stopBtnSquare.Visible = not paused end
+	stopBtn.Text = paused and ">" or ""
+	stopBtn.TextSize = paused and math.floor((isMobile and 14 or 18) * (ICON_SCALE or 1)) or 0
+	-- HUD duraklat butonunu güncelle (bridge)
+	if _onPauseStateChanged then _onPauseStateChanged(paused) end
+end
+
 stopBtn.MouseButton1Click:Connect(function()
 	if currentAnimTrack and currentAnimTrack.IsPlaying then
 		-- Çalan emoteyi mevcut pozisyonda dondur (hız=0)
 		pcall(function() currentAnimTrack:AdjustSpeed(0) end)
-		_isPaused = true
+		_SetPauseState(true)
 	elseif currentAnimTrack and _isPaused then
 		-- Zaten dondurulmuşsa devam ettir
 		pcall(function() currentAnimTrack:AdjustSpeed(Settings.speed) end)
-		_isPaused = false
+		_SetPauseState(false)
 	else
 		StopEmote(true)
 	end
@@ -1875,8 +1892,49 @@ contBtn.MouseButton1Click:Connect(function()
 	SaveData()
 end)
 
+-- Yuruyunce Emote Dur ayari
+local stopOnWalkRow, stopOnWalkTitleLbl = MakeSettingRow("", L.stopOnWalk, 5, 68)
+stopOnWalkTitleLbl.Size     = UDim2.new(0.52, -12, 0, 24)
+stopOnWalkTitleLbl.Position = UDim2.new(0, 12, 0, 6)
+
+local stopOnWalkDescLbl = Instance.new("TextLabel")
+stopOnWalkDescLbl.Size                   = UDim2.new(0.52, -12, 0, 34)
+stopOnWalkDescLbl.Position               = UDim2.new(0, 12, 0, 28)
+stopOnWalkDescLbl.BackgroundTransparency = 1
+stopOnWalkDescLbl.Text                   = L.stopOnWalkDesc
+stopOnWalkDescLbl.TextColor3             = Color3.fromRGB(110, 110, 135)
+stopOnWalkDescLbl.Font                   = Enum.Font.Gotham
+stopOnWalkDescLbl.TextSize               = isMobile and 10 or 11
+stopOnWalkDescLbl.TextXAlignment         = Enum.TextXAlignment.Left
+stopOnWalkDescLbl.TextYAlignment         = Enum.TextYAlignment.Top
+stopOnWalkDescLbl.TextWrapped            = true
+stopOnWalkDescLbl.ZIndex                 = 7
+stopOnWalkDescLbl.Parent                 = stopOnWalkRow
+RegisterTheme(stopOnWalkDescLbl, "TextColor3", "textDim")
+
+local stopOnWalkBtn = Instance.new("TextButton")
+stopOnWalkBtn.Size             = UDim2.new(0.4, 0, 0, 36)
+stopOnWalkBtn.Position         = UDim2.new(0.56, 0, 0.5, -18)
+stopOnWalkBtn.BackgroundColor3 = Settings.stopOnWalk and currentTheme.success or currentTheme.critical
+stopOnWalkBtn.Text             = Settings.stopOnWalk and L.on or L.off
+stopOnWalkBtn.TextColor3       = Color3.new(1, 1, 1)
+stopOnWalkBtn.Font             = Enum.Font.GothamBold
+stopOnWalkBtn.TextSize         = isMobile and 12 or 14
+stopOnWalkBtn.ZIndex           = 8
+stopOnWalkBtn.Parent           = stopOnWalkRow
+Instance.new("UICorner", stopOnWalkBtn).CornerRadius = UDim.new(0, 10)
+
+stopOnWalkBtn.MouseButton1Click:Connect(function()
+	Settings.stopOnWalk = not Settings.stopOnWalk
+	stopOnWalkBtn.Text = Settings.stopOnWalk and L.on or L.off
+	TweenService:Create(stopOnWalkBtn, TweenInfo.new(0.2), {
+		BackgroundColor3 = Settings.stopOnWalk and currentTheme.success or currentTheme.critical
+	}):Play()
+	SaveData()
+end)
+
 -- Reset Language butonu
-local langResetRow = MakeSettingRow("", "Reset Language", 5)
+local langResetRow = MakeSettingRow("", "Reset Language", 6)
 local langResetBtn = Instance.new("TextButton")
 langResetBtn.Size = UDim2.new(0.4, 0, 0, 36)
 langResetBtn.Position = UDim2.new(0.56, 0, 0.5, -18)
@@ -1904,7 +1962,7 @@ langResetBtn.MouseButton1Click:Connect(function()
 end)
 
 -- Copy Emote toggle + ProximityPrompt sistemi
-local copyEmoteRow, copyEmoteTitleLbl = MakeSettingRow("", L.copyEmote, 6, 68)
+local copyEmoteRow, copyEmoteTitleLbl = MakeSettingRow("", L.copyEmote, 7, 68)
 copyEmoteTitleLbl.Size     = UDim2.new(0.52, -12, 0, 24)
 copyEmoteTitleLbl.Position = UDim2.new(0, 12, 0, 6)
 
@@ -3161,12 +3219,13 @@ end
 -- ----------------------------------------------------------------
 
 local hudTrackerConn = nil  -- RenderStepped bağlantısı (yönetilir)
+local _hudHideToken  = 0   -- Hızlı emote geçişlerinde eski hide task'ını iptal eder
 
 -- ▸ Ana HUD çerçevesi (forward declared above — do NOT add local here)
 HUD = Instance.new("Frame")
 HUD.Name                   = "VexroHUD"
-HUD.Size                   = isMobile and UDim2.new(0, 320, 0, 80) or UDim2.new(0, 500, 0, 84)
-HUD.Position               = UDim2.new(0.5, 0, 1, -105)
+HUD.Size                   = isMobile and UDim2.new(0, 320, 0, 100) or UDim2.new(0, 500, 0, 104)
+HUD.Position               = UDim2.new(0.5, 0, 1, -120)
 HUD.AnchorPoint            = Vector2.new(0.5, 1)
 HUD.BackgroundColor3       = Color3.fromRGB(8, 8, 12)
 HUD.BackgroundTransparency = 0.30
@@ -3280,6 +3339,52 @@ hudKnob.ZIndex           = 503
 hudKnob.Parent           = hudSliderBg
 Instance.new("UICorner", hudKnob).CornerRadius = UDim.new(1, 0)
 
+-- ▸ Orta-alt: Duraklat / Devam Et butonu
+local hudPauseBtn = Instance.new("TextButton")
+hudPauseBtn.Size                   = UDim2.new(0, 60, 0, 22)
+hudPauseBtn.AnchorPoint            = Vector2.new(0.5, 0)
+hudPauseBtn.Position               = UDim2.new(0.5, 0, 0, 66)
+hudPauseBtn.BackgroundColor3       = Color3.fromRGB(30, 30, 46)
+hudPauseBtn.BackgroundTransparency = 0.10
+hudPauseBtn.Text                   = "||"
+hudPauseBtn.TextColor3             = Color3.new(1, 1, 1)
+hudPauseBtn.Font                   = Enum.Font.GothamBold
+hudPauseBtn.TextSize               = 12
+hudPauseBtn.ZIndex                 = 503
+hudPauseBtn.Parent                 = HUD
+Instance.new("UICorner", hudPauseBtn).CornerRadius = UDim.new(0, 7)
+
+local hudPauseBtnStroke = Instance.new("UIStroke")
+hudPauseBtnStroke.Color       = currentTheme.stroke
+hudPauseBtnStroke.Thickness   = 1
+hudPauseBtnStroke.Transparency = 0.40
+hudPauseBtnStroke.Parent      = hudPauseBtn
+
+local function RefreshHudPauseBtn()
+	if _isPaused then
+		hudPauseBtn.Text            = ">"
+		hudPauseBtn.BackgroundColor3 = currentTheme.accent
+	else
+		hudPauseBtn.Text            = "||"
+		hudPauseBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 46)
+	end
+end
+
+hudPauseBtn.MouseButton1Click:Connect(function()
+	if currentAnimTrack and currentAnimTrack.IsPlaying then
+		pcall(function() currentAnimTrack:AdjustSpeed(0) end)
+		_SetPauseState(true)
+	elseif currentAnimTrack and _isPaused then
+		pcall(function() currentAnimTrack:AdjustSpeed(Settings.speed) end)
+		_SetPauseState(false)
+	end
+end)
+
+-- Bridge'i buraya bağla: stopBtn _onPauseStateChanged'i çağırınca hudPauseBtn güncellenir
+_onPauseStateChanged = function(paused)
+	RefreshHudPauseBtn()
+end
+
 -- ▸ Sağ: Hız kontrol butonları (0.1x  0.5x  1x  1.5x  2x)
 local HUD_SPEEDS = {0.1, 0.5, 1, 1.5, 2}
 local HUD_LABELS = {"0.1", "0.5", "1x", "1.5", "2x"}
@@ -3331,7 +3436,7 @@ end
 infoPanel = Instance.new("Frame")
 infoPanel.Name                   = "VexroInfoPanel"
 infoPanel.Size                   = UDim2.new(0, 270, 0, 260)
-infoPanel.Position               = UDim2.new(0, -270, 1, -195) -- Başlangıç: sol dışarıda
+infoPanel.Position               = UDim2.new(0, -290, 1, -285) -- Başlangıç: sol dışarıda
 infoPanel.BackgroundColor3       = Color3.fromRGB(10, 10, 18)
 infoPanel.BackgroundTransparency = 0.08
 infoPanel.BorderSizePixel        = 0
@@ -3576,8 +3681,8 @@ local infoIdLbl = nil -- eski referans (kaldırıldı)
 
 -- Panel aç/kapa fonksiyonu
 local infoPanelOpen = false
-local INFO_OPEN_POS  = UDim2.new(0, 10, 1, -270)
-local INFO_CLOSE_POS = UDim2.new(0, -290, 1, -270)
+local INFO_OPEN_POS  = UDim2.new(0, 10, 1, -285)
+local INFO_CLOSE_POS = UDim2.new(0, -290, 1, -285)
 
 local _copyIdTarget = 0  -- Copy ID için mevcut emote id'si
 
@@ -3853,6 +3958,9 @@ end
 
 -- ShowEmoteHUD: HUD'u asagidan kaydirarak goster
 ShowEmoteHUD = function(emoteId, emoteName)
+	-- Bekleyen gizleme işlemini iptal et (hızlı geçiş hatası düzeltmesi)
+	_hudHideToken = _hudHideToken + 1
+
 	_currentInfoId   = emoteId
 	_currentInfoName = emoteName
 
@@ -3860,17 +3968,21 @@ ShowEmoteHUD = function(emoteId, emoteName)
 	hudName.Text    = emoteName or "Emote"
 	hudCreator.Text = "Vexro Emotes"
 
+	-- Duraklat butonunu sıfırla
+	_isPaused = false
+	RefreshHudPauseBtn()
+
 	if infoPanelOpen then
 		OpenInfoPanel(emoteId, emoteName)
 	end
 
-	HUD.Position               = UDim2.new(0.5, 0, 1, -72)
+	HUD.Position               = UDim2.new(0.5, 0, 1, -88)
 	HUD.BackgroundTransparency = 1
 	HUD.Visible                = true
 
 	TweenService:Create(HUD,
 		TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-		{Position = UDim2.new(0.5, 0, 1, -105), BackgroundTransparency = 0.30}
+		{Position = UDim2.new(0.5, 0, 1, -120), BackgroundTransparency = 0.30}
 	):Play()
 
 	RefreshHUDSpeedBtns()
@@ -3880,13 +3992,20 @@ end
 -- HideEmoteHUD: HUD'u asagiya kaydirarak gizle
 HideEmoteHUD = function()
 	_isPaused = false
+	RefreshHudPauseBtn()
+	-- stopBtn görselini sıfırla
+	if _SetPauseState then _SetPauseState(false) end
 	StopHUDTracking()
 	TweenService:Create(HUD,
 		TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
-		{Position = UDim2.new(0.5, 0, 1, -72), BackgroundTransparency = 1}
+		{Position = UDim2.new(0.5, 0, 1, -88), BackgroundTransparency = 1}
 	):Play()
+	-- Token tabanlı iptal: sadece güncel token eşleşiyorsa gizle
+	local token = _hudHideToken
 	task.delay(0.22, function()
-		if HUD then HUD.Visible = false end
+		if HUD and _hudHideToken == token then
+			HUD.Visible = false
+		end
 	end)
 	if infoPanelOpen then CloseInfoPanel() end
 end
@@ -3898,7 +4017,12 @@ end
 local _origPlayEmote = PlayEmote
 PlayEmote = function(id, name, silent)
 	_origPlayEmote(id, name, silent)
+	-- Anlık token'ı yakala: bu emote için geçerli token
+	local myToken = _hudHideToken + 1
+	_hudHideToken = myToken
 	task.defer(function()
+		-- Başka bir emote daha geçildiyse bu defer'ı atla
+		if _hudHideToken ~= myToken then return end
 		if currentAnimTrack then
 			ShowEmoteHUD(id, name)
 			local tracked = currentAnimTrack
@@ -3927,7 +4051,7 @@ end
 -- comboQueue_UI forward declared above; reset here
 comboQueue_UI = {}
 
-local comboRow = MakeSettingRow("", L.comboTitle, 7, 196)
+local comboRow = MakeSettingRow("", L.comboTitle, 8, 196)
 comboRow.Size             = UDim2.new(1, 0, 0, 196)
 comboRow.ClipsDescendants = true
 
