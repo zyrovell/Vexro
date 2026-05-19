@@ -2634,19 +2634,40 @@ _MakeFriendToggle(
 	function(v) FriendData.syncEmote = v end
 )
 
+-- Arkadaş Ekle Modu butonu
+local friendAddBtn = Instance.new("TextButton")
+friendAddBtn.Size = UDim2.new(1, 0, 0, 38)
+friendAddBtn.BackgroundColor3 = currentTheme.accent
+friendAddBtn.Text = "+ Arkadaş Ekle Modu"
+friendAddBtn.TextColor3 = Color3.new(1, 1, 1)
+friendAddBtn.Font = Enum.Font.GothamBold
+friendAddBtn.TextSize = isMobile and 12 or 13
+friendAddBtn.LayoutOrder = 3
+friendAddBtn.ZIndex = 6
+friendAddBtn.Parent = friendsPanel
+Instance.new("UICorner", friendAddBtn).CornerRadius = UDim.new(0, 10)
+RegisterTheme(friendAddBtn, "BackgroundColor3", "accent")
+
+friendAddBtn.MouseButton1Click:Connect(function()
+	_SetAddMode(not FriendData.addModeActive)
+	TweenService:Create(friendAddBtn, TweenInfo.new(0.2), {
+		BackgroundColor3 = FriendData.addModeActive and currentTheme.success or currentTheme.accent
+	}):Play()
+end)
+
 -- Arkadaş listesi başlığı
 local flHeader = Instance.new("TextLabel")
 flHeader.Size = UDim2.new(1,0,0,22); flHeader.BackgroundTransparency = 1
 flHeader.Text = "Arkadaş Listesi"; flHeader.TextColor3 = currentTheme.textDim
 flHeader.Font = Enum.Font.GothamBold; flHeader.TextSize = 11
-flHeader.LayoutOrder = 3; flHeader.ZIndex = 5; flHeader.Parent = friendsPanel
+flHeader.LayoutOrder = 4; flHeader.ZIndex = 5; flHeader.Parent = friendsPanel
 RegisterTheme(flHeader, "TextColor3", "textDim")
 
 local friendListContainer = Instance.new("Frame")
 friendListContainer.Size = UDim2.new(1,0,0,0)
 friendListContainer.AutomaticSize = Enum.AutomaticSize.Y
 friendListContainer.BackgroundTransparency = 1
-friendListContainer.LayoutOrder = 4; friendListContainer.ZIndex = 5; friendListContainer.Parent = friendsPanel
+friendListContainer.LayoutOrder = 5; friendListContainer.ZIndex = 5; friendListContainer.Parent = friendsPanel
 local flListLayout = Instance.new("UIListLayout")
 flListLayout.Padding = UDim.new(0,6); flListLayout.Parent = friendListContainer
 
