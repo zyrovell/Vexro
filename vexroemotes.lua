@@ -2160,6 +2160,7 @@ end)
 -- ===============================================================
 -- ARKADAŞ & BERABER EMOTE SİSTEMİ
 -- ===============================================================
+local friendAddModeBtn
 do
 local ATTR_REQ  = "VFR_Req"   -- "<targetUserId>"
 local ATTR_RESP = "VFR_Resp"  -- "<senderId>:1|0"
@@ -4348,7 +4349,7 @@ infoDateLbl.ZIndex                 = 702
 infoDateLbl.Parent                 = infoPanelBody
 
 -- 8) Copy ID butonu + Arkadaş Ekle Modu butonu
-local friendAddModeBtn = Instance.new("TextButton")
+friendAddModeBtn = Instance.new("TextButton")
 friendAddModeBtn.Size             = UDim2.new(0.48, -2, 0, 26)
 friendAddModeBtn.Position         = UDim2.new(0, 0, 0, 161)
 friendAddModeBtn.BackgroundColor3 = currentTheme.critical
