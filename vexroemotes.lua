@@ -737,10 +737,17 @@ end
 local _splashTheme = Themes[Settings.theme] or Themes.Dark
 local _splashPrimary = _splashTheme.primary
 local _splashAccent  = _splashTheme.accent
+local _splashIsGlass = Settings.theme == "FrostedGlass" or Settings.theme == "DarkGlass"
+
+-- BlurEffect loading ekranı arkası için (sadece splash süresince)
+local splashBlur = Instance.new("BlurEffect")
+splashBlur.Size = 24
+splashBlur.Parent = game:GetService("Lighting")
 
 local splash = Instance.new("Frame")
 splash.Size = UDim2.fromScale(1, 1)
 splash.BackgroundColor3 = _splashPrimary
+splash.BackgroundTransparency = _splashIsGlass and 0.15 or 0
 splash.ZIndex = 10000
 splash.Parent = gui
 
@@ -771,6 +778,7 @@ splashBox.Size = UDim2.new(0, 0, 0, 0)
 splashBox.Position = UDim2.fromScale(0.5, 0.5)
 splashBox.AnchorPoint = Vector2.new(0.5, 0.5)
 splashBox.BackgroundColor3 = _splashTheme.secondary
+splashBox.BackgroundTransparency = _splashIsGlass and 0.35 or 0
 splashBox.Rotation = -180
 splashBox.ZIndex = 10001
 splashBox.Parent = splash
@@ -996,6 +1004,7 @@ task.wait(1)
 TweenService:Create(splash, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
 TweenService:Create(splashBox, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0), Rotation = 720}):Play()
 task.wait(0.5)
+pcall(function() splashBlur:Destroy() end)
 splash:Destroy()
 
 -- ===============================================================
@@ -1296,6 +1305,8 @@ ApplyTheme = function(name)
 		grad.Name = "VexroMainGrad"
 		grad.Parent = gradFrame
 	end
+	-- Cam temalarında gradyan frame'i yarı saydam yap ki arkası görünsün
+	TweenService:Create(gradFrame, TweenInfo.new(0.3), {BackgroundTransparency = isGlass and 0.45 or 0}):Play()
 	local grad = gradFrame:FindFirstChild("VexroMainGrad")
 	if grad then
 		local g = ThemeGradients[name] or ThemeGradients.Dark
