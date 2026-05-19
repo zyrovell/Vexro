@@ -257,18 +257,7 @@ local Themes = {
 		critical = Color3.fromRGB(255, 130, 120),
 		success = Color3.fromRGB(120, 210, 160)
 	},
-	FrostedGlass = {
-		primary = Color3.fromRGB(200, 210, 230),
-		secondary = Color3.fromRGB(215, 225, 240),
-		tertiary = Color3.fromRGB(225, 232, 248),
-		sidebar = Color3.fromRGB(190, 202, 222),
-		accent = Color3.fromRGB(80, 130, 220),
-		text = Color3.fromRGB(20, 24, 40),
-		textDim = Color3.fromRGB(90, 100, 130),
-		stroke = Color3.fromRGB(160, 180, 215),
-		critical = Color3.fromRGB(210, 50, 60),
-		success = Color3.fromRGB(40, 180, 100)
-	},
+
 	DarkGlass = {
 		primary = Color3.fromRGB(14, 14, 18),
 		secondary = Color3.fromRGB(20, 20, 26),
@@ -1227,7 +1216,7 @@ RegisterTheme(main, "BackgroundColor3", "primary")
 local _glassApplyBase = ApplyTheme
 ApplyTheme = function(name)
 	_glassApplyBase(name)
-	local isGlass = name == "FrostedGlass" or name == "DarkGlass"
+	local isGlass = name == "DarkGlass"
 	local trans = isGlass and 0.35 or 0
 	TweenService:Create(main, TweenInfo.new(0.3), {BackgroundTransparency = trans}):Play()
 end
@@ -1797,7 +1786,7 @@ local function MakeSettingRow(imgId, txt, order, height)
 	return row, lbl
 end
 
-local themeNames = {"Dark", "Purple", "Blue", "Green", "Red", "Light", "MaterialYou", "FrostedGlass", "DarkGlass"}
+local themeNames = {"Dark", "Purple", "Blue", "Green", "Red", "Light", "MaterialYou", "DarkGlass"}
 do
 	local themeRow = MakeSettingRow("110192525313214", L.theme, 1)
 	local themeBtn = Instance.new("TextButton")
