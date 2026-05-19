@@ -2166,6 +2166,19 @@ local ATTR_RESP = "VFR_Resp"  -- "<senderId>:1|0"
 local ATTR_SYNC = "VFR_Sync"  -- "<emoteId>|<emoteName>"
 local ATTR_STOP = "VFR_Stop"  -- tick() as string
 
+-- Spam koruması
+local REQ_COOLDOWN        = 5   -- aynı kişiye tekrar istek için bekleme (sn)
+local REQ_SPAM_WINDOW     = 5   -- spam penceresi (sn)
+local REQ_SPAM_LIMIT      = 3   -- bu kadar hızlı istek → timeout
+local REQ_TIMEOUT_DUR     = 30  -- timeout süresi (sn)
+local INCOMING_COOLDOWN   = 5   -- aynı kişiden gelen isteği tekrar gösterme eşiği (sn)
+
+local _reqCooldowns      = {}   -- [targetUserId] = lastSendTime
+local _reqSpamStart      = 0
+local _reqSpamCount      = 0
+local _reqTimeoutUntil   = 0   -- timeout bitiş zamanı
+local _incomingCooldowns = {}  -- [senderUserId] = lastReceivedTime
+
 -- Kaydet / Yükle
 local function _SaveFriend()
 	pcall(function()
@@ -2340,6 +2353,12 @@ local function _WatchChar(char, uid, uname)
 		local v = char:GetAttribute(ATTR_REQ)
 		if tostring(v) ~= tostring(player.UserId) then return end
 		if not FriendData.acceptRequests then return end
+		-- Aynı kişiden spam isteği yoksay
+		local now = tick()
+		local uid_s = tostring(uid)
+		local lastIn = _incomingCooldowns[uid_s] or 0
+		if now - lastIn < INCOMING_COOLDOWN then return end
+		_incomingCooldowns[uid_s] = now
 		ShowFriendRequestPanel(uid, uname)
 	end)
 
@@ -2463,9 +2482,46 @@ _MakeBillboard = function(p)
 		if FriendData.friends[tostring(p.UserId)] then
 			Notify("Zaten arkadaşsınız!", "", nil); return
 		end
-		_MyAttr(ATTR_REQ, tostring(p.UserId))
+
+		local now = tick()
+		local uid_s = tostring(p.UserId)
+
+		-- Global timeout kontrolü
+		if now < _reqTimeoutUntil then
+			local rem = math.ceil(_reqTimeoutUntil - now)
+			Notify("Spam koruması aktif! " .. rem .. "s bekle", "", nil)
+			return
+		end
+
+		-- Aynı kişiye tekrar istek cooldown
+		local lastSent = _reqCooldowns[uid_s] or 0
+		if now - lastSent < REQ_COOLDOWN then
+			local rem = math.ceil(REQ_COOLDOWN - (now - lastSent))
+			Notify("Bu oyuncuya istek için " .. rem .. "s bekle", "", nil)
+			return
+		end
+
+		-- Spam sayacı güncelle
+		if now - _reqSpamStart > REQ_SPAM_WINDOW then
+			_reqSpamStart = now
+			_reqSpamCount = 0
+		end
+		_reqSpamCount = _reqSpamCount + 1
+
+		if _reqSpamCount >= REQ_SPAM_LIMIT then
+			_reqTimeoutUntil = now + REQ_TIMEOUT_DUR
+			_reqSpamCount = 0
+			Notify("Çok hızlı istek! " .. REQ_TIMEOUT_DUR .. "s timeout", "", nil)
+			btn.Text = "Engellendi"
+			btn.BackgroundColor3 = Color3.fromRGB(150, 40, 40)
+			return
+		end
+
+		-- İstek gönder
+		_reqCooldowns[uid_s] = now
+		_MyAttr(ATTR_REQ, uid_s)
 		btn.Text = "İstek Gönderildi"
-		btn.BackgroundColor3 = Color3.fromRGB(70,70,110)
+		btn.BackgroundColor3 = Color3.fromRGB(70, 70, 110)
 		task.delay(3, function() _MyAttr(ATTR_REQ, "") end)
 	end)
 end
