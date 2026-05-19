@@ -2663,6 +2663,39 @@ friendAddBtn.MouseButton1Click:Connect(function()
 	}):Play()
 end)
 
+-- Bilgi kutusu
+local infoBox = Instance.new("Frame")
+infoBox.Size = UDim2.new(1, 0, 0, 52)
+infoBox.BackgroundColor3 = Color3.fromRGB(40, 60, 100)
+infoBox.BackgroundTransparency = 0.4
+infoBox.LayoutOrder = 0
+infoBox.ZIndex = 5
+infoBox.Parent = friendsPanel
+Instance.new("UICorner", infoBox).CornerRadius = UDim.new(0, 10)
+local infoBoxLbl = Instance.new("TextLabel")
+infoBoxLbl.Size = UDim2.new(1, -32, 1, 0)
+infoBoxLbl.Position = UDim2.new(0, 32, 0, 0)
+infoBoxLbl.BackgroundTransparency = 1
+infoBoxLbl.Text = "Arkadaş eklemek aynı emote'u arkadaşlarınızla veya arkadaşınızla beraber senkronize oynamanızı sağlar."
+infoBoxLbl.TextColor3 = Color3.fromRGB(200, 220, 255)
+infoBoxLbl.Font = Enum.Font.Gotham
+infoBoxLbl.TextSize = 10
+infoBoxLbl.TextWrapped = true
+infoBoxLbl.TextXAlignment = Enum.TextXAlignment.Left
+infoBoxLbl.TextYAlignment = Enum.TextYAlignment.Center
+infoBoxLbl.ZIndex = 6
+infoBoxLbl.Parent = infoBox
+local infoIcon = Instance.new("TextLabel")
+infoIcon.Size = UDim2.new(0, 24, 0, 24)
+infoIcon.Position = UDim2.new(0, 6, 0.5, -12)
+infoIcon.BackgroundTransparency = 1
+infoIcon.Text = "ℹ"
+infoIcon.TextColor3 = Color3.fromRGB(150, 190, 255)
+infoIcon.Font = Enum.Font.GothamBold
+infoIcon.TextSize = 14
+infoIcon.ZIndex = 6
+infoIcon.Parent = infoBox
+
 -- Arkadaş listesi başlığı
 local flHeader = Instance.new("TextLabel")
 flHeader.Size = UDim2.new(1,0,0,22); flHeader.BackgroundTransparency = 1
