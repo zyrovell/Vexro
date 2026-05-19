@@ -1898,46 +1898,48 @@ contBtn.MouseButton1Click:Connect(function()
 	SaveData()
 end)
 
--- Yuruyunce Emote Dur ayari
-local stopOnWalkRow, stopOnWalkTitleLbl = MakeSettingRow("", L.stopOnWalk, 5, 68)
-stopOnWalkTitleLbl.Size     = UDim2.new(0.52, -12, 0, 24)
-stopOnWalkTitleLbl.Position = UDim2.new(0, 12, 0, 6)
+-- Yuruyunce Emote Dur ayari (do...end ile lokal sayisini sinirla)
+do
+	local stopOnWalkRow, stopOnWalkTitleLbl = MakeSettingRow("", L.stopOnWalk, 5, 68)
+	stopOnWalkTitleLbl.Size     = UDim2.new(0.52, -12, 0, 24)
+	stopOnWalkTitleLbl.Position = UDim2.new(0, 12, 0, 6)
 
-local stopOnWalkDescLbl = Instance.new("TextLabel")
-stopOnWalkDescLbl.Size                   = UDim2.new(0.52, -12, 0, 34)
-stopOnWalkDescLbl.Position               = UDim2.new(0, 12, 0, 28)
-stopOnWalkDescLbl.BackgroundTransparency = 1
-stopOnWalkDescLbl.Text                   = L.stopOnWalkDesc
-stopOnWalkDescLbl.TextColor3             = Color3.fromRGB(110, 110, 135)
-stopOnWalkDescLbl.Font                   = Enum.Font.Gotham
-stopOnWalkDescLbl.TextSize               = isMobile and 10 or 11
-stopOnWalkDescLbl.TextXAlignment         = Enum.TextXAlignment.Left
-stopOnWalkDescLbl.TextYAlignment         = Enum.TextYAlignment.Top
-stopOnWalkDescLbl.TextWrapped            = true
-stopOnWalkDescLbl.ZIndex                 = 7
-stopOnWalkDescLbl.Parent                 = stopOnWalkRow
-RegisterTheme(stopOnWalkDescLbl, "TextColor3", "textDim")
+	local stopOnWalkDescLbl = Instance.new("TextLabel")
+	stopOnWalkDescLbl.Size                   = UDim2.new(0.52, -12, 0, 34)
+	stopOnWalkDescLbl.Position               = UDim2.new(0, 12, 0, 28)
+	stopOnWalkDescLbl.BackgroundTransparency = 1
+	stopOnWalkDescLbl.Text                   = L.stopOnWalkDesc
+	stopOnWalkDescLbl.TextColor3             = Color3.fromRGB(110, 110, 135)
+	stopOnWalkDescLbl.Font                   = Enum.Font.Gotham
+	stopOnWalkDescLbl.TextSize               = isMobile and 10 or 11
+	stopOnWalkDescLbl.TextXAlignment         = Enum.TextXAlignment.Left
+	stopOnWalkDescLbl.TextYAlignment         = Enum.TextYAlignment.Top
+	stopOnWalkDescLbl.TextWrapped            = true
+	stopOnWalkDescLbl.ZIndex                 = 7
+	stopOnWalkDescLbl.Parent                 = stopOnWalkRow
+	RegisterTheme(stopOnWalkDescLbl, "TextColor3", "textDim")
 
-local stopOnWalkBtn = Instance.new("TextButton")
-stopOnWalkBtn.Size             = UDim2.new(0.4, 0, 0, 36)
-stopOnWalkBtn.Position         = UDim2.new(0.56, 0, 0.5, -18)
-stopOnWalkBtn.BackgroundColor3 = Settings.stopOnWalk and currentTheme.success or currentTheme.critical
-stopOnWalkBtn.Text             = Settings.stopOnWalk and L.on or L.off
-stopOnWalkBtn.TextColor3       = Color3.new(1, 1, 1)
-stopOnWalkBtn.Font             = Enum.Font.GothamBold
-stopOnWalkBtn.TextSize         = isMobile and 12 or 14
-stopOnWalkBtn.ZIndex           = 8
-stopOnWalkBtn.Parent           = stopOnWalkRow
-Instance.new("UICorner", stopOnWalkBtn).CornerRadius = UDim.new(0, 10)
+	local stopOnWalkBtn = Instance.new("TextButton")
+	stopOnWalkBtn.Size             = UDim2.new(0.4, 0, 0, 36)
+	stopOnWalkBtn.Position         = UDim2.new(0.56, 0, 0.5, -18)
+	stopOnWalkBtn.BackgroundColor3 = Settings.stopOnWalk and currentTheme.success or currentTheme.critical
+	stopOnWalkBtn.Text             = Settings.stopOnWalk and L.on or L.off
+	stopOnWalkBtn.TextColor3       = Color3.new(1, 1, 1)
+	stopOnWalkBtn.Font             = Enum.Font.GothamBold
+	stopOnWalkBtn.TextSize         = isMobile and 12 or 14
+	stopOnWalkBtn.ZIndex           = 8
+	stopOnWalkBtn.Parent           = stopOnWalkRow
+	Instance.new("UICorner", stopOnWalkBtn).CornerRadius = UDim.new(0, 10)
 
-stopOnWalkBtn.MouseButton1Click:Connect(function()
-	Settings.stopOnWalk = not Settings.stopOnWalk
-	stopOnWalkBtn.Text = Settings.stopOnWalk and L.on or L.off
-	TweenService:Create(stopOnWalkBtn, TweenInfo.new(0.2), {
-		BackgroundColor3 = Settings.stopOnWalk and currentTheme.success or currentTheme.critical
-	}):Play()
-	SaveData()
-end)
+	stopOnWalkBtn.MouseButton1Click:Connect(function()
+		Settings.stopOnWalk = not Settings.stopOnWalk
+		stopOnWalkBtn.Text = Settings.stopOnWalk and L.on or L.off
+		TweenService:Create(stopOnWalkBtn, TweenInfo.new(0.2), {
+			BackgroundColor3 = Settings.stopOnWalk and currentTheme.success or currentTheme.critical
+		}):Play()
+		SaveData()
+	end)
+end
 
 -- Reset Language butonu
 local langResetRow = MakeSettingRow("", "Reset Language", 6)
