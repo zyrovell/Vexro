@@ -1230,22 +1230,31 @@ local _glassApplyBase = ApplyTheme
 ApplyTheme = function(name)
 	_glassApplyBase(name)
 	local isGlass = name == "FrostedGlass" or name == "DarkGlass"
-	-- Buzlu cam: mevcut blur'u temizle
-	local Lighting = game:GetService("Lighting")
-	local existingBlur = Lighting:FindFirstChild("VexroGlassBlur")
+	-- Eski blur varsa temizle (artık kullanılmıyor)
+	local existingBlur = game:GetService("Lighting"):FindFirstChild("VexroGlassBlur")
+	if existingBlur then existingBlur:Destroy() end
+	-- Buzlu cam efekti: şeffaflık + noise overlay ile simüle edilir
+	local trans = isGlass and 0.18 or 0
+	TweenService:Create(main, TweenInfo.new(0.3), {BackgroundTransparency = trans}):Play()
+	-- Noise overlay
+	local noiseOverlay = main:FindFirstChild("VexroGlassNoise")
 	if isGlass then
-		local blur = existingBlur or Instance.new("BlurEffect")
-		blur.Name = "VexroGlassBlur"
-		blur.Size = 0
-		blur.Parent = Lighting
-		TweenService:Create(blur, TweenInfo.new(0.4), {Size = (name == "FrostedGlass") and 20 or 12}):Play()
-		TweenService:Create(main, TweenInfo.new(0.3), {BackgroundTransparency = 0.45}):Play()
-	else
-		if existingBlur then
-			TweenService:Create(existingBlur, TweenInfo.new(0.3), {Size = 0}):Play()
-			task.delay(0.35, function() if existingBlur and existingBlur.Parent then existingBlur:Destroy() end end)
+		if not noiseOverlay then
+			noiseOverlay = Instance.new("ImageLabel")
+			noiseOverlay.Name = "VexroGlassNoise"
+			noiseOverlay.Size = UDim2.new(1, 0, 1, 0)
+			noiseOverlay.BackgroundTransparency = 1
+			noiseOverlay.Image = "rbxassetid://9968344672" -- noise/grain texture
+			noiseOverlay.ImageTransparency = name == "FrostedGlass" and 0.82 or 0.88
+			noiseOverlay.ScaleType = Enum.ScaleType.Tile
+			noiseOverlay.TileSize = UDim2.new(0, 64, 0, 64)
+			noiseOverlay.ZIndex = 1
+			noiseOverlay.Parent = main
+		else
+			noiseOverlay.ImageTransparency = name == "FrostedGlass" and 0.82 or 0.88
 		end
-		TweenService:Create(main, TweenInfo.new(0.3), {BackgroundTransparency = 0}):Play()
+	elseif noiseOverlay then
+		noiseOverlay:Destroy()
 	end
 end
 
@@ -3546,10 +3555,6 @@ local function _CleanupScript()
 	pcall(function() _charAddedConn:Disconnect() end)
 	pcall(function() DisableCopyEmotePrompts() end)
 	pcall(function() StopHUDTracking() end)
-	pcall(function()
-		local b = game:GetService("Lighting"):FindFirstChild("VexroGlassBlur")
-		if b then b:Destroy() end
-	end)
 	getgenv().VexroEmotesCleanup = nil
 	getgenv().lastVexroEmote = nil
 	getgenv().autoReloadEnabled_Vexro = nil
