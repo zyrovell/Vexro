@@ -249,7 +249,7 @@ local function RegisterTheme(el, prop, key)
 	if el then themeElements[#themeElements + 1] = {el = el, prop = prop, key = key} end
 end
 
-local function Notify(title, text)
+local function Notify(title, text, iconId)
 	if not Settings.notifications then return end
 	pcall(function()
 		local screenGui = playerGui:FindFirstChild("VexroEmotes") or game:GetService("CoreGui"):FindFirstChild("VexroEmotes")
@@ -297,9 +297,22 @@ local function Notify(title, text)
 		toastStroke.Thickness = 2
 		toastStroke.Parent = toast
 		
+		local iconOffset = 0
+		if iconId then
+			local notifIcon = Instance.new("ImageLabel")
+			notifIcon.Size = UDim2.new(0, 22, 0, 22)
+			notifIcon.AnchorPoint = Vector2.new(0, 0.5)
+			notifIcon.Position = UDim2.new(0, 10, 0, 16)
+			notifIcon.BackgroundTransparency = 1
+			notifIcon.Image = "rbxassetid://" .. tostring(iconId)
+			notifIcon.ZIndex = 30003
+			notifIcon.Parent = toast
+			iconOffset = 28
+		end
+
 		local titleLbl = Instance.new("TextLabel")
-		titleLbl.Size = UDim2.new(1, -15, 0, 25)
-		titleLbl.Position = UDim2.new(0, 10, 0, 5)
+		titleLbl.Size = UDim2.new(1, -(15 + iconOffset), 0, 25)
+		titleLbl.Position = UDim2.new(0, 10 + iconOffset, 0, 5)
 		titleLbl.BackgroundTransparency = 1
 		titleLbl.Text = title
 		titleLbl.Font = Enum.Font.GothamBold
@@ -1032,7 +1045,7 @@ end
 
 local function StopEmote(showNotif)
 	StopAllTracks()
-	if showNotif then Notify("[||]", L.stopped) end
+	if showNotif then Notify(L.stopped, "", 113416463749658) end
 end
 
 RunService.Heartbeat:Connect(function()
@@ -1105,7 +1118,7 @@ local function PlayEmote(id, name, silent)
 	if success then
 		if not silent then
 			local speedTxt = Settings.speed ~= 1 and " (" .. Settings.speed .. "x)" or ""
-			Notify(utf8.char(0x25B6, 0xFE0F) .. " " .. L.playing .. speedTxt, name)
+			Notify(L.playing .. speedTxt, name, 129338178452237)
 		end
 		lastEmoteTime = tick()
 	else
@@ -1486,16 +1499,26 @@ local _isPaused = false
 -- stopBtn içindeki stop karesi (duraklat/devam durumuna göre gizlenir)
 local _stopBtnSquare = stopBtn:FindFirstChildWhichIsA("Frame")
 
-local _pauseTextSize = math.floor((isMobile and 14 or 18) * (ICON_SCALE or 1))
+local _stopBtnPlayIcon = Instance.new("ImageLabel")
+_stopBtnPlayIcon.Size = UDim2.new(0.6, 0, 0.6, 0)
+_stopBtnPlayIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+_stopBtnPlayIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
+_stopBtnPlayIcon.BackgroundTransparency = 1
+_stopBtnPlayIcon.Image = "rbxassetid://129338178452237"
+_stopBtnPlayIcon.Visible = false
+_stopBtnPlayIcon.ZIndex = stopBtn.ZIndex + 1
+_stopBtnPlayIcon.Parent = stopBtn
+
 
 local function _SetPauseState(paused)
 	_isPaused = paused
 	-- stopBtn görselini güncelle: duraklat = kare gizli + ">" yaz, devam = kare göster
 	if _stopBtnSquare then _stopBtnSquare.Visible = not paused end
 	if paused then
-		stopBtn.Text     = ">"
-		stopBtn.TextSize = _pauseTextSize
+		_stopBtnPlayIcon.Visible = true
+		stopBtn.Text = ""
 	else
+		_stopBtnPlayIcon.Visible = false
 		stopBtn.Text = ""
 	end
 	-- HUD duraklat butonunu güncelle (bridge)
@@ -3355,13 +3378,22 @@ hudPauseBtn.AnchorPoint            = Vector2.new(0.5, 0)
 hudPauseBtn.Position               = UDim2.new(0.5, 0, 0, 66)
 hudPauseBtn.BackgroundColor3       = Color3.fromRGB(30, 30, 46)
 hudPauseBtn.BackgroundTransparency = 0.10
-hudPauseBtn.Text                   = "||"
+hudPauseBtn.Text                   = ""
 hudPauseBtn.TextColor3             = Color3.new(1, 1, 1)
 hudPauseBtn.Font                   = Enum.Font.GothamBold
 hudPauseBtn.TextSize               = 12
 hudPauseBtn.ZIndex                 = 503
 hudPauseBtn.Parent                 = HUD
 Instance.new("UICorner", hudPauseBtn).CornerRadius = UDim.new(0, 7)
+
+local hudPauseImg = Instance.new("ImageLabel")
+hudPauseImg.Size = UDim2.new(0, 16, 0, 16)
+hudPauseImg.AnchorPoint = Vector2.new(0.5, 0.5)
+hudPauseImg.Position = UDim2.new(0.5, 0, 0.5, 0)
+hudPauseImg.BackgroundTransparency = 1
+hudPauseImg.Image = "rbxassetid://113416463749658"
+hudPauseImg.ZIndex = 504
+hudPauseImg.Parent = hudPauseBtn
 
 local hudPauseBtnStroke = Instance.new("UIStroke")
 hudPauseBtnStroke.Color       = currentTheme.stroke
@@ -3371,10 +3403,10 @@ hudPauseBtnStroke.Parent      = hudPauseBtn
 
 local function RefreshHudPauseBtn()
 	if _isPaused then
-		hudPauseBtn.Text            = ">"
+		hudPauseImg.Image = "rbxassetid://129338178452237"
 		hudPauseBtn.BackgroundColor3 = currentTheme.accent
 	else
-		hudPauseBtn.Text            = "||"
+		hudPauseImg.Image = "rbxassetid://113416463749658"
 		hudPauseBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 46)
 	end
 end
@@ -4005,6 +4037,7 @@ HideEmoteHUD = function()
 	RefreshHudPauseBtn()
 	-- stopBtn görselini sıfırla (doğrudan, döngü yaratmamak için)
 	if _stopBtnSquare then _stopBtnSquare.Visible = true end
+	if _stopBtnPlayIcon then _stopBtnPlayIcon.Visible = false end
 	stopBtn.Text = ""
 	StopHUDTracking()
 	TweenService:Create(HUD,
