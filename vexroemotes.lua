@@ -19,6 +19,12 @@ $$ |   $$ |$$ |      \$$\ $$  |$$ |  $$ |$$ /  $$ |      $$ /  $$ |$$$$\ $$ |   
                                                                                                                            
 ]]
 
+-- Önceki instance temizle (re-run desteği)
+if getgenv().VexroEmotesCleanup then
+	pcall(getgenv().VexroEmotesCleanup)
+	getgenv().VexroEmotesCleanup = nil
+end
+
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
@@ -1051,7 +1057,7 @@ local function StopEmote(showNotif)
 	if showNotif then Notify(L.stopped, "", 113416463749658) end
 end
 
-RunService.Heartbeat:Connect(function()
+local _heartbeatConn = RunService.Heartbeat:Connect(function()
 	if Settings.stopOnWalk and currentAnimTrack and currentAnimTrack.IsPlaying then
 		local character = player.Character
 		if character then
@@ -2782,10 +2788,24 @@ minBtn.MouseButton1Click:Connect(function()
 	end)
 end)
 
+-- Tüm bağlantıları kesip scripti temizle
+local function _CleanupScript()
+	pcall(function() _heartbeatConn:Disconnect() end)
+	pcall(function() _charAddedConn:Disconnect() end)
+	pcall(function() DisableCopyEmotePrompts() end)
+	pcall(function() StopHUDTracking() end)
+	getgenv().VexroEmotesCleanup = nil
+	getgenv().lastVexroEmote = nil
+	getgenv().autoReloadEnabled_Vexro = nil
+	pcall(function() gui:Destroy() end)
+end
+
+getgenv().VexroEmotesCleanup = _CleanupScript
+
 closeBtn.MouseButton1Click:Connect(function()
 	TweenService:Create(main, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1, Rotation = -30}):Play()
 	task.wait(0.25)
-	gui:Destroy()
+	_CleanupScript()
 end)
 
 -- ===============================================================
@@ -2872,7 +2892,7 @@ end)
 -- Enable auto reload before listener registration
 getgenv().autoReloadEnabled_Vexro = Settings.loopEmote
 
-player.CharacterAdded:Connect(function(newChar)
+local _charAddedConn = player.CharacterAdded:Connect(function(newChar)
 	local newHum = newChar:WaitForChild("Humanoid", 5)
 	if not newHum then return end
 	
