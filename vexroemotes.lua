@@ -1407,18 +1407,15 @@ local function MakeBtn(icon, px, colorKey, customSize)
 		-- Minus için bold metin kullan (Görünürlük için en iyisi)
 		if icon == "STOP_SHAPE" then
 			b.Text = ""
-			local sq = Instance.new("Frame")
-			sq.BorderSizePixel = 0
-			sq.Size = UDim2.new(0.55, 0, 0.55, 0)
+			local sq = Instance.new("ImageLabel")
+			sq.Size = UDim2.new(0.65, 0, 0.65, 0)
 			sq.Position = UDim2.new(0.5, 0, 0.5, 0)
 			sq.AnchorPoint = Vector2.new(0.5, 0.5)
-			sq.BackgroundColor3 = useWhite and Color3.new(1, 1, 1) or currentTheme.text
+			sq.BackgroundTransparency = 1
+			sq.Image = "rbxassetid://113416463749658"
+			sq.ImageColor3 = Color3.new(1, 1, 1)
 			sq.ZIndex = 110
 			sq.Parent = b
-			Instance.new("UICorner", sq).CornerRadius = UDim.new(0, 4)
-			if not useWhite then
-				RegisterTheme(sq, "BackgroundColor3", "text")
-			end
 		elseif icon == "CLOSE_SHAPE" then
 			b.Text = ""
 			local line1 = Instance.new("Frame")
@@ -1497,7 +1494,7 @@ RegisterTheme(closeBtn, "BackgroundColor3", "critical")
 
 local _isPaused = false
 -- stopBtn içindeki stop karesi (duraklat/devam durumuna göre gizlenir)
-local _stopBtnSquare = stopBtn:FindFirstChildWhichIsA("Frame")
+local _stopBtnSquare = stopBtn:FindFirstChildWhichIsA("ImageLabel")
 
 local _stopBtnPlayIcon = Instance.new("ImageLabel")
 _stopBtnPlayIcon.Size = UDim2.new(0.6, 0, 0.6, 0)
@@ -1506,7 +1503,7 @@ _stopBtnPlayIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
 _stopBtnPlayIcon.BackgroundTransparency = 1
 _stopBtnPlayIcon.Image = "rbxassetid://129338178452237"
 _stopBtnPlayIcon.Visible = false
-_stopBtnPlayIcon.ZIndex = stopBtn.ZIndex + 1
+_stopBtnPlayIcon.ZIndex = 111
 _stopBtnPlayIcon.Parent = stopBtn
 
 
