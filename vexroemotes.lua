@@ -1496,27 +1496,11 @@ local _isPaused = false
 -- stopBtn içindeki stop karesi (duraklat/devam durumuna göre gizlenir)
 local _stopBtnSquare = stopBtn:FindFirstChildWhichIsA("ImageLabel")
 
-local _stopBtnPlayIcon = Instance.new("ImageLabel")
-_stopBtnPlayIcon.Size = UDim2.new(0.6, 0, 0.6, 0)
-_stopBtnPlayIcon.AnchorPoint = Vector2.new(0.5, 0.5)
-_stopBtnPlayIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
-_stopBtnPlayIcon.BackgroundTransparency = 1
-_stopBtnPlayIcon.Image = "rbxassetid://129338178452237"
-_stopBtnPlayIcon.Visible = false
-_stopBtnPlayIcon.ZIndex = 111
-_stopBtnPlayIcon.Parent = stopBtn
-
-
 local function _SetPauseState(paused)
 	_isPaused = paused
 	-- stopBtn görselini güncelle: duraklat = kare gizli + ">" yaz, devam = kare göster
-	if _stopBtnSquare then _stopBtnSquare.Visible = not paused end
-	if paused then
-		_stopBtnPlayIcon.Visible = true
-		stopBtn.Text = ""
-	else
-		_stopBtnPlayIcon.Visible = false
-		stopBtn.Text = ""
+	if _stopBtnSquare then
+		_stopBtnSquare.Image = paused and "rbxassetid://129338178452237" or "rbxassetid://113416463749658"
 	end
 	-- HUD duraklat butonunu güncelle (bridge)
 	if _onPauseStateChanged then _onPauseStateChanged(paused) end
@@ -3369,28 +3353,17 @@ hudKnob.Parent           = hudSliderBg
 Instance.new("UICorner", hudKnob).CornerRadius = UDim.new(1, 0)
 
 -- ▸ Orta-alt: Duraklat / Devam Et butonu
-local hudPauseBtn = Instance.new("TextButton")
+local hudPauseBtn = Instance.new("ImageButton")
 hudPauseBtn.Size                   = UDim2.new(0, 60, 0, 22)
 hudPauseBtn.AnchorPoint            = Vector2.new(0.5, 0)
 hudPauseBtn.Position               = UDim2.new(0.5, 0, 0, 66)
 hudPauseBtn.BackgroundColor3       = Color3.fromRGB(30, 30, 46)
 hudPauseBtn.BackgroundTransparency = 0.10
-hudPauseBtn.Text                   = ""
-hudPauseBtn.TextColor3             = Color3.new(1, 1, 1)
-hudPauseBtn.Font                   = Enum.Font.GothamBold
-hudPauseBtn.TextSize               = 12
+hudPauseBtn.Image                  = "rbxassetid://113416463749658"
+hudPauseBtn.ScaleType              = Enum.ScaleType.Fit
 hudPauseBtn.ZIndex                 = 503
 hudPauseBtn.Parent                 = HUD
 Instance.new("UICorner", hudPauseBtn).CornerRadius = UDim.new(0, 7)
-
-local hudPauseImg = Instance.new("ImageLabel")
-hudPauseImg.Size = UDim2.new(0, 16, 0, 16)
-hudPauseImg.AnchorPoint = Vector2.new(0.5, 0.5)
-hudPauseImg.Position = UDim2.new(0.5, 0, 0.5, 0)
-hudPauseImg.BackgroundTransparency = 1
-hudPauseImg.Image = "rbxassetid://113416463749658"
-hudPauseImg.ZIndex = 504
-hudPauseImg.Parent = hudPauseBtn
 
 local hudPauseBtnStroke = Instance.new("UIStroke")
 hudPauseBtnStroke.Color       = currentTheme.stroke
@@ -3400,10 +3373,10 @@ hudPauseBtnStroke.Parent      = hudPauseBtn
 
 local function RefreshHudPauseBtn()
 	if _isPaused then
-		hudPauseImg.Image = "rbxassetid://129338178452237"
+		hudPauseBtn.Image = "rbxassetid://129338178452237"
 		hudPauseBtn.BackgroundColor3 = currentTheme.accent
 	else
-		hudPauseImg.Image = "rbxassetid://113416463749658"
+		hudPauseBtn.Image = "rbxassetid://113416463749658"
 		hudPauseBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 46)
 	end
 end
@@ -4033,9 +4006,7 @@ HideEmoteHUD = function()
 	_isPaused = false
 	RefreshHudPauseBtn()
 	-- stopBtn görselini sıfırla (doğrudan, döngü yaratmamak için)
-	if _stopBtnSquare then _stopBtnSquare.Visible = true end
-	if _stopBtnPlayIcon then _stopBtnPlayIcon.Visible = false end
-	stopBtn.Text = ""
+	if _stopBtnSquare then _stopBtnSquare.Image = "rbxassetid://113416463749658" end
 	StopHUDTracking()
 	TweenService:Create(HUD,
 		TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
