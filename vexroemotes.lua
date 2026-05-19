@@ -1486,12 +1486,18 @@ local _isPaused = false
 -- stopBtn içindeki stop karesi (duraklat/devam durumuna göre gizlenir)
 local _stopBtnSquare = stopBtn:FindFirstChildWhichIsA("Frame")
 
+local _pauseTextSize = math.floor((isMobile and 14 or 18) * (ICON_SCALE or 1))
+
 local function _SetPauseState(paused)
 	_isPaused = paused
-	-- stopBtn görselini güncelle: duraklat = kare, devam = ">"
+	-- stopBtn görselini güncelle: duraklat = kare gizli + ">" yaz, devam = kare göster
 	if _stopBtnSquare then _stopBtnSquare.Visible = not paused end
-	stopBtn.Text = paused and ">" or ""
-	stopBtn.TextSize = paused and math.floor((isMobile and 14 or 18) * (ICON_SCALE or 1)) or 0
+	if paused then
+		stopBtn.Text     = ">"
+		stopBtn.TextSize = _pauseTextSize
+	else
+		stopBtn.Text = ""
+	end
 	-- HUD duraklat butonunu güncelle (bridge)
 	if _onPauseStateChanged then _onPauseStateChanged(paused) end
 end
@@ -3993,8 +3999,9 @@ end
 HideEmoteHUD = function()
 	_isPaused = false
 	RefreshHudPauseBtn()
-	-- stopBtn görselini sıfırla
-	if _SetPauseState then _SetPauseState(false) end
+	-- stopBtn görselini sıfırla (doğrudan, döngü yaratmamak için)
+	if _stopBtnSquare then _stopBtnSquare.Visible = true end
+	stopBtn.Text = ""
 	StopHUDTracking()
 	TweenService:Create(HUD,
 		TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
