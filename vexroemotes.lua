@@ -2472,6 +2472,7 @@ end
 
 _MakeBillboard = function(p)
 	if not p.Character then return end
+	if FriendData.friends[tostring(p.UserId)] then return end
 	local head = p.Character:FindFirstChild("Head")
 	if not head or head:FindFirstChild("VexroFriendBB") then return end
 
@@ -2485,13 +2486,11 @@ _MakeBillboard = function(p)
 
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(1,0,1,0)
-	btn.BackgroundColor3 = currentTheme.accent
+	btn.Style = Enum.ButtonStyle.RobloxRoundButton
 	btn.Text = "+ Arkadaş Ekle"
-	btn.TextColor3 = Color3.new(1,1,1)
 	btn.Font = Enum.Font.GothamBold
 	btn.TextSize = 11
 	btn.Parent = bb
-	Instance.new("UICorner", btn).CornerRadius = UDim.new(0,8)
 
 	btn.MouseButton1Click:Connect(function()
 		if FriendData.friends[tostring(p.UserId)] then
