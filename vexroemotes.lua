@@ -1408,12 +1408,12 @@ local function MakeBtn(icon, px, colorKey, customSize)
 		if icon == "STOP_SHAPE" then
 			b.Text = ""
 			local sq = Instance.new("ImageLabel")
-			sq.Size = UDim2.new(0.65, 0, 0.65, 0)
+			sq.Size = UDim2.new(0.75, 0, 0.75, 0)
 			sq.Position = UDim2.new(0.5, 0, 0.5, 0)
 			sq.AnchorPoint = Vector2.new(0.5, 0.5)
 			sq.BackgroundTransparency = 1
 			sq.Image = "rbxassetid://113416463749658"
-			sq.ImageColor3 = Color3.new(1, 1, 1)
+			sq.ScaleType = Enum.ScaleType.Fit
 			sq.ZIndex = 110
 			sq.Parent = b
 		elseif icon == "CLOSE_SHAPE" then
@@ -3363,6 +3363,7 @@ hudPauseBtn.BackgroundColor3       = Color3.fromRGB(30, 30, 46)
 hudPauseBtn.BackgroundTransparency = 0.10
 hudPauseBtn.Image                  = "rbxassetid://113416463749658"
 hudPauseBtn.ScaleType              = Enum.ScaleType.Fit
+hudPauseBtn.ImageRectSize          = Vector2.new(0, 0)
 hudPauseBtn.ZIndex                 = 503
 hudPauseBtn.Parent                 = HUD
 Instance.new("UICorner", hudPauseBtn).CornerRadius = UDim.new(0, 7)
