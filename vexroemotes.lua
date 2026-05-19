@@ -2546,9 +2546,6 @@ local function _SetAddMode(on)
 	}):Play()
 end
 
-friendAddModeBtn.MouseButton1Click:Connect(function()
-	_SetAddMode(not FriendData.addModeActive)
-end)
 
 -- Emote sync broadcast (PlayEmote sonrası çağrılır)
 getgenv().VexroBroadcastSync = function(emoteId, emoteName)
@@ -4368,6 +4365,10 @@ _faBtnImg.Image = ResolveAssetImage("rbxassetid://119398141999369")
 _faBtnImg.ImageColor3 = Color3.new(1,1,1)
 _faBtnImg.ZIndex = 704
 _faBtnImg.Parent = friendAddModeBtn
+
+friendAddModeBtn.MouseButton1Click:Connect(function()
+	_SetAddMode(not FriendData.addModeActive)
+end)
 
 local copyIdBtn = Instance.new("TextButton")
 copyIdBtn.Size             = UDim2.new(0.52, -2, 0, 26)
