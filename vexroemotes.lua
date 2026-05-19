@@ -2486,11 +2486,18 @@ _MakeBillboard = function(p)
 
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(1,0,1,0)
-	btn.Style = Enum.ButtonStyle.RobloxRoundButton
+	btn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	btn.BackgroundTransparency = 0.08
+	btn.TextColor3 = Color3.fromRGB(30, 30, 30)
 	btn.Text = "+ Arkadaş Ekle"
 	btn.Font = Enum.Font.GothamBold
 	btn.TextSize = 11
 	btn.Parent = bb
+	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+	local btnStroke = Instance.new("UIStroke")
+	btnStroke.Color = Color3.fromRGB(180, 180, 180)
+	btnStroke.Thickness = 1
+	btnStroke.Parent = btn
 
 	btn.MouseButton1Click:Connect(function()
 		if FriendData.friends[tostring(p.UserId)] then
@@ -2534,8 +2541,10 @@ _MakeBillboard = function(p)
 		-- İstek gönder
 		_reqCooldowns[uid_s] = now
 		_MyAttr(ATTR_REQ, uid_s)
-		btn.Text = "İstek Gönderildi"
-		btn.BackgroundColor3 = Color3.fromRGB(70, 70, 110)
+		btn.Text = "✓ İstek Gönderildi"
+		btn.BackgroundColor3 = Color3.fromRGB(60, 160, 90)
+		btn.TextColor3 = Color3.new(1, 1, 1)
+		Notify(p.Name .. " adlı oyuncuya arkadaşlık isteği gönderildi!", "", nil)
 		task.delay(3, function() _MyAttr(ATTR_REQ, "") end)
 	end)
 end
