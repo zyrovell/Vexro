@@ -20,6 +20,10 @@ $$ |   $$ |$$ |      \$$\ $$  |$$ |  $$ |$$ /  $$ |      $$ /  $$ |$$$$\ $$ |   
 ]]
 
 -- Önceki instance temizle (re-run desteği)
+pcall(function()
+	local b = game:GetService("Lighting"):FindFirstChild("VexroGlassBlur")
+	if b then b:Destroy() end
+end)
 if getgenv().VexroEmotesCleanup then
 	pcall(getgenv().VexroEmotesCleanup)
 	getgenv().VexroEmotesCleanup = nil
@@ -1231,8 +1235,10 @@ ApplyTheme = function(name)
 	_glassApplyBase(name)
 	local isGlass = name == "FrostedGlass" or name == "DarkGlass"
 	-- Eski blur varsa temizle (artık kullanılmıyor)
-	local existingBlur = game:GetService("Lighting"):FindFirstChild("VexroGlassBlur")
-	if existingBlur then existingBlur:Destroy() end
+	pcall(function()
+		local b = game:GetService("Lighting"):FindFirstChild("VexroGlassBlur")
+		if b then b:Destroy() end
+	end)
 	-- Buzlu cam efekti: şeffaflık + noise overlay ile simüle edilir
 	local trans = isGlass and 0.18 or 0
 	TweenService:Create(main, TweenInfo.new(0.3), {BackgroundTransparency = trans}):Play()
@@ -1412,8 +1418,8 @@ end
 CreateTabBtn(Icons.Emote, "emotes", 8)
 CreateTabBtn(Icons.FavoriteFull, "favorites", 8 + tabBtnS + 6)
 CreateTabBtn(Icons.Recent, "recent", 8 + (tabBtnS + 6) * 2)
-CreateTabBtn(Icons.Settings, "settings", 8 + (tabBtnS + 6) * 3)
-CreateTabBtn("rbxassetid://115725480722697", "friends", 8 + (tabBtnS + 6) * 4)
+CreateTabBtn("rbxassetid://115725480722697", "friends", 8 + (tabBtnS + 6) * 3)
+CreateTabBtn(Icons.Settings, "settings", 8 + (tabBtnS + 6) * 4)
 
 -- ===============================================================
 -- CONTENT
