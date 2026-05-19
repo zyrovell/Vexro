@@ -1503,14 +1503,15 @@ local function _SetPauseState(paused)
 end
 
 stopBtn.MouseButton1Click:Connect(function()
-	if currentAnimTrack and currentAnimTrack.IsPlaying then
-		-- Çalan emoteyi mevcut pozisyonda dondur (hız=0)
-		pcall(function() currentAnimTrack:AdjustSpeed(0) end)
-		_SetPauseState(true)
-	elseif currentAnimTrack and _isPaused then
-		-- Zaten dondurulmuşsa devam ettir
+	-- Onceligi duraklat halini kontrol etmeye ver (hiz=0 oldugu icin IsPlaying hala true)
+	if currentAnimTrack and _isPaused then
+		-- Duraklatilmissa devam ettir
 		pcall(function() currentAnimTrack:AdjustSpeed(Settings.speed) end)
 		_SetPauseState(false)
+	elseif currentAnimTrack and currentAnimTrack.IsPlaying then
+		-- Calan emoteyi mevcut pozisyonda dondur (hiz=0)
+		pcall(function() currentAnimTrack:AdjustSpeed(0) end)
+		_SetPauseState(true)
 	else
 		StopEmote(true)
 	end
@@ -3379,12 +3380,13 @@ local function RefreshHudPauseBtn()
 end
 
 hudPauseBtn.MouseButton1Click:Connect(function()
-	if currentAnimTrack and currentAnimTrack.IsPlaying then
-		pcall(function() currentAnimTrack:AdjustSpeed(0) end)
-		_SetPauseState(true)
-	elseif currentAnimTrack and _isPaused then
+	-- Onceligi duraklat halini kontrol etmeye ver (hiz=0 iken IsPlaying hala true)
+	if currentAnimTrack and _isPaused then
 		pcall(function() currentAnimTrack:AdjustSpeed(Settings.speed) end)
 		_SetPauseState(false)
+	elseif currentAnimTrack and currentAnimTrack.IsPlaying then
+		pcall(function() currentAnimTrack:AdjustSpeed(0) end)
+		_SetPauseState(true)
 	end
 end)
 
