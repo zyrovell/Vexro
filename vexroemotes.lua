@@ -747,7 +747,8 @@ splashBlur.Parent = game:GetService("Lighting")
 local splash = Instance.new("Frame")
 splash.Size = UDim2.fromScale(1, 1)
 splash.BackgroundColor3 = _splashPrimary
-splash.BackgroundTransparency = _splashIsGlass and 0.15 or 0
+-- Blur'un görünmesi için her temada yarı saydam, glass'ta daha saydam
+splash.BackgroundTransparency = _splashIsGlass and 0.55 or 0.35
 splash.ZIndex = 10000
 splash.Parent = gui
 
@@ -778,7 +779,7 @@ splashBox.Size = UDim2.new(0, 0, 0, 0)
 splashBox.Position = UDim2.fromScale(0.5, 0.5)
 splashBox.AnchorPoint = Vector2.new(0.5, 0.5)
 splashBox.BackgroundColor3 = _splashTheme.secondary
-splashBox.BackgroundTransparency = _splashIsGlass and 0.35 or 0
+splashBox.BackgroundTransparency = _splashIsGlass and 0.45 or 0.08
 splashBox.Rotation = -180
 splashBox.ZIndex = 10001
 splashBox.Parent = splash
@@ -841,7 +842,7 @@ madeByLbl.Size = UDim2.new(1, -54, 1, 0)
 madeByLbl.Position = UDim2.new(0, 52, 0, 0)
 madeByLbl.BackgroundTransparency = 1
 madeByLbl.Text = L.madeBy
-madeByLbl.TextColor3 = Color3.fromRGB(180, 180, 220)
+madeByLbl.TextColor3 = _splashTheme.textDim
 madeByLbl.Font = Enum.Font.GothamBold
 madeByLbl.TextScaled = true
 madeByLbl.TextXAlignment = Enum.TextXAlignment.Left
@@ -853,7 +854,7 @@ logo.Size = UDim2.new(1, -24, 0, 60)
 logo.Position = UDim2.new(0, 12, 0, 70)
 logo.BackgroundTransparency = 1
 logo.Text = "Vexro Emotes"
-logo.TextColor3 = Color3.new(1, 1, 1)
+logo.TextColor3 = _splashTheme.text
 logo.Font = Enum.Font.GothamBlack
 logo.TextScaled = true
 logo.ZIndex = 10003
@@ -861,11 +862,11 @@ logo.Parent = splashBox
 
 local logoGrad = Instance.new("UIGradient")
 logoGrad.Color = ColorSequence.new{
-	ColorSequenceKeypoint.new(0, Color3.fromRGB(138, 43, 226)),
-	ColorSequenceKeypoint.new(0.25, Color3.fromRGB(186, 85, 211)),
-	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(75, 0, 130)),
-	ColorSequenceKeypoint.new(0.75, Color3.fromRGB(186, 85, 211)),
-	ColorSequenceKeypoint.new(1, Color3.fromRGB(138, 43, 226))
+	ColorSequenceKeypoint.new(0,    _splashAccent),
+	ColorSequenceKeypoint.new(0.25, _splashTheme.stroke),
+	ColorSequenceKeypoint.new(0.5,  _splashAccent),
+	ColorSequenceKeypoint.new(0.75, _splashTheme.stroke),
+	ColorSequenceKeypoint.new(1,    _splashAccent)
 }
 logoGrad.Parent = logo
 
@@ -883,7 +884,7 @@ loadingLbl.Size = UDim2.new(1, 0, 0, 30)
 loadingLbl.Position = UDim2.new(0, 0, 0, 140)
 loadingLbl.BackgroundTransparency = 1
 loadingLbl.Text = L.loading
-loadingLbl.TextColor3 = Color3.fromRGB(150, 150, 180)
+loadingLbl.TextColor3 = _splashTheme.textDim
 loadingLbl.Font = Enum.Font.GothamBold
 loadingLbl.TextSize = 16
 loadingLbl.ZIndex = 10003
@@ -902,23 +903,23 @@ end)
 local loadingBarBg = Instance.new("Frame")
 loadingBarBg.Size = UDim2.new(0.8, 0, 0, 6)
 loadingBarBg.Position = UDim2.new(0.1, 0, 0, 175)
-loadingBarBg.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+loadingBarBg.BackgroundColor3 = _splashTheme.tertiary
 loadingBarBg.ZIndex = 10003
 loadingBarBg.Parent = splashBox
 Instance.new("UICorner", loadingBarBg).CornerRadius = UDim.new(1, 0)
 
 local loadingBar = Instance.new("Frame")
 loadingBar.Size = UDim2.new(0, 0, 1, 0)
-loadingBar.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
+loadingBar.BackgroundColor3 = _splashAccent
 loadingBar.ZIndex = 10004
 loadingBar.Parent = loadingBarBg
 Instance.new("UICorner", loadingBar).CornerRadius = UDim.new(1, 0)
 
 local loadingBarGrad = Instance.new("UIGradient")
 loadingBarGrad.Color = ColorSequence.new{
-	ColorSequenceKeypoint.new(0, Color3.fromRGB(138, 43, 226)),
-	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(186, 85, 211)),
-	ColorSequenceKeypoint.new(1, Color3.fromRGB(138, 43, 226))
+	ColorSequenceKeypoint.new(0, _splashAccent),
+	ColorSequenceKeypoint.new(0.5, _splashTheme.stroke),
+	ColorSequenceKeypoint.new(1, _splashAccent)
 }
 loadingBarGrad.Parent = loadingBar
 
