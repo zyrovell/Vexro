@@ -734,17 +734,25 @@ end
 -- SPLASH SCREEN
 -- ===============================================================
 
+local _splashTheme = Themes[Settings.theme] or Themes.Dark
+local _splashPrimary = _splashTheme.primary
+local _splashAccent  = _splashTheme.accent
+
 local splash = Instance.new("Frame")
 splash.Size = UDim2.fromScale(1, 1)
-splash.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
+splash.BackgroundColor3 = _splashPrimary
 splash.ZIndex = 10000
 splash.Parent = gui
 
 local splashBgGrad = Instance.new("UIGradient")
 splashBgGrad.Color = ColorSequence.new{
-	ColorSequenceKeypoint.new(0, Color3.fromRGB(8, 8, 18)),
-	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(18, 10, 30)),
-	ColorSequenceKeypoint.new(1, Color3.fromRGB(8, 8, 18))
+	ColorSequenceKeypoint.new(0,   _splashPrimary),
+	ColorSequenceKeypoint.new(0.5, Color3.new(
+		math.clamp(_splashPrimary.R + _splashAccent.R * 0.15, 0, 1),
+		math.clamp(_splashPrimary.G + _splashAccent.G * 0.15, 0, 1),
+		math.clamp(_splashPrimary.B + _splashAccent.B * 0.20, 0, 1)
+	)),
+	ColorSequenceKeypoint.new(1,   _splashPrimary)
 }
 splashBgGrad.Rotation = 45
 splashBgGrad.Parent = splash
@@ -762,23 +770,23 @@ local splashBox = Instance.new("Frame")
 splashBox.Size = UDim2.new(0, 0, 0, 0)
 splashBox.Position = UDim2.fromScale(0.5, 0.5)
 splashBox.AnchorPoint = Vector2.new(0.5, 0.5)
-splashBox.BackgroundColor3 = Color3.fromRGB(18, 18, 28)
+splashBox.BackgroundColor3 = _splashTheme.secondary
 splashBox.Rotation = -180
 splashBox.ZIndex = 10001
 splashBox.Parent = splash
 Instance.new("UICorner", splashBox).CornerRadius = UDim.new(0, 22)
 
 local splashStroke = Instance.new("UIStroke")
-splashStroke.Color = Color3.fromRGB(138, 43, 226)
+splashStroke.Color = _splashAccent
 splashStroke.Thickness = 3
 splashStroke.Parent = splashBox
 
 local splashStrokeGrad = Instance.new("UIGradient")
 splashStrokeGrad.Color = ColorSequence.new{
-	ColorSequenceKeypoint.new(0, Color3.fromRGB(138, 43, 226)),
-	ColorSequenceKeypoint.new(0.33, Color3.fromRGB(75, 0, 130)),
-	ColorSequenceKeypoint.new(0.66, Color3.fromRGB(186, 85, 211)),
-	ColorSequenceKeypoint.new(1, Color3.fromRGB(138, 43, 226))
+	ColorSequenceKeypoint.new(0,    _splashAccent),
+	ColorSequenceKeypoint.new(0.33, _splashTheme.stroke),
+	ColorSequenceKeypoint.new(0.66, _splashAccent),
+	ColorSequenceKeypoint.new(1,    _splashAccent)
 }
 splashStrokeGrad.Parent = splashStroke
 
@@ -1272,19 +1280,31 @@ ApplyTheme = function(name)
 	elseif noiseOverlay then
 		noiseOverlay:Destroy()
 	end
-	-- Gradyan
-	local grad = main:FindFirstChild("VexroMainGrad")
-	if not grad then
-		grad = Instance.new("UIGradient")
+	-- Gradyan: ayrı bir arka plan frame içinde (BackgroundColor3 tween'iyle çakışmaz)
+	local gradFrame = main:FindFirstChild("VexroGradFrame")
+	if not gradFrame then
+		gradFrame = Instance.new("Frame")
+		gradFrame.Name = "VexroGradFrame"
+		gradFrame.Size = UDim2.new(1, 0, 1, 0)
+		gradFrame.BackgroundColor3 = Color3.new(1, 1, 1)
+		gradFrame.BackgroundTransparency = 0
+		gradFrame.BorderSizePixel = 0
+		gradFrame.ZIndex = 1
+		gradFrame.Parent = main
+		Instance.new("UICorner", gradFrame).CornerRadius = UDim.new(0, 20)
+		local grad = Instance.new("UIGradient")
 		grad.Name = "VexroMainGrad"
-		grad.Parent = main
+		grad.Parent = gradFrame
 	end
-	local g = ThemeGradients[name] or ThemeGradients.Dark
-	grad.Color = ColorSequence.new{
-		ColorSequenceKeypoint.new(0, g[1]),
-		ColorSequenceKeypoint.new(1, g[2]),
-	}
-	grad.Rotation = g[3]
+	local grad = gradFrame:FindFirstChild("VexroMainGrad")
+	if grad then
+		local g = ThemeGradients[name] or ThemeGradients.Dark
+		grad.Color = ColorSequence.new{
+			ColorSequenceKeypoint.new(0, g[1]),
+			ColorSequenceKeypoint.new(1, g[2]),
+		}
+		grad.Rotation = g[3]
+	end
 end
 
 local mainStroke = Instance.new("UIStroke")
@@ -3736,214 +3756,18 @@ Notify(utf8.char(0x2705) .. " " .. L.ready, #Emotes .. " emotes")
 local function _VexroExtend() -- Ayrı fonksiyon: kendi 200 register tablosu
 
 -- ----------------------------------------------------------------
--- BÖLÜM 1 — DİNAMİK TEMA (Dynamic Theme)
--- BackgroundTransparency 0.6-0.7, Lighting tabanlı renk takibi,
--- TweenService ile 2 saniyelik yumuşak geçişler.
 -- ----------------------------------------------------------------
 
--- "Dynamic" seçeneğini tema listesine ekle (script tekrar çalıştırılırsa iki kez eklenmesin)
-if not table.find(themeNames, "Dynamic") then
-	table.insert(themeNames, "Dynamic")
-end
 
--- Dynamic için başlangıç tema tanımı (Dark tabanlı, Lighting ile güncellenir)
-Themes["Dynamic"] = {
-	primary   = Color3.fromRGB(12, 12, 16),
-	secondary = Color3.fromRGB(18, 18, 24),
-	tertiary  = Color3.fromRGB(26, 26, 34),
-	sidebar   = Color3.fromRGB(10, 10, 14),
-	accent    = Color3.fromRGB(130, 160, 220),
-	text      = Color3.new(1, 1, 1),
-	textDim   = Color3.fromRGB(150, 150, 160),
-	stroke    = Color3.fromRGB(55, 65, 100),
-	critical  = Color3.fromRGB(220, 60, 60),
-	success   = Color3.fromRGB(80, 200, 100),
-}
-
-local isDynamicActive = false
 
 -- Lighting.OutdoorAmbient → vurgu rengi
 -- Max 0.72 ile sınırlıyoruz: buton arka planı asla beyaza dönmesin
-local function GetLightingAccent()
-	local lighting = game:GetService("Lighting")
-	local c = lighting.OutdoorAmbient
-	local r = math.clamp(c.R * 2.0 + 0.10, 0.15, 0.72)
-	local g = math.clamp(c.G * 2.0 + 0.10, 0.15, 0.72)
-	local b = math.clamp(c.B * 2.2 + 0.14, 0.18, 0.82)
-	-- En az 1 kanal belirgin olsun (gri olmaya çalışmasın)
-	local maxC = math.max(r, g, b)
-	if maxC < 0.30 then
-		local boost = 0.30 / maxC
-		r = math.min(r * boost, 0.72)
-		g = math.min(g * boost, 0.72)
-		b = math.min(b * boost, 0.82)
-	end
-	return Color3.new(r, g, b)
-end
-
--- Lighting.Ambient → arkaplan rengi
-local function GetLightingPrimary()
-	local lighting = game:GetService("Lighting")
-	local c = lighting.Ambient
-	local r = math.clamp(c.R * 0.85, 0.04, 0.14)
-	local g = math.clamp(c.G * 0.85, 0.04, 0.14)
-	local b = math.clamp(c.B * 0.90, 0.05, 0.18)
-	return Color3.new(r, g, b)
-end
-
--- Dynamic tema güncelleme döngüsü (2 saniyelik periyot)
-local function RunDynamicThemeLoop()
-	task.spawn(function()
-		while isDynamicActive do
-			local accent  = GetLightingAccent()
-			local primary = GetLightingPrimary()
-
-			-- Tema renklerini Lighting değerlerine göre güncelle
-			Themes["Dynamic"].accent    = accent
-			-- Stroke: accent'in %35'i, max 0.30 → asla beyazlaşmasın
-			Themes["Dynamic"].stroke    = Color3.new(
-				math.min(accent.R * 0.35, 0.30),
-				math.min(accent.G * 0.35, 0.30),
-				math.min(accent.B * 0.35, 0.30)
-			)
-			Themes["Dynamic"].primary   = primary
-			Themes["Dynamic"].secondary = Color3.new(
-				math.clamp(primary.R * 1.5, 0, 0.20),
-				math.clamp(primary.G * 1.5, 0, 0.20),
-				math.clamp(primary.B * 1.5, 0, 0.26)
-			)
-			Themes["Dynamic"].sidebar   = Color3.new(
-				math.clamp(primary.R * 0.65, 0, 0.09),
-				math.clamp(primary.G * 0.65, 0, 0.09),
-				math.clamp(primary.B * 0.65, 0, 0.11)
-			)
-
-			currentTheme = Themes["Dynamic"]
-			local tweenInfo = TweenInfo.new(1.8, Enum.EasingStyle.Sine)
-
-			-- Tüm kayıtlı elementlere renk tween uygula
-			local alive = {}
-			for _, t in ipairs(themeElements) do
-				if t.el and t.el.Parent then
-					alive[#alive + 1] = t
-					if currentTheme[t.key] then
-						pcall(function()
-							TweenService:Create(t.el, tweenInfo, {[t.prop] = currentTheme[t.key]}):Play()
-						end)
-					end
-				end
-			end
-			themeElements = alive
-
-			-- Gradient renklerini güncelle
-			local newSeq = ColorSequence.new{
-				ColorSequenceKeypoint.new(0,    currentTheme.stroke),
-				ColorSequenceKeypoint.new(0.33, currentTheme.accent),
-				ColorSequenceKeypoint.new(0.66, currentTheme.stroke),
-				ColorSequenceKeypoint.new(1,    currentTheme.accent),
-			}
-			if mainStrokeGrad then mainStrokeGrad.Color = newSeq end
-			if miniIconGrad   then miniIconGrad.Color   = newSeq end
-
-			task.wait(2) -- 2 saniyelik periyot
-		end
-	end)
-end
-
--- Forward declarations: BÖLÜM 3'te tanımlanır; SetDynamicTransparency closure'ı için gerekli
+-- Forward declarations
 local HUD, infoPanel, infoSpeedLbl, comboSlots, comboQueue_UI
 local _currentInfoId, _currentInfoName
-local _comboLoopEnabled = false   -- combo döngü modu
-local _comboLoopList    = {}      -- döngü için orijinal liste kopyası
+local _comboLoopEnabled = false
+local _comboLoopList    = {}
 
--- Frosted glass overlay'leri (sadece ilgili panellerin arkasında)
-local _frostOverlays = {}
-
-local function MakeFrostOverlay(target, zindex)
-	local f = Instance.new("Frame")
-	f.Name                   = "FrostOverlay"
-	f.Size                   = UDim2.new(1, 0, 1, 0)
-	f.Position               = UDim2.new(0, 0, 0, 0)
-	f.BackgroundColor3       = Color3.new(1, 1, 1)
-	f.BackgroundTransparency = 1   -- başlangıçta görünmez
-	f.BorderSizePixel        = 0
-	f.ZIndex                 = zindex
-	f.Parent                 = target
-	Instance.new("UICorner", f).CornerRadius = UDim.new(0, 20)
-	-- Hafif gradient: üst beyaz, alt şeffaf
-	local grad = Instance.new("UIGradient")
-	grad.Rotation    = 90
-	grad.Transparency = NumberSequence.new{
-		NumberSequenceKeypoint.new(0, 0.82),
-		NumberSequenceKeypoint.new(1, 0.92),
-	}
-	grad.Parent = f
-	return f
-end
-
--- Dynamic tema aktifken panel şeffaflığı + lokal frosted glass
-local function SetDynamicTransparency(enable)
-	local ti = TweenInfo.new(0.6, Enum.EasingStyle.Sine)
-
-	-- Panel şeffaflıkları
-	TweenService:Create(main,      ti, {BackgroundTransparency = enable and 0.35 or 0}):Play()
-	TweenService:Create(sidebar,   ti, {BackgroundTransparency = enable and 0.28 or 0}):Play()
-	TweenService:Create(titleBar,  ti, {BackgroundTransparency = enable and 0.22 or 0}):Play()
-	TweenService:Create(bottomBar, ti, {BackgroundTransparency = enable and 0.28 or 0}):Play()
-
-	if enable then
-		-- Her panele bir kez overlay ekle
-		local targets = {
-			{el = main,       z = 2},
-			{el = infoPanel,  z = 699},
-			{el = HUD,        z = 499},
-		}
-		for _, t in ipairs(targets) do
-			-- Önceki varsa kullan, yoksa yeni oluştur
-			local existing = t.el:FindFirstChild("FrostOverlay")
-			local ov = existing or MakeFrostOverlay(t.el, t.z)
-			_frostOverlays[#_frostOverlays + 1] = ov
-			TweenService:Create(ov, ti, {BackgroundTransparency = 0.82}):Play()
-		end
-	else
-		-- Tüm overlay'leri soldur ve sil
-		for _, ov in ipairs(_frostOverlays) do
-			if ov and ov.Parent then
-				TweenService:Create(ov, ti, {BackgroundTransparency = 1}):Play()
-				task.delay(0.6, function() pcall(function() ov:Destroy() end) end)
-			end
-		end
-		_frostOverlays = {}
-	end
-end
-
--- ApplyTheme fonksiyonunu Dynamic için genişlet (upvalue sarmalama)
-local _baseApplyTheme = ApplyTheme
-ApplyTheme = function(name)
-	if name ~= "Dynamic" then
-		-- Dynamic döngüsünü durdur ve opaklığa dön
-		isDynamicActive = false
-		SetDynamicTransparency(false)
-		_baseApplyTheme(name)
-	else
-		isDynamicActive = false -- Önceki döngüyü güvenle durdur
-		task.wait(0.05)
-		isDynamicActive = true
-		currentTheme = Themes["Dynamic"]
-		_baseApplyTheme("Dynamic")
-		SetDynamicTransparency(true)
-		RunDynamicThemeLoop()
-	end
-end
-
--- Başlangıçta Dynamic kayıtlıysa otomatik başlat
-if Settings.theme == "Dynamic" then
-	task.defer(function()
-		isDynamicActive = true
-		SetDynamicTransparency(true)
-		RunDynamicThemeLoop()
-	end)
-end
 
 -- ----------------------------------------------------------------
 -- BÖLÜM 2 — ANİMASYON BLENDING & SEQUENCING (Combo Sistemi)
