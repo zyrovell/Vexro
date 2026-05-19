@@ -1229,20 +1229,32 @@ main.Parent = gui
 Instance.new("UICorner", main).CornerRadius = UDim.new(0, 20) -- Daha yumuşak köşeler
 RegisterTheme(main, "BackgroundColor3", "primary")
 
--- Buzlu cam temaları için şeffaflık
+-- Tema gradyan renkleri [üst-sol, alt-sağ, rotasyon]
+local ThemeGradients = {
+	Dark        = {Color3.fromRGB(22, 22, 30),  Color3.fromRGB(10, 10, 14),  135},
+	Purple      = {Color3.fromRGB(28, 18, 48),  Color3.fromRGB(10, 6, 18),   135},
+	Blue        = {Color3.fromRGB(18, 28, 52),  Color3.fromRGB(6, 10, 20),   135},
+	Green       = {Color3.fromRGB(16, 32, 22),  Color3.fromRGB(6, 12, 8),    135},
+	Red         = {Color3.fromRGB(48, 16, 18),  Color3.fromRGB(18, 6, 8),    135},
+	Light       = {Color3.fromRGB(255, 255, 255), Color3.fromRGB(228, 228, 238), 135},
+	MaterialYou = {Color3.fromRGB(30, 34, 50),  Color3.fromRGB(12, 14, 20),  135},
+	FrostedGlass= {Color3.fromRGB(230, 238, 255), Color3.fromRGB(190, 205, 235), 135},
+	DarkGlass   = {Color3.fromRGB(24, 24, 34),  Color3.fromRGB(8, 8, 12),    135},
+}
+
+-- Buzlu cam + gradyan wrapper
 local _glassApplyBase = ApplyTheme
 ApplyTheme = function(name)
 	_glassApplyBase(name)
 	local isGlass = name == "FrostedGlass" or name == "DarkGlass"
-	-- Eski blur varsa temizle (artık kullanılmıyor)
+	-- Eski blur varsa temizle
 	pcall(function()
 		local b = game:GetService("Lighting"):FindFirstChild("VexroGlassBlur")
 		if b then b:Destroy() end
 	end)
-	-- Buzlu cam efekti: şeffaflık + noise overlay ile simüle edilir
-	local trans = isGlass and 0.18 or 0
-	TweenService:Create(main, TweenInfo.new(0.3), {BackgroundTransparency = trans}):Play()
-	-- Noise overlay
+	-- Şeffaflık
+	TweenService:Create(main, TweenInfo.new(0.3), {BackgroundTransparency = isGlass and 0.18 or 0}):Play()
+	-- Noise overlay (cam temaları)
 	local noiseOverlay = main:FindFirstChild("VexroGlassNoise")
 	if isGlass then
 		if not noiseOverlay then
@@ -1250,18 +1262,29 @@ ApplyTheme = function(name)
 			noiseOverlay.Name = "VexroGlassNoise"
 			noiseOverlay.Size = UDim2.new(1, 0, 1, 0)
 			noiseOverlay.BackgroundTransparency = 1
-			noiseOverlay.Image = "rbxassetid://9968344672" -- noise/grain texture
-			noiseOverlay.ImageTransparency = name == "FrostedGlass" and 0.82 or 0.88
+			noiseOverlay.Image = "rbxassetid://9968344672"
 			noiseOverlay.ScaleType = Enum.ScaleType.Tile
 			noiseOverlay.TileSize = UDim2.new(0, 64, 0, 64)
 			noiseOverlay.ZIndex = 1
 			noiseOverlay.Parent = main
-		else
-			noiseOverlay.ImageTransparency = name == "FrostedGlass" and 0.82 or 0.88
 		end
+		noiseOverlay.ImageTransparency = name == "FrostedGlass" and 0.82 or 0.88
 	elseif noiseOverlay then
 		noiseOverlay:Destroy()
 	end
+	-- Gradyan
+	local grad = main:FindFirstChild("VexroMainGrad")
+	if not grad then
+		grad = Instance.new("UIGradient")
+		grad.Name = "VexroMainGrad"
+		grad.Parent = main
+	end
+	local g = ThemeGradients[name] or ThemeGradients.Dark
+	grad.Color = ColorSequence.new{
+		ColorSequenceKeypoint.new(0, g[1]),
+		ColorSequenceKeypoint.new(1, g[2]),
+	}
+	grad.Rotation = g[3]
 end
 
 local mainStroke = Instance.new("UIStroke")
