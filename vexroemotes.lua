@@ -304,7 +304,7 @@ local function Notify(title, text, iconId)
 			notifIcon.AnchorPoint = Vector2.new(0, 0.5)
 			notifIcon.Position = UDim2.new(0, 10, 0, 16)
 			notifIcon.BackgroundTransparency = 1
-			notifIcon.Image = "rbxassetid://" .. tostring(iconId)
+			notifIcon.Image = "http://www.roblox.com/asset/?id=" .. tostring(iconId)
 			notifIcon.ZIndex = 30003
 			notifIcon.Parent = toast
 			iconOffset = 28
@@ -1412,7 +1412,7 @@ local function MakeBtn(icon, px, colorKey, customSize)
 			sq.Position = UDim2.new(0.5, 0, 0.5, 0)
 			sq.AnchorPoint = Vector2.new(0.5, 0.5)
 			sq.BackgroundTransparency = 1
-			sq.Image = "rbxassetid://113416463749658"
+			sq.Image = "http://www.roblox.com/asset/?id=113416463749658"
 			sq.ScaleType = Enum.ScaleType.Fit
 			sq.ZIndex = 110
 			sq.Parent = b
@@ -1502,7 +1502,7 @@ local function _SetPauseState(paused)
 	_isPaused = paused
 	-- stopBtn görselini güncelle: duraklat = kare gizli + ">" yaz, devam = kare göster
 	if _stopBtnSquare then
-		_stopBtnSquare.Image = paused and "rbxassetid://129338178452237" or "rbxassetid://113416463749658"
+		_stopBtnSquare.Image = paused and "http://www.roblox.com/asset/?id=129338178452237" or "http://www.roblox.com/asset/?id=113416463749658"
 	end
 	-- HUD duraklat butonunu güncelle (bridge)
 	if _onPauseStateChanged then _onPauseStateChanged(paused) end
@@ -3361,7 +3361,7 @@ hudPauseBtn.AnchorPoint            = Vector2.new(0.5, 0)
 hudPauseBtn.Position               = UDim2.new(0.5, 0, 0, 66)
 hudPauseBtn.BackgroundColor3       = Color3.fromRGB(30, 30, 46)
 hudPauseBtn.BackgroundTransparency = 0.10
-hudPauseBtn.Image                  = "rbxassetid://113416463749658"
+hudPauseBtn.Image                  = "http://www.roblox.com/asset/?id=113416463749658"
 hudPauseBtn.ScaleType              = Enum.ScaleType.Fit
 hudPauseBtn.ImageRectSize          = Vector2.new(0, 0)
 hudPauseBtn.ZIndex                 = 503
@@ -3376,10 +3376,10 @@ hudPauseBtnStroke.Parent      = hudPauseBtn
 
 local function RefreshHudPauseBtn()
 	if _isPaused then
-		hudPauseBtn.Image = "rbxassetid://129338178452237"
+		hudPauseBtn.Image = "http://www.roblox.com/asset/?id=129338178452237"
 		hudPauseBtn.BackgroundColor3 = currentTheme.accent
 	else
-		hudPauseBtn.Image = "rbxassetid://113416463749658"
+		hudPauseBtn.Image = "http://www.roblox.com/asset/?id=113416463749658"
 		hudPauseBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 46)
 	end
 end
@@ -4009,7 +4009,7 @@ HideEmoteHUD = function()
 	_isPaused = false
 	RefreshHudPauseBtn()
 	-- stopBtn görselini sıfırla (doğrudan, döngü yaratmamak için)
-	if _stopBtnSquare then _stopBtnSquare.Image = "rbxassetid://113416463749658" end
+	if _stopBtnSquare then _stopBtnSquare.Image = "http://www.roblox.com/asset/?id=113416463749658" end
 	StopHUDTracking()
 	TweenService:Create(HUD,
 		TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
