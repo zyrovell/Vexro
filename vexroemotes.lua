@@ -1486,11 +1486,17 @@ local function MakeBtn(icon, px, colorKey, customSize)
 	return b
 end
 
+local copyEmoteBtn = MakeBtn("rbxassetid://77508802666652", -(btnS*5 + 24), "critical")
 local stopBtn = MakeBtn("STOP_SHAPE", -(btnS*4 + 18), "critical")
 local randBtn = MakeBtn(Icons.Sort, -(btnS*3 + 12), "accent")
 local minBtn = MakeBtn("-", -(btnS*2 + 6), "textDim")
 local closeBtn = MakeBtn("CLOSE_SHAPE", -(btnS + 2), "critical")
 
+if Settings.copyEmoteEnabled then
+	RegisterTheme(copyEmoteBtn, "BackgroundColor3", "success")
+else
+	RegisterTheme(copyEmoteBtn, "BackgroundColor3", "critical")
+end
 RegisterTheme(stopBtn, "BackgroundColor3", "critical")
 RegisterTheme(randBtn, "BackgroundColor3", "accent")
 RegisterTheme(minBtn, "BackgroundColor3", "stroke")
@@ -1886,7 +1892,7 @@ notifBtn.MouseButton1Click:Connect(function()
 	SaveData()
 end)
 
-local contRow = MakeSettingRow("76975628127992", L.loopText or "Loop", 4)
+local contRow = MakeSettingRow("103179694587186", L.loopText or "Loop", 4)
 local contBtn = Instance.new("TextButton")
 contBtn.Size = UDim2.new(0.4, 0, 0, 36)
 contBtn.Position = UDim2.new(0.56, 0, 0.5, -18)
@@ -1997,7 +2003,7 @@ do
 end
 
 -- Reset Language butonu
-local langResetRow = MakeSettingRow("", "Reset Language", 7)
+local langResetRow = MakeSettingRow("76975628127992", "Reset Language", 7)
 local langResetBtn = Instance.new("TextButton")
 langResetBtn.Size = UDim2.new(0.4, 0, 0, 36)
 langResetBtn.Position = UDim2.new(0.56, 0, 0.5, -18)
@@ -2024,37 +2030,6 @@ langResetBtn.MouseButton1Click:Connect(function()
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/zyrovell/Vexro/main/vexroemotes.lua"))()
 end)
 
--- Copy Emote toggle + ProximityPrompt sistemi
-local copyEmoteRow, copyEmoteTitleLbl = MakeSettingRow("", L.copyEmote, 8, 68)
-copyEmoteTitleLbl.Size     = UDim2.new(0.52, -12, 0, 24)
-copyEmoteTitleLbl.Position = UDim2.new(0, 12, 0, 6)
-
-local copyEmoteDescLbl = Instance.new("TextLabel")
-copyEmoteDescLbl.Size                   = UDim2.new(0.52, -12, 0, 34)
-copyEmoteDescLbl.Position               = UDim2.new(0, 12, 0, 28)
-copyEmoteDescLbl.BackgroundTransparency = 1
-copyEmoteDescLbl.Text                   = L.copyEmoteDesc
-copyEmoteDescLbl.TextColor3             = Color3.fromRGB(110, 110, 135)
-copyEmoteDescLbl.Font                   = Enum.Font.Gotham
-copyEmoteDescLbl.TextSize               = isMobile and 10 or 11
-copyEmoteDescLbl.TextXAlignment         = Enum.TextXAlignment.Left
-copyEmoteDescLbl.TextYAlignment         = Enum.TextYAlignment.Top
-copyEmoteDescLbl.TextWrapped            = true
-copyEmoteDescLbl.ZIndex                 = 7
-copyEmoteDescLbl.Parent                 = copyEmoteRow
-RegisterTheme(copyEmoteDescLbl, "TextColor3", "textDim")
-
-local copyEmoteToggleBtn = Instance.new("TextButton")
-copyEmoteToggleBtn.Size             = UDim2.new(0.4, 0, 0, 36)
-copyEmoteToggleBtn.Position         = UDim2.new(0.56, 0, 0.5, -18)
-copyEmoteToggleBtn.BackgroundColor3 = Settings.copyEmoteEnabled and currentTheme.success or currentTheme.critical
-copyEmoteToggleBtn.Text             = Settings.copyEmoteEnabled and L.on or L.off
-copyEmoteToggleBtn.TextColor3       = Color3.new(1, 1, 1)
-copyEmoteToggleBtn.Font             = Enum.Font.GothamBold
-copyEmoteToggleBtn.TextSize         = isMobile and 12 or 14
-copyEmoteToggleBtn.ZIndex           = 8
-copyEmoteToggleBtn.Parent           = copyEmoteRow
-Instance.new("UICorner", copyEmoteToggleBtn).CornerRadius = UDim.new(0, 10)
 
 local PROMPT_TAG = "VexroCopyEmotePrompt"
 
@@ -2130,10 +2105,9 @@ if Settings.copyEmoteEnabled then
 	EnableCopyEmotePrompts()
 end
 
-copyEmoteToggleBtn.MouseButton1Click:Connect(function()
+copyEmoteBtn.MouseButton1Click:Connect(function()
 	Settings.copyEmoteEnabled = not Settings.copyEmoteEnabled
-	copyEmoteToggleBtn.Text = Settings.copyEmoteEnabled and L.on or L.off
-	TweenService:Create(copyEmoteToggleBtn, TweenInfo.new(0.2), {
+	TweenService:Create(copyEmoteBtn, TweenInfo.new(0.2), {
 		BackgroundColor3 = Settings.copyEmoteEnabled and currentTheme.success or currentTheme.critical
 	}):Play()
 	if Settings.copyEmoteEnabled then
