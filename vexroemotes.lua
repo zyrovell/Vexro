@@ -37,7 +37,7 @@ if old then old:Destroy() end
 -- ===============================================================
 
 local DATA_FILE = "VexroEmotes_Data.json"
-local Settings = {theme = "Dark", speed = 1, notifications = true, loopEmote = true, language = nil, copyEmoteEnabled = false, stopOnWalk = true}
+local Settings = {theme = "Dark", speed = 1, notifications = true, loopEmote = true, language = nil, copyEmoteEnabled = false, stopOnWalk = true, showHUD = true}
 local Favorites = {}
 local RecentEmotes = {}
 -- Bridge: _VexroExtend içindeki HUD fonksiyonlarını dış kapsama bağlar
@@ -85,6 +85,7 @@ local function LoadData()
 					Settings.language = data.settings.language or nil
 					Settings.copyEmoteEnabled = data.settings.copyEmoteEnabled == true
 					Settings.stopOnWalk = data.settings.stopOnWalk ~= false
+					Settings.showHUD = data.settings.showHUD ~= false
 				end
 			end
 		end
@@ -642,6 +643,8 @@ local L = {
 	copyEmoteDesc    = isTR and "Bir oyuncunun kullandığı emote'u kopyalar" or (isES and "Copia el emote que usa otro jugador" or (isAR and "ينسخ حركة يستخدمها لاعب آخر" or (isFR and "Copie l'émote utilisé par un autre joueur" or (isHI and "किसी खिलाड़ी का इमोट कॉपी करता है" or (isPT and "Copia o emote de outro jogador" or (isRU and "Копирует эмоцию другого игрока" or "Copies the emote used by another player")))))),
 	stopOnWalk       = isTR and "Yürüyünce emote'u durdur" or (isES and "Parar emote al caminar" or (isAR and "ايقاف الحركة عند المشي" or (isFR and "Arreter emote en marchant" or (isHI and "चलने पर इमोट रोकें" or (isPT and "Parar emote ao andar" or (isRU and "Остановить эмоцию при ходьбе" or "Stop emote when walking")))))),
 	stopOnWalkDesc   = isTR and "Oyuncu yürüdüğü zaman emote durur" or (isES and "El emote se detiene al caminar" or (isAR and "تتوقف الحركة تلقائيا عند المشي" or (isFR and "L'emote s'arrete automatiquement en marchant" or (isHI and "चलने पर इमोट अपने आप रुक जाता है" or (isPT and "O emote para automaticamente ao andar" or (isRU and "Эмоция останавливается при ходьбе" or "Emote stops automatically when walking")))))),
+	showHUD          = isTR and "Oynatma barını göster" or (isES and "Mostrar barra de reproducción" or (isAR and "إظهار شريط التشغيل" or (isFR and "Afficher la barre de lecture" or (isHI and "प्लेबार दिखाएं" or (isPT and "Mostrar barra de reprodução" or (isRU and "Показать панель воспроизведения" or "Show playback bar")))))),
+	showHUDDesc      = isTR and "Emote oynarken altta oynatma barı görünsün" or (isES and "Muestra la barra de control al reproducir emotes" or (isAR and "يظهر شريط التحكم أسفل الشاشة أثناء تشغيل الحركة" or (isFR and "Affiche la barre de controle en bas lors de la lecture" or (isHI and "इमोट चलाते समय नीचे प्लेबार दिखाता है" or (isPT and "Exibe a barra de controle na parte inferior ao reproduzir" or (isRU and "Показывает панель управления внизу при воспроизведении" or "Shows the playback control bar while emote plays")))))),
 }
 
 local Icons = {
@@ -1949,8 +1952,52 @@ do
 	end)
 end
 
+-- Oynatma Bari Goster ayari
+do
+	local showHUDRow, showHUDTitleLbl = MakeSettingRow("", L.showHUD, 6, 68)
+	showHUDTitleLbl.Size     = UDim2.new(0.52, -12, 0, 24)
+	showHUDTitleLbl.Position = UDim2.new(0, 12, 0, 6)
+
+	local showHUDDescLbl = Instance.new("TextLabel")
+	showHUDDescLbl.Size                   = UDim2.new(0.52, -12, 0, 34)
+	showHUDDescLbl.Position               = UDim2.new(0, 12, 0, 28)
+	showHUDDescLbl.BackgroundTransparency = 1
+	showHUDDescLbl.Text                   = L.showHUDDesc
+	showHUDDescLbl.TextColor3             = Color3.fromRGB(110, 110, 135)
+	showHUDDescLbl.Font                   = Enum.Font.Gotham
+	showHUDDescLbl.TextSize               = isMobile and 10 or 11
+	showHUDDescLbl.TextXAlignment         = Enum.TextXAlignment.Left
+	showHUDDescLbl.TextYAlignment         = Enum.TextYAlignment.Top
+	showHUDDescLbl.TextWrapped            = true
+	showHUDDescLbl.ZIndex                 = 7
+	showHUDDescLbl.Parent                 = showHUDRow
+	RegisterTheme(showHUDDescLbl, "TextColor3", "textDim")
+
+	local showHUDBtn = Instance.new("TextButton")
+	showHUDBtn.Size             = UDim2.new(0.4, 0, 0, 36)
+	showHUDBtn.Position         = UDim2.new(0.56, 0, 0.5, -18)
+	showHUDBtn.BackgroundColor3 = Settings.showHUD and currentTheme.success or currentTheme.critical
+	showHUDBtn.Text             = Settings.showHUD and L.on or L.off
+	showHUDBtn.TextColor3       = Color3.new(1, 1, 1)
+	showHUDBtn.Font             = Enum.Font.GothamBold
+	showHUDBtn.TextSize         = isMobile and 12 or 14
+	showHUDBtn.ZIndex           = 8
+	showHUDBtn.Parent           = showHUDRow
+	Instance.new("UICorner", showHUDBtn).CornerRadius = UDim.new(0, 10)
+
+	showHUDBtn.MouseButton1Click:Connect(function()
+		Settings.showHUD = not Settings.showHUD
+		showHUDBtn.Text = Settings.showHUD and L.on or L.off
+		TweenService:Create(showHUDBtn, TweenInfo.new(0.2), {
+			BackgroundColor3 = Settings.showHUD and currentTheme.success or currentTheme.critical
+		}):Play()
+		if not Settings.showHUD then HideEmoteHUD() end
+		SaveData()
+	end)
+end
+
 -- Reset Language butonu
-local langResetRow = MakeSettingRow("", "Reset Language", 6)
+local langResetRow = MakeSettingRow("", "Reset Language", 7)
 local langResetBtn = Instance.new("TextButton")
 langResetBtn.Size = UDim2.new(0.4, 0, 0, 36)
 langResetBtn.Position = UDim2.new(0.56, 0, 0.5, -18)
@@ -1978,7 +2025,7 @@ langResetBtn.MouseButton1Click:Connect(function()
 end)
 
 -- Copy Emote toggle + ProximityPrompt sistemi
-local copyEmoteRow, copyEmoteTitleLbl = MakeSettingRow("", L.copyEmote, 7, 68)
+local copyEmoteRow, copyEmoteTitleLbl = MakeSettingRow("", L.copyEmote, 8, 68)
 copyEmoteTitleLbl.Size     = UDim2.new(0.52, -12, 0, 24)
 copyEmoteTitleLbl.Position = UDim2.new(0, 12, 0, 6)
 
@@ -3974,6 +4021,7 @@ end
 
 -- ShowEmoteHUD: HUD'u asagidan kaydirarak goster
 ShowEmoteHUD = function(emoteId, emoteName)
+	if not Settings.showHUD then return end
 	-- Bekleyen gizleme işlemini iptal et (hızlı geçiş hatası düzeltmesi)
 	_hudHideToken = _hudHideToken + 1
 
@@ -4067,7 +4115,7 @@ end
 -- comboQueue_UI forward declared above; reset here
 comboQueue_UI = {}
 
-local comboRow = MakeSettingRow("", L.comboTitle, 8, 196)
+local comboRow = MakeSettingRow("", L.comboTitle, 9, 196)
 comboRow.Size             = UDim2.new(1, 0, 0, 196)
 comboRow.ClipsDescendants = true
 
