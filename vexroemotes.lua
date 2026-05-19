@@ -1413,6 +1413,7 @@ local function MakeBtn(icon, px, colorKey, customSize)
 			sq.AnchorPoint = Vector2.new(0.5, 0.5)
 			sq.BackgroundTransparency = 1
 			sq.Image = ResolveAssetImage("rbxassetid://113416463749658")
+			sq.ImageColor3 = Color3.new(1, 1, 1)
 			sq.ScaleType = Enum.ScaleType.Fit
 			sq.ZIndex = 110
 			sq.Parent = b
@@ -3362,8 +3363,8 @@ hudPauseBtn.Position               = UDim2.new(0.5, 0, 0, 66)
 hudPauseBtn.BackgroundColor3       = Color3.fromRGB(30, 30, 46)
 hudPauseBtn.BackgroundTransparency = 0.10
 hudPauseBtn.Image                  = ResolveAssetImage("rbxassetid://113416463749658")
+hudPauseBtn.ImageColor3            = Color3.new(1, 1, 1)
 hudPauseBtn.ScaleType              = Enum.ScaleType.Fit
-hudPauseBtn.ImageRectSize          = Vector2.new(0, 0)
 hudPauseBtn.ZIndex                 = 503
 hudPauseBtn.Parent                 = HUD
 Instance.new("UICorner", hudPauseBtn).CornerRadius = UDim.new(0, 7)
