@@ -178,7 +178,7 @@ local function ResolveAssetImage(assetIdOrUrl)
 		end
 	end)
 	if not resolved or resolved == "" then
-		resolved = "rbxthumb://type=Asset&id=" .. rawId .. "&w=420&h=420"
+		resolved = "rbxassetid://" .. rawId
 	end
 	_resolvedCache[rawId] = resolved
 	return resolved
@@ -1431,6 +1431,7 @@ end
 local sidebar = Instance.new("Frame")
 sidebar.Size = UDim2.new(0, sideBarW, 1, 0)
 sidebar.BackgroundColor3 = currentTheme.sidebar
+sidebar.ClipsDescendants = true
 sidebar.ZIndex = 8
 sidebar.Parent = main
 Instance.new("UICorner", sidebar).CornerRadius = UDim.new(0, 14)
@@ -4137,8 +4138,11 @@ end)
 UserInputService.InputChanged:Connect(function(input)
 	if resizing and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 		local delta = input.Position - resizeStart
-		local newW = math.clamp(sizeStart.X + delta.X, 400, 1200) -- Expanded max width
-		local newH = math.clamp(sizeStart.Y + delta.Y, 300, 800)
+		-- Min height: enough for all tabs + padding (6 tabs on PC, 5 on mobile)
+		local tabCount = isMobile and 5 or 6
+		local minH = 8 + (tabBtnS + 6) * tabCount + tabBtnS + 16
+		local newW = math.clamp(sizeStart.X + delta.X, 400, 1200)
+		local newH = math.clamp(sizeStart.Y + delta.Y, minH, 800)
 		main.Size = UDim2.new(0, newW, 0, newH)
 		
 		local now = tick()
