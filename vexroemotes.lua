@@ -761,9 +761,9 @@ local Icons = {
 	FavoriteEmpty = "rbxassetid://139336655769578",
 	FavoriteFull = "rbxassetid://114412745011584",
 	Stop = "STOP_SHAPE",
-	Keybind = "rbxassetid://122679509852670",
-	KeybindActive = "rbxassetid://133187471200337",
-	KeybindRemove = "rbxassetid://119388907849573",
+	Keybind = "rbxthumb://type=Asset&id=122679509852670&w=420&h=420",
+	KeybindActive = "rbxthumb://type=Asset&id=133187471200337&w=420&h=420",
+	KeybindRemove = "rbxthumb://type=Asset&id=119388907849573&w=420&h=420",
 	Settings = "rbxassetid://94488099205692", 
 	Recent = "rbxassetid://89358357551545", 
 	Check = "rbxassetid://71514022902819",
@@ -1452,7 +1452,7 @@ RegisterTheme(sideOverlay, "BackgroundColor3", "sidebar")
 local tabBtns = {}
 local tabBtnS = math.floor((isMobile and 40 or 48) * BUTTON_SCALE)
 
-local function CreateTabBtn(icon, tabName, yPos, customScale)
+local function CreateTabBtn(icon, tabName, yPos, customScale, rawImage)
 	local isUrl = type(icon) == "string" and (string.find(icon, "rbxassetid://") or string.find(icon, "http") or string.find(icon, "rbxthumb://"))
 	
 	local btn = Instance.new("TextButton")
@@ -1482,7 +1482,7 @@ local function CreateTabBtn(icon, tabName, yPos, customScale)
 		img.Position = UDim2.fromScale(0.5, 0.5)
 		img.AnchorPoint = Vector2.new(0.5, 0.5)
 		img.BackgroundTransparency = 1
-		img.Image = icon  -- use rbxassetid:// directly, Roblox resolves natively
+		img.Image = rawImage or ResolveAssetImage(icon)
 		img.ImageColor3 = currentTheme.text
 		img.ZIndex = 110
 		img.Parent = btn
@@ -1527,7 +1527,7 @@ CreateTabBtn(Icons.Emote, "emotes", 8)
 CreateTabBtn(Icons.FavoriteFull, "favorites", 8 + tabBtnS + 6)
 CreateTabBtn(Icons.Recent, "recent", 8 + (tabBtnS + 6) * 2)
 CreateTabBtn("rbxassetid://115725480722697", "friends", 8 + (tabBtnS + 6) * 3)
-if not isMobile then CreateTabBtn(Icons.Keybind, "keybinds", 8 + (tabBtnS + 6) * 4) end
+if not isMobile then CreateTabBtn(Icons.Keybind, "keybinds", 8 + (tabBtnS + 6) * 4, nil, Icons.Keybind) end
 CreateTabBtn(Icons.Settings, "settings", isMobile and 8 + (tabBtnS + 6) * 4 or 8 + (tabBtnS + 6) * 5)
 
 -- ===============================================================
