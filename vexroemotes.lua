@@ -731,6 +731,22 @@ local L = {
 	kbCancel         = isTR and "İptal"                or (isES and "Cancelar"             or (isAR and "إلغاء"                 or (isFR and "Annuler"               or (isHI and "रद्द करें"             or (isPT and "Cancelar"             or (isRU and "Отмена"              or "Cancel")))))),
 	kbSave           = isTR and "Kaydet"               or (isES and "Guardar"              or (isAR and "حفظ"                   or (isFR and "Enregistrer"           or (isHI and "सहेजें"               or (isPT and "Salvar"               or (isRU and "Сохранить"           or "Save")))))),
 	kbEmpty          = isTR and "Henüz keybind yok"    or (isES and "Sin keybinds aún"     or (isAR and "لا توجد اختصارات بعد"  or (isFR and "Aucun raccourci"        or (isHI and "कोई कीबाइंड नहीं"    or (isPT and "Nenhum keybind ainda" or (isRU and "Нет горячих клавиш"  or "No keybinds yet")))))),
+	autoRejectLbl    = isTR and "Arkadaş isteklerini otomatik reddet."     or (isES and "Rechazar solicitudes automáticamente."  or (isAR and "رفض طلبات الصداقة تلقائياً."         or (isFR and "Refuser les demandes automatiquement."    or (isHI and "मित्र अनुरोध स्वचालित रूप से अस्वीकार करें।" or (isPT and "Rejeitar pedidos automaticamente."      or (isRU and "Автоматически отклонять запросы."      or "Auto-reject friend requests.")))))),
+	addFriendBtn     = isTR and "+ Arkadaş Ekle"                           or (isES and "+ Añadir Amigo"                         or (isAR and "+ إضافة صديق"                          or (isFR and "+ Ajouter Ami"                          or (isHI and "+ मित्र जोड़ें"                              or (isPT and "+ Adicionar Amigo"                    or (isRU and "+ Добавить друга"                     or "+ Add Friend")))))),
+	blocked          = isTR and "Engellendi"                                or (isES and "Bloqueado"                              or (isAR and "محظور"                                 or (isFR and "Bloqué"                                  or (isHI and "ब्लॉक किया"                               or (isPT and "Bloqueado"                             or (isRU and "Заблокирован"                          or "Blocked")))))),
+	requestSent      = isTR and "✓ İstek Gönderildi"                       or (isES and "✓ Solicitud Enviada"                    or (isAR and "✓ تم إرسال الطلب"                       or (isFR and "✓ Demande Envoyée"                        or (isHI and "✓ अनुरोध भेजा"                            or (isPT and "✓ Pedido Enviado"                      or (isRU and "✓ Запрос отправлен"                    or "✓ Request Sent")))))),
+	addFriendMode    = isTR and "+ Arkadaş Ekle Modu"                      or (isES and "+ Modo Añadir Amigo"                    or (isAR and "+ وضع إضافة الأصدقاء"                  or (isFR and "+ Mode Ajout Ami"                         or (isHI and "+ मित्र जोड़ें मोड"                         or (isPT and "+ Modo Adicionar Amigo"               or (isRU and "+ Режим добавления друга"             or "+ Add Friend Mode")))))),
+	friendInfoTxt    = isTR and "Arkadaş eklemek aynı emote'u arkadaşlarınızla veya arkadaşınızla beraber senkronize oynamanızı sağlar." or (isES and "Agregar amigos permite sincronizar emotes juntos." or (isAR and "إضافة أصدقاء تتيح مزامنة الحركات معاً." or (isFR and "Ajouter des amis permet de synchroniser les emotes ensemble." or (isHI and "मित्र जोड़ने से एक साथ इमोट सिंक्रनाइज़ करना संभव होता है।" or (isPT and "Adicionar amigos permite sincronizar emotes juntos." or (isRU and "Добавление друзей позволяет синхронизировать эмоции вместе." or "Adding friends lets you sync emotes together.")))))),
+	friendListHeader = isTR and "Arkadaş Listesi"                          or (isES and "Lista de Amigos"                        or (isAR and "قائمة الأصدقاء"                         or (isFR and "Liste d'Amis"                             or (isHI and "मित्र सूची"                               or (isPT and "Lista de Amigos"                       or (isRU and "Список друзей"                         or "Friend List")))))),
+	noFriends        = isTR and "Henüz arkadaş yok. Arkadaş Ekle butonunu kullan!" or (isES and "Sin amigos. ¡Usa el botón Añadir Amigo!" or (isAR and "لا أصدقاء بعد. استخدم زر إضافة صديق!" or (isFR and "Aucun ami. Utilisez le bouton Ajouter Ami!" or (isHI and "कोई मित्र नहीं। मित्र जोड़ें बटन का उपयोग करें!" or (isPT and "Sem amigos. Use o botão Adicionar Amigo!" or (isRU and "Нет друзей. Используйте кнопку добавления!" or "No friends yet. Use Add Friend button!")))))),
+	emoteLoadFail    = isTR and "Emote yüklenemedi!"                        or (isES and "¡Error al cargar emote!"                or (isAR and "فشل تحميل الحركة!"                      or (isFR and "Échec du chargement!"                     or (isHI and "इमोट लोड नहीं हुआ!"                         or (isPT and "Falha ao carregar emote!"               or (isRU and "Ошибка загрузки эмоции!"               or "Failed to load emote!")))))),
+	alreadyFriends   = isTR and "Zaten arkadaşsınız!"                       or (isES and "¡Ya son amigos!"                        or (isAR and "أنتم أصدقاء بالفعل!"                    or (isFR and "Vous êtes déjà amis!"                     or (isHI and "पहले से मित्र हैं!"                          or (isPT and "Já são amigos!"                        or (isRU and "Вы уже друзья!"                        or "Already friends!")))))),
+	spamProtect      = isTR and "Spam koruması aktif! %ds bekle"            or (isES and "¡Protección spam! Espera %ds"           or (isAR and "حماية من الإسبام! انتظر %dث"            or (isFR and "Anti-spam actif! Attends %ds"             or (isHI and "स्पैम सुरक्षा! %dस प्रतीक्षा करें"            or (isPT and "Proteção spam! Aguarde %ds"             or (isRU and "Спам-защита! Подожди %dс"               or "Spam protection! Wait %ds")))))),
+	waitRequest      = isTR and "Bu oyuncuya istek için %ds bekle"          or (isES and "Espera %ds para enviar solicitud"       or (isAR and "انتظر %dث لإرسال طلب لهذا اللاعب"       or (isFR and "Attends %ds pour envoyer demande"         or (isHI and "इस खिलाड़ी को अनुरोध के लिए %dस प्रतीक्षा करें" or (isPT and "Aguarde %ds para enviar pedido"          or (isRU and "Жди %dс для запроса"                   or "Wait %ds to send request")))))),
+	tooFastRequest   = isTR and "Çok hızlı istek! %ds timeout"             or (isES and "¡Demasiado rápido! %ds timeout"         or (isAR and "طلب سريع جداً! %dث مهلة"                or (isFR and "Trop rapide! %ds timeout"                 or (isHI and "बहुत तेज़ अनुरोध! %dस टाइमआउट"              or (isPT and "Muito rápido! %ds timeout"              or (isRU and "Слишком быстро! %dс таймаут"            or "Too fast! %ds timeout")))))),
+	friendReqSent    = isTR and "%s adlı oyuncuya arkadaşlık isteği gönderildi!" or (isES and "¡Solicitud enviada a %s!"         or (isAR and "تم إرسال طلب صداقة إلى %s!"              or (isFR and "Demande envoyée à %s!"                    or (isHI and "%s को मित्र अनुरोध भेजा!"                    or (isPT and "Pedido enviado para %s!"                or (isRU and "Запрос отправлен %s!"                  or "Friend request sent to %s!")))))),
+	friendReqAcceptedYou = isTR and "%s arkadaşlık isteğini kabul ettin!"   or (isES and "¡Aceptaste la solicitud de %s!"        or (isAR and "قبلت طلب %s!"                            or (isFR and "Vous avez accepté la demande de %s!"      or (isHI and "आपने %s का अनुरोध स्वीकार किया!"              or (isPT and "Você aceitou o pedido de %s!"           or (isRU and "Вы приняли запрос %s!"                 or "You accepted %s's request!")))))),
+	friendReqAcceptedThem = isTR and "%s arkadaşlık isteğini kabul etti!"   or (isES and "¡%s aceptó tu solicitud!"              or (isAR and "قبل %s طلبك!"                            or (isFR and "%s a accepté votre demande!"               or (isHI and "%s ने आपका अनुरोध स्वीकार किया!"              or (isPT and "%s aceitou seu pedido!"                 or (isRU and "%s принял ваш запрос!"                 or "%s accepted your request!")))))),
 }
 
 local Icons = {
@@ -1236,7 +1252,7 @@ local function PlayEmote(id, name, silent)
 			pcall(getgenv().VexroBroadcastSync, id, name)
 		end
 	else
-		Notify(utf8.char(0x274C), "Emote yüklenemedi!")
+		Notify(utf8.char(0x274C), L.emoteLoadFail)
 	end
 end
 
@@ -2468,7 +2484,7 @@ ShowFriendRequestPanel = function(senderUserId, senderName)
 
 	local autoLbl = Instance.new("TextLabel")
 	autoLbl.Size = UDim2.new(1,-34,1,0); autoLbl.Position = UDim2.new(0,32,0,0)
-	autoLbl.BackgroundTransparency = 1; autoLbl.Text = "Arkadaş isteklerini otomatik reddet."
+	autoLbl.BackgroundTransparency = 1; autoLbl.Text = L.autoRejectLbl
 	autoLbl.TextColor3 = currentTheme.textDim; autoLbl.Font = Enum.Font.Gotham
 	autoLbl.TextSize = 11; autoLbl.TextXAlignment = Enum.TextXAlignment.Left
 	autoLbl.ZIndex = 98003; autoLbl.Parent = bar
@@ -2512,7 +2528,7 @@ ShowFriendRequestPanel = function(senderUserId, senderName)
 		_MyAttr(ATTR_RESP, tostring(senderUserId) .. ":1")
 		task.delay(1, function() _MyAttr(ATTR_RESP, "") end)
 		RefreshFriendList()
-		Notify(tostring(senderName) .. " arkadaşlık isteğini kabul ettin!", "", nil)
+		Notify(L.friendReqAcceptedYou:format(tostring(senderName)), "", nil)
 		_close()
 	end)
 
@@ -2559,7 +2575,7 @@ local function _WatchChar(char, uid, uname)
 			FriendData.friends[tostring(uid)] = {name = uname, syncEnabled = true}
 			_SaveFriend()
 			RefreshFriendList()
-			Notify(uname .. " arkadaşlık isteğini kabul etti!", "", nil)
+			Notify(L.friendReqAcceptedThem:format(uname), "", nil)
 		end
 	end)
 
@@ -2660,7 +2676,7 @@ _MakeBillboard = function(p)
 	btn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	btn.BackgroundTransparency = 0.08
 	btn.TextColor3 = Color3.fromRGB(30, 30, 30)
-	btn.Text = "+ Arkadaş Ekle"
+	btn.Text = L.addFriendBtn
 	btn.Font = Enum.Font.GothamBold
 	btn.TextSize = 11
 	btn.Parent = bb
@@ -2672,7 +2688,7 @@ _MakeBillboard = function(p)
 
 	btn.MouseButton1Click:Connect(function()
 		if FriendData.friends[tostring(p.UserId)] then
-			Notify("Zaten arkadaşsınız!", "", nil); return
+			Notify(L.alreadyFriends, "", nil); return
 		end
 
 		local now = tick()
@@ -2681,7 +2697,7 @@ _MakeBillboard = function(p)
 		-- Global timeout kontrolü
 		if now < _reqTimeoutUntil then
 			local rem = math.ceil(_reqTimeoutUntil - now)
-			Notify("Spam koruması aktif! " .. rem .. "s bekle", "", nil)
+			Notify(L.spamProtect:format(rem), "", nil)
 			return
 		end
 
@@ -2689,7 +2705,7 @@ _MakeBillboard = function(p)
 		local lastSent = _reqCooldowns[uid_s] or 0
 		if now - lastSent < REQ_COOLDOWN then
 			local rem = math.ceil(REQ_COOLDOWN - (now - lastSent))
-			Notify("Bu oyuncuya istek için " .. rem .. "s bekle", "", nil)
+			Notify(L.waitRequest:format(rem), "", nil)
 			return
 		end
 
@@ -2703,8 +2719,8 @@ _MakeBillboard = function(p)
 		if _reqSpamCount >= REQ_SPAM_LIMIT then
 			_reqTimeoutUntil = now + REQ_TIMEOUT_DUR
 			_reqSpamCount = 0
-			Notify("Çok hızlı istek! " .. REQ_TIMEOUT_DUR .. "s timeout", "", nil)
-			btn.Text = "Engellendi"
+			Notify(L.tooFastRequest:format(REQ_TIMEOUT_DUR), "", nil)
+			btn.Text = L.blocked
 			btn.BackgroundColor3 = Color3.fromRGB(150, 40, 40)
 			return
 		end
@@ -2712,10 +2728,10 @@ _MakeBillboard = function(p)
 		-- İstek gönder
 		_reqCooldowns[uid_s] = now
 		_MyAttr(ATTR_REQ, uid_s)
-		btn.Text = "✓ İstek Gönderildi"
+		btn.Text = L.requestSent
 		btn.BackgroundColor3 = Color3.fromRGB(60, 160, 90)
 		btn.TextColor3 = Color3.new(1, 1, 1)
-		Notify(p.Name .. " adlı oyuncuya arkadaşlık isteği gönderildi!", "", nil)
+		Notify(L.friendReqSent:format(p.Name), "", nil)
 		task.delay(3, function() _MyAttr(ATTR_REQ, "") end)
 	end)
 end
@@ -2817,7 +2833,7 @@ _MakeFriendToggle(
 local friendAddBtn = Instance.new("TextButton")
 friendAddBtn.Size = UDim2.new(1, 0, 0, 38)
 friendAddBtn.BackgroundColor3 = currentTheme.accent
-friendAddBtn.Text = "+ Arkadaş Ekle Modu"
+friendAddBtn.Text = L.addFriendMode
 friendAddBtn.TextColor3 = Color3.new(1, 1, 1)
 friendAddBtn.Font = Enum.Font.GothamBold
 friendAddBtn.TextSize = isMobile and 12 or 13
@@ -2847,7 +2863,7 @@ local infoBoxLbl = Instance.new("TextLabel")
 infoBoxLbl.Size = UDim2.new(1, -32, 1, 0)
 infoBoxLbl.Position = UDim2.new(0, 32, 0, 0)
 infoBoxLbl.BackgroundTransparency = 1
-infoBoxLbl.Text = "Arkadaş eklemek aynı emote'u arkadaşlarınızla veya arkadaşınızla beraber senkronize oynamanızı sağlar."
+infoBoxLbl.Text = L.friendInfoTxt
 infoBoxLbl.TextColor3 = Color3.fromRGB(200, 220, 255)
 infoBoxLbl.Font = Enum.Font.Gotham
 infoBoxLbl.TextSize = 10
@@ -2870,7 +2886,7 @@ infoIcon.Parent = infoBox
 -- Arkadaş listesi başlığı
 local flHeader = Instance.new("TextLabel")
 flHeader.Size = UDim2.new(1,0,0,22); flHeader.BackgroundTransparency = 1
-flHeader.Text = "Arkadaş Listesi"; flHeader.TextColor3 = currentTheme.textDim
+flHeader.Text = L.friendListHeader; flHeader.TextColor3 = currentTheme.textDim
 flHeader.Font = Enum.Font.GothamBold; flHeader.TextSize = 11
 flHeader.LayoutOrder = 4; flHeader.ZIndex = 5; flHeader.Parent = friendsPanel
 RegisterTheme(flHeader, "TextColor3", "textDim")
@@ -2885,7 +2901,7 @@ flListLayout.Padding = UDim.new(0,6); flListLayout.Parent = friendListContainer
 
 local emptyFriendLbl = Instance.new("TextLabel")
 emptyFriendLbl.Size = UDim2.new(1,0,0,36); emptyFriendLbl.BackgroundTransparency = 1
-emptyFriendLbl.Text = "Henüz arkadaş yok. Arkadaş Ekle butonunu kullan!"
+emptyFriendLbl.Text = L.noFriends
 emptyFriendLbl.TextColor3 = currentTheme.textDim; emptyFriendLbl.Font = Enum.Font.Gotham
 emptyFriendLbl.TextSize = 11; emptyFriendLbl.TextWrapped = true
 emptyFriendLbl.ZIndex = 6; emptyFriendLbl.Parent = friendListContainer
