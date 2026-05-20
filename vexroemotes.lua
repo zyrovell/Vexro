@@ -62,6 +62,7 @@ local _friendConns = {}
 local RefreshFriendList  -- forward declaration
 local ShowFriendRequestPanel  -- forward declaration
 local Favorites = {}
+local Keybinds = {}
 local RecentEmotes = {}
 -- Bridge: _VexroExtend içindeki HUD fonksiyonlarını dış kapsama bağlar
 local _onSpeedChanged  -- function(); HUD hız butonlarını + info panel'i günceller
@@ -74,7 +75,8 @@ local function SaveData()
 			writefile(DATA_FILE, HttpService:JSONEncode({
 				favorites = Favorites,
 				recent = RecentEmotes,
-				settings = Settings
+				settings = Settings,
+				keybinds = Keybinds
 			}))
 		end
 	end)
@@ -110,6 +112,13 @@ local function LoadData()
 					Settings.stopOnWalk = data.settings.stopOnWalk ~= false
 					Settings.showHUD = data.settings.showHUD ~= false
 				end
+
+				Keybinds = {}
+				if data.keybinds then
+					for k, v in pairs(data.keybinds) do
+						Keybinds[tonumber(k)] = v  -- {name="...", key="E"}
+					end
+				end
 			end
 		end
 	end)
@@ -120,6 +129,21 @@ LoadData()
 -- Hash set for O(1) favorite lookups
 local FavoritesSet = {}
 for _, v in ipairs(Favorites) do FavoritesSet[v] = true end
+
+-- Keybind lookup table
+local KeybindsSet = {}
+for k, v in pairs(Keybinds) do KeybindsSet[tonumber(k)] = v end
+local function GetKeybind(emoteId) return KeybindsSet[emoteId] end
+local function SetKeybind(emoteId, name, keyStr)
+	KeybindsSet[emoteId] = {name = name, key = keyStr}
+	Keybinds[emoteId] = {name = name, key = keyStr}
+	SaveData()
+end
+local function RemoveKeybind(emoteId)
+	KeybindsSet[emoteId] = nil
+	Keybinds[emoteId] = nil
+	SaveData()
+end
 
 -- Lookup table for O(1) emote-by-ID access (populated after emotes load)
 local EmotesById = {}
@@ -1474,7 +1498,8 @@ CreateTabBtn(Icons.Emote, "emotes", 8)
 CreateTabBtn(Icons.FavoriteFull, "favorites", 8 + tabBtnS + 6)
 CreateTabBtn(Icons.Recent, "recent", 8 + (tabBtnS + 6) * 2)
 CreateTabBtn("rbxassetid://115725480722697", "friends", 8 + (tabBtnS + 6) * 3)
-CreateTabBtn(Icons.Settings, "settings", 8 + (tabBtnS + 6) * 4)
+CreateTabBtn("rbxassetid://122679509852670", "keybinds", 8 + (tabBtnS + 6) * 4)
+CreateTabBtn(Icons.Settings, "settings", 8 + (tabBtnS + 6) * 5)
 
 -- ===============================================================
 -- CONTENT
@@ -1839,6 +1864,22 @@ friendsPanel.Parent = content
 local friendsPanelLayout = Instance.new("UIListLayout")
 friendsPanelLayout.Padding = UDim.new(0, 10)
 friendsPanelLayout.Parent = friendsPanel
+
+local keybindsPanel = Instance.new("ScrollingFrame")
+keybindsPanel.Size = UDim2.new(1, -16, 1, -(titleH + bottomBarH + 20))
+keybindsPanel.Position = UDim2.new(0, 8, 0, titleH + 8)
+keybindsPanel.BackgroundTransparency = 1
+keybindsPanel.ScrollBarThickness = isMobile and 6 or 4
+keybindsPanel.AutomaticCanvasSize = Enum.AutomaticSize.Y
+keybindsPanel.CanvasSize = UDim2.new(0, 0, 0, 0)
+keybindsPanel.Visible = false
+keybindsPanel.ZIndex = 5
+keybindsPanel.Parent = content
+local keybindsPanelLayout = Instance.new("UIListLayout")
+keybindsPanelLayout.Padding = UDim.new(0, 8)
+keybindsPanelLayout.Parent = keybindsPanel
+
+local RefreshKeybindsPanel  -- forward declaration (defined after ShowKeybindDialog)
 
 local function MakeSettingRow(imgId, txt, order, height)
 	local row = Instance.new("Frame")
