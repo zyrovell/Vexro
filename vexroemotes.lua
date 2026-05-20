@@ -2149,7 +2149,7 @@ do
 end -- notif row scope
 
 do
-	local contRow = MakeSettingRow("103179694587186", L.loopText or "Loop", 4)
+	local contRow = MakeSettingRow("105648271243690", L.loopText or "Loop", 4)
 	local contBtn = Instance.new("TextButton")
 	contBtn.Size = UDim2.new(0.4, 0, 0, 36)
 	contBtn.Position = UDim2.new(0.56, 0, 0.5, -18)
@@ -3405,7 +3405,7 @@ local function MakeCard(emote, ci, animate)
 	-- Dynamic text height based on card size, but capped
 	local NAME_H = math.clamp(CARD * 0.35, 18, 28)
 	local FAV_H = math.clamp(CARD * 0.3, 18, 24)
-	local KB_H = (not isMobile) and FAV_H or 0  -- keybind row height (PC only)
+	local KB_H = (not isMobile) and math.clamp(CARD * 0.45, 30, 40) or 0  -- keybind row height (PC only)
 	local CARD_TOTAL_H = KB_H + CARD + NAME_H + FAV_H
 
 	-- Ana kart container
