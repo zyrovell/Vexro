@@ -3130,13 +3130,16 @@ local function ShowKeybindDialog(emoteId, emote, isEdit)
 	local existing = main:FindFirstChild("VexroKeybindOverlay")
 	if existing then existing:Destroy() end
 
-	local overlay = Instance.new("Frame")
+	local overlay = Instance.new("TextButton")
 	overlay.Name = "VexroKeybindOverlay"
 	overlay.Size = UDim2.new(1, 0, 1, 0)
 	overlay.BackgroundColor3 = Color3.new(0, 0, 0)
 	overlay.BackgroundTransparency = 0.5
+	overlay.Text = ""
+	overlay.AutoButtonColor = false
 	overlay.ZIndex = 200
 	overlay.Parent = main
+	overlay.MouseButton1Click:Connect(function() end) -- tüm tıklamaları yut
 
 	local dialog = Instance.new("Frame")
 	dialog.Size = UDim2.new(0.85, 0, 0, 260)
@@ -3604,11 +3607,11 @@ local function MakeCard(emote, ci, animate)
 		Instance.new("UICorner", kbBtn).CornerRadius = UDim.new(0, 4)
 
 		local kbIcon = Instance.new("ImageLabel")
-		local kbIconSz = math.clamp(KB_H - 6, 12, 18)
-		kbIcon.Size = UDim2.new(0, kbIconSz, 0, kbIconSz)
+		kbIcon.Size = UDim2.new(0.6, 0, 0.6, 0)
 		kbIcon.Position = UDim2.fromScale(0.5, 0.5)
 		kbIcon.AnchorPoint = Vector2.new(0.5, 0.5)
 		kbIcon.BackgroundTransparency = 1
+		kbIcon.ScaleType = Enum.ScaleType.Fit
 		kbIcon.Image = kbHasBinding and Icons.KeybindActive or Icons.Keybind
 		kbIcon.ImageColor3 = kbHasBinding and currentTheme.accent or currentTheme.textDim
 		kbIcon.ZIndex = 5
