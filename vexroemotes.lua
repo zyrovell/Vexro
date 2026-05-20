@@ -204,8 +204,8 @@ print(logo)
 local Themes = {
 	Dark = {
 		primary = Color3.fromRGB(0, 0, 0),
-		secondary = Color3.fromRGB(6, 6, 8),
-		tertiary = Color3.fromRGB(12, 12, 16),
+		secondary = Color3.fromRGB(0, 0, 0),
+		tertiary = Color3.fromRGB(0, 0, 0),
 		sidebar = Color3.fromRGB(0, 0, 0),
 		accent = Color3.fromRGB(200, 200, 220),
 		text = Color3.new(1, 1, 1),
