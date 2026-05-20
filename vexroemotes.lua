@@ -62,6 +62,7 @@ local _friendConns = {}
 local RefreshFriendList  -- forward declaration
 local ShowFriendRequestPanel  -- forward declaration
 local Favorites = {}
+local Keybinds = {}
 local RecentEmotes = {}
 -- Bridge: _VexroExtend içindeki HUD fonksiyonlarını dış kapsama bağlar
 local _onSpeedChanged  -- function(); HUD hız butonlarını + info panel'i günceller
@@ -74,7 +75,8 @@ local function SaveData()
 			writefile(DATA_FILE, HttpService:JSONEncode({
 				favorites = Favorites,
 				recent = RecentEmotes,
-				settings = Settings
+				settings = Settings,
+				keybinds = Keybinds
 			}))
 		end
 	end)
@@ -110,6 +112,13 @@ local function LoadData()
 					Settings.stopOnWalk = data.settings.stopOnWalk ~= false
 					Settings.showHUD = data.settings.showHUD ~= false
 				end
+
+				Keybinds = {}
+				if data.keybinds then
+					for k, v in pairs(data.keybinds) do
+						Keybinds[tonumber(k)] = v  -- {name="...", key="E"}
+					end
+				end
 			end
 		end
 	end)
@@ -120,6 +129,21 @@ LoadData()
 -- Hash set for O(1) favorite lookups
 local FavoritesSet = {}
 for _, v in ipairs(Favorites) do FavoritesSet[v] = true end
+
+-- Keybind lookup table
+local KeybindsSet = {}
+for k, v in pairs(Keybinds) do KeybindsSet[tonumber(k)] = v end
+local function GetKeybind(emoteId) return KeybindsSet[emoteId] end
+local function SetKeybind(emoteId, name, keyStr)
+	KeybindsSet[emoteId] = {name = name, key = keyStr}
+	Keybinds[emoteId] = {name = name, key = keyStr}
+	SaveData()
+end
+local function RemoveKeybind(emoteId)
+	KeybindsSet[emoteId] = nil
+	Keybinds[emoteId] = nil
+	SaveData()
+end
 
 -- Lookup table for O(1) emote-by-ID access (populated after emotes load)
 local EmotesById = {}
@@ -1474,7 +1498,8 @@ CreateTabBtn(Icons.Emote, "emotes", 8)
 CreateTabBtn(Icons.FavoriteFull, "favorites", 8 + tabBtnS + 6)
 CreateTabBtn(Icons.Recent, "recent", 8 + (tabBtnS + 6) * 2)
 CreateTabBtn("rbxassetid://115725480722697", "friends", 8 + (tabBtnS + 6) * 3)
-CreateTabBtn(Icons.Settings, "settings", 8 + (tabBtnS + 6) * 4)
+CreateTabBtn("rbxassetid://122679509852670", "keybinds", 8 + (tabBtnS + 6) * 4)
+CreateTabBtn(Icons.Settings, "settings", 8 + (tabBtnS + 6) * 5)
 
 -- ===============================================================
 -- CONTENT
@@ -1839,6 +1864,22 @@ friendsPanel.Parent = content
 local friendsPanelLayout = Instance.new("UIListLayout")
 friendsPanelLayout.Padding = UDim.new(0, 10)
 friendsPanelLayout.Parent = friendsPanel
+
+local keybindsPanel = Instance.new("ScrollingFrame")
+keybindsPanel.Size = UDim2.new(1, -16, 1, -(titleH + bottomBarH + 20))
+keybindsPanel.Position = UDim2.new(0, 8, 0, titleH + 8)
+keybindsPanel.BackgroundTransparency = 1
+keybindsPanel.ScrollBarThickness = isMobile and 6 or 4
+keybindsPanel.AutomaticCanvasSize = Enum.AutomaticSize.Y
+keybindsPanel.CanvasSize = UDim2.new(0, 0, 0, 0)
+keybindsPanel.Visible = false
+keybindsPanel.ZIndex = 5
+keybindsPanel.Parent = content
+local keybindsPanelLayout = Instance.new("UIListLayout")
+keybindsPanelLayout.Padding = UDim.new(0, 8)
+keybindsPanelLayout.Parent = keybindsPanel
+
+local RefreshKeybindsPanel  -- forward declaration (defined after ShowKeybindDialog)
 
 local function MakeSettingRow(imgId, txt, order, height)
 	local row = Instance.new("Frame")
@@ -3039,10 +3080,280 @@ local function ClearCards()
 	cards = {}
 end
 
+-- ===============================================================
+-- KEYBIND DIALOG
+-- ===============================================================
+
+local function ShowKeybindDialog(emoteId, emote, isEdit)
+	-- Remove existing overlay
+	local existing = main:FindFirstChild("VexroKeybindOverlay")
+	if existing then existing:Destroy() end
+
+	local overlay = Instance.new("Frame")
+	overlay.Name = "VexroKeybindOverlay"
+	overlay.Size = UDim2.new(1, 0, 1, 0)
+	overlay.BackgroundColor3 = Color3.new(0, 0, 0)
+	overlay.BackgroundTransparency = 0.5
+	overlay.ZIndex = 200
+	overlay.Parent = main
+
+	local dialog = Instance.new("Frame")
+	dialog.Size = UDim2.new(0.85, 0, 0, 260)
+	dialog.Position = UDim2.fromScale(0.5, 0.5)
+	dialog.AnchorPoint = Vector2.new(0.5, 0.5)
+	dialog.BackgroundColor3 = currentTheme.secondary
+	dialog.ZIndex = 201
+	dialog.Parent = overlay
+	Instance.new("UICorner", dialog).CornerRadius = UDim.new(0, 16)
+	local dStroke = Instance.new("UIStroke")
+	dStroke.Color = currentTheme.accent
+	dStroke.Thickness = 2
+	dStroke.Transparency = 0.4
+	dStroke.Parent = dialog
+
+	-- Title
+	local titleLbl = Instance.new("TextLabel")
+	titleLbl.Size = UDim2.new(1, -16, 0, 36)
+	titleLbl.Position = UDim2.new(0, 8, 0, 8)
+	titleLbl.BackgroundTransparency = 1
+	titleLbl.Text = isEdit and "Keybind Değiştir" or "Yeni Keybind Oluştur"
+	titleLbl.TextColor3 = currentTheme.text
+	titleLbl.Font = Enum.Font.GothamBold
+	titleLbl.TextSize = 16
+	titleLbl.ZIndex = 202
+	titleLbl.Parent = dialog
+
+	-- Name label
+	local nameLblTitle = Instance.new("TextLabel")
+	nameLblTitle.Size = UDim2.new(0, 60, 0, 24)
+	nameLblTitle.Position = UDim2.new(0, 12, 0, 52)
+	nameLblTitle.BackgroundTransparency = 1
+	nameLblTitle.Text = "İsim"
+	nameLblTitle.TextColor3 = currentTheme.textDim
+	nameLblTitle.Font = Enum.Font.GothamBold
+	nameLblTitle.TextSize = 13
+	nameLblTitle.TextXAlignment = Enum.TextXAlignment.Left
+	nameLblTitle.ZIndex = 202
+	nameLblTitle.Parent = dialog
+
+	local nameBox = Instance.new("TextBox")
+	nameBox.Size = UDim2.new(1, -24, 0, 32)
+	nameBox.Position = UDim2.new(0, 12, 0, 78)
+	nameBox.BackgroundColor3 = currentTheme.tertiary
+	nameBox.PlaceholderText = emote.name
+	nameBox.Text = isEdit and (GetKeybind(emoteId) and GetKeybind(emoteId).name or "") or ""
+	nameBox.TextColor3 = currentTheme.text
+	nameBox.PlaceholderColor3 = currentTheme.textDim
+	nameBox.Font = Enum.Font.Gotham
+	nameBox.TextSize = 13
+	nameBox.ClearTextOnFocus = false
+	nameBox.ZIndex = 202
+	nameBox.Parent = dialog
+	Instance.new("UICorner", nameBox).CornerRadius = UDim.new(0, 8)
+	local nbStroke = Instance.new("UIStroke")
+	nbStroke.Color = currentTheme.stroke
+	nbStroke.Thickness = 1.5
+	nbStroke.Parent = nameBox
+
+	-- Atama label
+	local atamaLbl = Instance.new("TextLabel")
+	atamaLbl.Size = UDim2.new(0, 80, 0, 24)
+	atamaLbl.Position = UDim2.new(0, 12, 0, 122)
+	atamaLbl.BackgroundTransparency = 1
+	atamaLbl.Text = "Atama"
+	atamaLbl.TextColor3 = currentTheme.textDim
+	atamaLbl.Font = Enum.Font.GothamBold
+	atamaLbl.TextSize = 13
+	atamaLbl.TextXAlignment = Enum.TextXAlignment.Left
+	atamaLbl.ZIndex = 202
+	atamaLbl.Parent = dialog
+
+	-- Key recording button
+	local recordedKey = isEdit and (GetKeybind(emoteId) and GetKeybind(emoteId).key or nil) or nil
+	local isRecording = false
+	local recordConn
+
+	local keyBtn = Instance.new("TextButton")
+	keyBtn.Size = UDim2.new(1, -24, 0, 36)
+	keyBtn.Position = UDim2.new(0, 12, 0, 148)
+	keyBtn.BackgroundColor3 = currentTheme.tertiary
+	keyBtn.Text = recordedKey and ("[" .. recordedKey .. "]") or "Key Recording"
+	keyBtn.TextColor3 = recordedKey and currentTheme.accent or currentTheme.textDim
+	keyBtn.Font = Enum.Font.GothamBold
+	keyBtn.TextSize = 13
+	keyBtn.ZIndex = 202
+	keyBtn.Parent = dialog
+	Instance.new("UICorner", keyBtn).CornerRadius = UDim.new(0, 8)
+	local kbStroke = Instance.new("UIStroke")
+	kbStroke.Color = currentTheme.stroke
+	kbStroke.Thickness = 1.5
+	kbStroke.Parent = keyBtn
+
+	keyBtn.MouseButton1Click:Connect(function()
+		if isRecording then return end
+		isRecording = true
+		keyBtn.Text = "..."
+		kbStroke.Color = currentTheme.accent
+		TweenService:Create(kbStroke, TweenInfo.new(0.3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {Transparency = 0.7}):Play()
+		local UIS2 = game:GetService("UserInputService")
+		recordConn = UIS2.InputBegan:Connect(function(inp, gp)
+			if gp then return end
+			if inp.UserInputType == Enum.UserInputType.Keyboard then
+				recordedKey = inp.KeyCode.Name
+				isRecording = false
+				recordConn:Disconnect()
+				keyBtn.Text = "[" .. recordedKey .. "]"
+				keyBtn.TextColor3 = currentTheme.accent
+				kbStroke.Color = currentTheme.stroke
+				TweenService:Create(kbStroke, TweenInfo.new(0.1), {Transparency = 0}):Play()
+			end
+		end)
+	end)
+
+	-- Cancel button
+	local cancelBtn = Instance.new("TextButton")
+	cancelBtn.Size = UDim2.new(0.45, -6, 0, 38)
+	cancelBtn.Position = UDim2.new(0, 12, 0, 208)
+	cancelBtn.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
+	cancelBtn.Text = "İptal"
+	cancelBtn.TextColor3 = Color3.new(1, 1, 1)
+	cancelBtn.Font = Enum.Font.GothamBold
+	cancelBtn.TextSize = 14
+	cancelBtn.ZIndex = 202
+	cancelBtn.Parent = dialog
+	Instance.new("UICorner", cancelBtn).CornerRadius = UDim.new(0, 10)
+
+	-- Save button
+	local saveBtn = Instance.new("TextButton")
+	saveBtn.Size = UDim2.new(0.55, -18, 0, 38)
+	saveBtn.Position = UDim2.new(0.45, 6, 0, 208)
+	saveBtn.BackgroundColor3 = Color3.fromRGB(40, 160, 80)
+	saveBtn.Text = "Kaydet"
+	saveBtn.TextColor3 = Color3.new(1, 1, 1)
+	saveBtn.Font = Enum.Font.GothamBold
+	saveBtn.TextSize = 14
+	saveBtn.ZIndex = 202
+	saveBtn.Parent = dialog
+	Instance.new("UICorner", saveBtn).CornerRadius = UDim.new(0, 10)
+
+	cancelBtn.MouseButton1Click:Connect(function()
+		if recordConn then pcall(function() recordConn:Disconnect() end) end
+		overlay:Destroy()
+	end)
+
+	saveBtn.MouseButton1Click:Connect(function()
+		if not recordedKey then return end
+		if recordConn then pcall(function() recordConn:Disconnect() end) end
+		local kbName = nameBox.Text ~= "" and nameBox.Text or emote.name
+		SetKeybind(emoteId, kbName, recordedKey)
+		overlay:Destroy()
+		Refresh(false)
+		if currentTab == "keybinds" and RefreshKeybindsPanel then RefreshKeybindsPanel() end
+	end)
+
+	-- Entry animation
+	dialog.Size = UDim2.new(0, 0, 0, 0)
+	TweenService:Create(dialog, TweenInfo.new(0.35, Enum.EasingStyle.Back), {Size = UDim2.new(0.85, 0, 0, 260)}):Play()
+end
+
+-- Assign RefreshKeybindsPanel (forward-declared above keybindsPanel)
+RefreshKeybindsPanel = function()
+	for _, c in ipairs(keybindsPanel:GetChildren()) do
+		if not c:IsA("UIListLayout") then c:Destroy() end
+	end
+	local hasAny = false
+	for emoteId, kb in pairs(KeybindsSet) do
+		hasAny = true
+		local emote = EmotesById[emoteId]
+		local emoteName = emote and emote.name or ("Emote #"..emoteId)
+		local row = Instance.new("Frame")
+		row.Size = UDim2.new(1, 0, 0, 56)
+		row.BackgroundColor3 = currentTheme.secondary
+		row.BorderSizePixel = 0
+		row.ZIndex = 6
+		row.Parent = keybindsPanel
+		Instance.new("UICorner", row).CornerRadius = UDim.new(0, 10)
+		-- Emote thumbnail
+		local thumb = Instance.new("ImageLabel")
+		thumb.Size = UDim2.new(0, 44, 0, 44)
+		thumb.Position = UDim2.new(0, 6, 0.5, -22)
+		thumb.BackgroundTransparency = 1
+		thumb.Image = "rbxthumb://type=Asset&id="..emoteId.."&w=420&h=420"
+		thumb.ZIndex = 7
+		thumb.Parent = row
+		Instance.new("UICorner", thumb).CornerRadius = UDim.new(0, 6)
+		-- Name
+		local nameLbl = Instance.new("TextLabel")
+		nameLbl.Size = UDim2.new(1, -130, 0, 20)
+		nameLbl.Position = UDim2.new(0, 56, 0, 8)
+		nameLbl.BackgroundTransparency = 1
+		nameLbl.Text = emoteName
+		nameLbl.TextColor3 = currentTheme.text
+		nameLbl.Font = Enum.Font.GothamBold
+		nameLbl.TextSize = 13
+		nameLbl.TextXAlignment = Enum.TextXAlignment.Left
+		nameLbl.ZIndex = 7
+		nameLbl.Parent = row
+		-- Key badge
+		local keyLbl = Instance.new("TextLabel")
+		keyLbl.Size = UDim2.new(0, 38, 0, 24)
+		keyLbl.Position = UDim2.new(0, 56, 0, 28)
+		keyLbl.BackgroundColor3 = currentTheme.accent
+		keyLbl.Text = kb.key
+		keyLbl.TextColor3 = currentTheme.primary
+		keyLbl.Font = Enum.Font.GothamBold
+		keyLbl.TextSize = 12
+		keyLbl.ZIndex = 7
+		keyLbl.Parent = row
+		Instance.new("UICorner", keyLbl).CornerRadius = UDim.new(0, 6)
+		-- Custom name label
+		local customName = Instance.new("TextLabel")
+		customName.Size = UDim2.new(1, -110, 0, 14)
+		customName.Position = UDim2.new(0, 100, 0, 30)
+		customName.BackgroundTransparency = 1
+		customName.Text = kb.name ~= "" and kb.name or ""
+		customName.TextColor3 = currentTheme.textDim
+		customName.Font = Enum.Font.Gotham
+		customName.TextSize = 11
+		customName.TextXAlignment = Enum.TextXAlignment.Left
+		customName.ZIndex = 7
+		customName.Parent = row
+		-- Delete button
+		local delBtn = Instance.new("ImageButton")
+		delBtn.Size = UDim2.new(0, 32, 0, 32)
+		delBtn.Position = UDim2.new(1, -40, 0.5, -16)
+		delBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+		delBtn.Image = "rbxassetid://119388907849573"
+		delBtn.ImageColor3 = Color3.new(1,1,1)
+		delBtn.ZIndex = 7
+		delBtn.Parent = row
+		Instance.new("UICorner", delBtn).CornerRadius = UDim.new(1, 0)
+		delBtn.MouseButton1Click:Connect(function()
+			RemoveKeybind(emoteId)
+			RefreshKeybindsPanel()
+		end)
+	end
+	if not hasAny then
+		local emptyLbl2 = Instance.new("TextLabel")
+		emptyLbl2.Size = UDim2.new(1, 0, 0, 60)
+		emptyLbl2.BackgroundTransparency = 1
+		emptyLbl2.Text = "Henüz keybind yok"
+		emptyLbl2.TextColor3 = currentTheme.textDim
+		emptyLbl2.Font = Enum.Font.Gotham
+		emptyLbl2.TextSize = 14
+		emptyLbl2.ZIndex = 6
+		emptyLbl2.Parent = keybindsPanel
+	end
+end
+
+-- ===============================================================
+-- CARD SYSTEM
+-- ===============================================================
+
 local function MakeCard(emote, ci, animate)
 	local CARD = currentCardSize
 	local PAD = isMobile and 4 or 6
-	
+
 	-- Dynamic text height based on card size, but capped
 	local NAME_H = math.clamp(CARD * 0.35, 18, 28)
 	local FAV_H = math.clamp(CARD * 0.3, 18, 24)
@@ -3235,8 +3546,102 @@ local function MakeCard(emote, ci, animate)
 			end)
 		end
 	end)
-	
-	
+
+	-- Keybind button (top-right corner of card image)
+	local kbHasBinding = GetKeybind(emote.id) ~= nil
+	local kbBtn = Instance.new("ImageButton")
+	kbBtn.Size = UDim2.new(0, isMobile and 22 or 26, 0, isMobile and 22 or 26)
+	kbBtn.Position = UDim2.new(1, -(isMobile and 26 or 30), 0, isMobile and 4 or 4)
+	kbBtn.BackgroundColor3 = currentTheme.secondary
+	kbBtn.BackgroundTransparency = 0.3
+	kbBtn.Image = kbHasBinding and "rbxassetid://133187471200337" or "rbxassetid://122679509852670"
+	kbBtn.ImageColor3 = kbHasBinding and currentTheme.accent or currentTheme.textDim
+	kbBtn.ZIndex = 10
+	kbBtn.Parent = card
+	Instance.new("UICorner", kbBtn).CornerRadius = UDim.new(1, 0)
+
+	kbBtn.MouseButton1Click:Connect(function()
+		ShowKeybindDialog(emote.id, emote, kbHasBinding)
+	end)
+
+	-- Long press detection for keybind removal
+	local longPressTimer = nil
+	local longPressOverlay = nil
+
+	local function ShowRemoveOverlay()
+		if not GetKeybind(emote.id) then return end
+		if longPressOverlay then return end
+		longPressOverlay = Instance.new("Frame")
+		longPressOverlay.Size = UDim2.new(1, 0, 0, 0)
+		longPressOverlay.Position = UDim2.new(0, 0, 1, 0)
+		longPressOverlay.AnchorPoint = Vector2.new(0, 1)
+		longPressOverlay.BackgroundColor3 = Color3.fromRGB(180, 30, 30)
+		longPressOverlay.BackgroundTransparency = 0.2
+		longPressOverlay.ZIndex = 15
+		longPressOverlay.ClipsDescendants = true
+		longPressOverlay.Parent = card
+		Instance.new("UICorner", longPressOverlay).CornerRadius = UDim.new(0, 8)
+
+		TweenService:Create(longPressOverlay, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			Size = UDim2.new(1, 0, 1, 0),
+			Position = UDim2.new(0, 0, 0, 0)
+		}):Play()
+
+		local removeIcon = Instance.new("ImageButton")
+		removeIcon.Size = UDim2.new(0, 32, 0, 32)
+		removeIcon.Position = UDim2.fromScale(0.5, 0.5)
+		removeIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+		removeIcon.BackgroundTransparency = 1
+		removeIcon.Image = "rbxassetid://119388907849573"
+		removeIcon.ImageColor3 = Color3.new(1, 1, 1)
+		removeIcon.ZIndex = 16
+		removeIcon.Parent = longPressOverlay
+
+		removeIcon.MouseButton1Click:Connect(function()
+			RemoveKeybind(emote.id)
+			kbHasBinding = false
+			kbBtn.Image = "rbxassetid://122679509852670"
+			kbBtn.ImageColor3 = currentTheme.textDim
+			if longPressOverlay then
+				longPressOverlay:Destroy()
+				longPressOverlay = nil
+			end
+		end)
+
+		-- Auto-hide after 2.5s
+		task.delay(2.5, function()
+			if longPressOverlay then
+				TweenService:Create(longPressOverlay, TweenInfo.new(0.2), {BackgroundTransparency = 1}):Play()
+				task.delay(0.2, function()
+					if longPressOverlay then longPressOverlay:Destroy(); longPressOverlay = nil end
+				end)
+			end
+		end)
+	end
+
+	local pressStart = 0
+	card.InputBegan:Connect(function(inp)
+		if inp.UserInputType == Enum.UserInputType.MouseButton1 then
+			pressStart = tick()
+			longPressTimer = task.delay(0.6, ShowRemoveOverlay)
+		elseif inp.UserInputType == Enum.UserInputType.Touch then
+			pressStart = tick()
+			longPressTimer = task.delay(0.6, ShowRemoveOverlay)
+		end
+	end)
+	card.InputEnded:Connect(function(inp)
+		if inp.UserInputType == Enum.UserInputType.MouseButton1 or inp.UserInputType == Enum.UserInputType.Touch then
+			if longPressTimer then
+				task.cancel(longPressTimer)
+				longPressTimer = nil
+			end
+			if tick() - pressStart < 0.4 and longPressOverlay then
+				longPressOverlay:Destroy()
+				longPressOverlay = nil
+			end
+		end
+	end)
+
 	card.MouseEnter:Connect(function()
 		-- Hafif büyütme ve tilt efekti
 		TweenService:Create(card, TweenInfo.new(0.2, Enum.EasingStyle.Back), {
@@ -3403,15 +3808,21 @@ UpdateTabData = function()
 	search.Text = ""
 	page = 1
 	
-	local isSettings = currentTab == "settings"
-	local isFriends  = currentTab == "friends"
-	settingsPanel.Visible = isSettings
-	friendsPanel.Visible  = isFriends
-	scroll.Visible  = not isSettings and not isFriends
-	search.Visible  = not isSettings and not isFriends
-	pageBar.Visible = not isSettings and not isFriends
-	if isSettings or isFriends then
+	local isSettings  = currentTab == "settings"
+	local isFriends   = currentTab == "friends"
+	local isKeybinds  = currentTab == "keybinds"
+	settingsPanel.Visible  = isSettings
+	friendsPanel.Visible   = isFriends
+	keybindsPanel.Visible  = isKeybinds
+	local hideNormal = isSettings or isFriends or isKeybinds
+	scroll.Visible  = not hideNormal
+	search.Visible  = not hideNormal
+	pageBar.Visible = not hideNormal
+	if hideNormal then
 		emptyLbl.Visible = false
+	end
+	if isKeybinds then
+		if RefreshKeybindsPanel then RefreshKeybindsPanel() end
 	end
 	
 	if currentTab == "emotes" then
@@ -3458,6 +3869,11 @@ UpdateTabData = function()
 		titleIcon.Image = ResolveAssetImage("rbxassetid://115725480722697")
 		titleIcon.ImageColor3 = currentTheme.accent
 		titleIcon.Visible = true
+	elseif currentTab == "keybinds" then
+		title.Text = "Keybinds"
+		titleIcon.Image = ResolveAssetImage("rbxassetid://122679509852670")
+		titleIcon.ImageColor3 = currentTheme.accent
+		titleIcon.Visible = true
 	end
 	
 	local tabIconSz = titleIconSz
@@ -3468,7 +3884,7 @@ UpdateTabData = function()
 	title.Position = UDim2.new(0, titleIcon.Visible and (10 + tabIconSz + 6) or 10, 0, 0)
 	
 	UpdateTabStyles()
-	if not isSettings then Refresh(true) end
+	if not isSettings and not isKeybinds then Refresh(true) end
 end
 
 tabBtns["emotes"].btn.MouseButton1Click:Connect(function() currentTab = "emotes"; UpdateTabData() end)
@@ -3477,6 +3893,7 @@ tabBtns["favorites"].btn.MouseButton1Click:Connect(function() currentTab = "favo
 tabBtns["recent"].btn.MouseButton1Click:Connect(function() currentTab = "recent"; UpdateTabData() end)
 tabBtns["settings"].btn.MouseButton1Click:Connect(function() currentTab = "settings"; UpdateTabData() end)
 tabBtns["friends"].btn.MouseButton1Click:Connect(function() currentTab = "friends"; UpdateTabData() end)
+tabBtns["keybinds"].btn.MouseButton1Click:Connect(function() currentTab = "keybinds"; UpdateTabData() end)
 
 local searchToken = 0
 search:GetPropertyChangedSignal("Text"):Connect(function()
@@ -3755,6 +4172,22 @@ main.ClipsDescendants = false
 ApplyTheme(Settings.theme)
 UpdateTabStyles()
 UpdateTabData()
+
+-- Keybind playback listener
+UserInputService.InputBegan:Connect(function(inp, gp)
+	if gp then return end
+	if inp.UserInputType ~= Enum.UserInputType.Keyboard then return end
+	local keyName = inp.KeyCode.Name
+	for emoteId, kb in pairs(KeybindsSet) do
+		if kb.key == keyName then
+			local emote = EmotesById[emoteId]
+			if emote then
+				PlayEmote(emote.id, emote.name)
+			end
+			break
+		end
+	end
+end)
 
 task.wait(0.25)
 Notify(utf8.char(0x2705) .. " " .. L.ready, #Emotes .. " emotes")
