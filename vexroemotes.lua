@@ -1591,21 +1591,44 @@ title.Parent = titleBar
 Instance.new("UITextSizeConstraint", title).MaxTextSize = isMobile and 16 or 20
 RegisterTheme(title, "TextColor3", "text")
 
-local titleGrad = Instance.new("UIGradient")
-_updateTitleGrad = function()
-	local a = currentTheme.accent
-	titleGrad.Color = ColorSequence.new{
-		ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(
-			math.clamp(math.floor(a.R * 255 * 0.85), 180, 255),
-			math.clamp(math.floor(a.G * 255 * 0.85), 180, 255),
-			math.clamp(math.floor(a.B * 255 * 0.85), 180, 255)
-		))
+local _textGrads = {}
+local function _ApplyTextGrad(grad)
+	local name = Settings.theme
+	local topColor, botColor
+	if name == "Dark" or name == "DarkGlass" then
+		topColor = Color3.fromRGB(20, 20, 28)
+		botColor = Color3.new(1, 1, 1)
+	elseif name == "Light" or name == "FrostedGlass" then
+		topColor = Color3.fromRGB(20, 20, 30)
+		botColor = currentTheme.accent
+	else
+		topColor = currentTheme.accent
+		botColor = Color3.new(1, 1, 1)
+	end
+	grad.Color = ColorSequence.new{
+		ColorSequenceKeypoint.new(0, topColor),
+		ColorSequenceKeypoint.new(1, botColor)
 	}
+	grad.Rotation = 90
 end
-_updateTitleGrad()
-titleGrad.Rotation = 0
-titleGrad.Parent = title
+local function _AddTextGrad(textLabel)
+	local g = Instance.new("UIGradient")
+	_ApplyTextGrad(g)
+	g.Parent = textLabel
+	table.insert(_textGrads, g)
+	return g
+end
+_updateTitleGrad = function()
+	for i = #_textGrads, 1, -1 do
+		local g = _textGrads[i]
+		if g and g.Parent then
+			_ApplyTextGrad(g)
+		else
+			table.remove(_textGrads, i)
+		end
+	end
+end
+_AddTextGrad(title)
 
 local btnS = math.floor((isMobile and 28 or 36) * BUTTON_SCALE)
 
@@ -1975,7 +1998,8 @@ local function MakeSettingRow(imgId, txt, order, height)
 	lbl.ZIndex = 7
 	lbl.Parent = row
 	RegisterTheme(lbl, "TextColor3", "text")
-	
+	_AddTextGrad(lbl)
+
 	return row, lbl
 end
 
@@ -3487,7 +3511,8 @@ local function MakeCard(emote, ci, animate)
 	nameLbl.ZIndex = 3
 	nameLbl.Parent = cardContainer
 	Instance.new("UICorner", nameLbl).CornerRadius = UDim.new(0, 4)
-	
+	_AddTextGrad(nameLbl)
+
 	nameLbl.MouseEnter:Connect(function()
 		TweenService:Create(nameLbl, TweenInfo.new(0.2, Enum.EasingStyle.Back), {
 			Size = UDim2.new(1, 4, 0, NAME_H + 4),
