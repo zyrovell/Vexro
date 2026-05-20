@@ -3599,11 +3599,12 @@ local function MakeCard(emote, ci, animate)
 		kbBtn.BackgroundTransparency = 1
 		kbBtn.Text = ""
 		kbBtn.ZIndex = 4
+		kbBtn.ClipsDescendants = true
 		kbBtn.Parent = cardContainer
 		Instance.new("UICorner", kbBtn).CornerRadius = UDim.new(0, 4)
 
 		local kbIcon = Instance.new("ImageLabel")
-		local kbIconSz = isMobile and 28 or 34
+		local kbIconSz = math.clamp(KB_H - 6, 12, 18)
 		kbIcon.Size = UDim2.new(0, kbIconSz, 0, kbIconSz)
 		kbIcon.Position = UDim2.fromScale(0.5, 0.5)
 		kbIcon.AnchorPoint = Vector2.new(0.5, 0.5)
