@@ -159,6 +159,65 @@ local isMobile = UserInputService.TouchEnabled and not UserInputService.Keyboard
 
 -- Auto Image/Decal resolver with cache
 local _resolvedCache = {}
+local DEBUG_ASSET_ID = "122679509852670"
+local _debugLines = {}
+local _debugGui = nil
+local _debugLabel = nil
+local function _dbg(msg)
+	table.insert(_debugLines, msg)
+	if #_debugLines > 12 then table.remove(_debugLines, 1) end
+	if _debugLabel then
+		_debugLabel.Text = table.concat(_debugLines, "\n")
+	end
+	warn("[VexroDebug] " .. msg)
+end
+local function _initDebugGui()
+	pcall(function()
+		local cg = game:GetService("CoreGui")
+		local sg = Instance.new("ScreenGui")
+		sg.Name = "VexroDebugGui"
+		sg.ResetOnSpawn = false
+		sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+		sg.Parent = cg
+		local bg = Instance.new("Frame")
+		bg.Size = UDim2.new(0, 520, 0, 220)
+		bg.Position = UDim2.new(0, 10, 0, 10)
+		bg.BackgroundColor3 = Color3.new(0, 0, 0)
+		bg.BackgroundTransparency = 0.35
+		bg.BorderSizePixel = 0
+		bg.ZIndex = 999
+		bg.Parent = sg
+		Instance.new("UICorner", bg).CornerRadius = UDim.new(0, 8)
+		local lbl = Instance.new("TextLabel")
+		lbl.Size = UDim2.new(1, -10, 1, -10)
+		lbl.Position = UDim2.new(0, 5, 0, 5)
+		lbl.BackgroundTransparency = 1
+		lbl.TextColor3 = Color3.new(1, 1, 0)
+		lbl.Font = Enum.Font.Code
+		lbl.TextSize = 11
+		lbl.TextXAlignment = Enum.TextXAlignment.Left
+		lbl.TextYAlignment = Enum.TextYAlignment.Top
+		lbl.TextWrapped = true
+		lbl.ZIndex = 1000
+		lbl.Text = "[VexroDebug] başlatıldı..."
+		lbl.Parent = bg
+		local closeBtn = Instance.new("TextButton")
+		closeBtn.Size = UDim2.new(0, 24, 0, 24)
+		closeBtn.Position = UDim2.new(1, -28, 0, 4)
+		closeBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+		closeBtn.Text = "X"
+		closeBtn.TextColor3 = Color3.new(1,1,1)
+		closeBtn.Font = Enum.Font.GothamBold
+		closeBtn.TextSize = 12
+		closeBtn.ZIndex = 1001
+		closeBtn.Parent = bg
+		Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(1,0)
+		closeBtn.MouseButton1Click:Connect(function() sg:Destroy() end)
+		_debugGui = sg
+		_debugLabel = lbl
+	end)
+end
+
 local function ResolveAssetImage(assetIdOrUrl)
 	if not assetIdOrUrl then return "" end
 	local str = tostring(assetIdOrUrl)
@@ -166,10 +225,14 @@ local function ResolveAssetImage(assetIdOrUrl)
 	if rawId == "" then return str end
 	if _resolvedCache[rawId] then return _resolvedCache[rawId] end
 	local resolved = nil
-	pcall(function()
+	local objType = nil
+	local objCount = 0
+	local ok, err = pcall(function()
 		local objects = game:GetObjects("rbxassetid://" .. rawId)
+		objCount = objects and #objects or 0
 		if objects and #objects > 0 then
 			local obj = objects[1]
+			objType = obj.ClassName
 			if obj:IsA("Decal") or obj:IsA("Texture") then
 				resolved = obj.Texture
 			elseif obj:IsA("ImageLabel") or obj:IsA("ImageButton") then
@@ -177,12 +240,40 @@ local function ResolveAssetImage(assetIdOrUrl)
 			end
 		end
 	end)
+	if rawId == DEBUG_ASSET_ID then
+		if not ok then
+			_dbg("GetObjects ERR: " .. tostring(err))
+		else
+			_dbg("GetObjects ok | count=" .. objCount .. " type=" .. tostring(objType) .. " resolved=" .. tostring(resolved))
+		end
+	end
 	if not resolved or resolved == "" then
 		resolved = "rbxthumb://type=Asset&id=" .. rawId .. "&w=420&h=420"
+		if rawId == DEBUG_ASSET_ID then
+			_dbg("Fallback -> rbxthumb URL")
+		end
 	end
 	_resolvedCache[rawId] = resolved
+	if rawId == DEBUG_ASSET_ID then
+		_dbg("Final URL: " .. tostring(resolved))
+		task.spawn(function()
+			task.wait(4)
+			local testImg = Instance.new("ImageLabel")
+			testImg.Size = UDim2.new(0, 64, 0, 64)
+			testImg.Position = UDim2.new(0, 10, 0, 230)
+			testImg.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+			testImg.Image = resolved
+			testImg.ZIndex = 1000
+			pcall(function() testImg.Parent = _debugGui and _debugGui.Parent or game:GetService("CoreGui") end)
+			task.wait(4)
+			_dbg("IsLoaded=" .. tostring(testImg.IsLoaded) .. " Image=" .. tostring(testImg.Image):sub(1, 60))
+			task.wait(3)
+			testImg:Destroy()
+		end)
+	end
 	return resolved
 end
+_initDebugGui()
 
 local logo = [[
 
@@ -1534,7 +1625,7 @@ if not isMobile then
 	kbTabImg.Position = UDim2.fromScale(0.5, 0.5)
 	kbTabImg.AnchorPoint = Vector2.new(0.5, 0.5)
 	kbTabImg.BackgroundTransparency = 1
-	kbTabImg.Image = "rbxassetid://122679509852670"
+	kbTabImg.Image = ResolveAssetImage("rbxassetid://122679509852670")
 	kbTabImg.ImageColor3 = currentTheme.text
 	kbTabImg.ZIndex = 110
 	kbTabImg.Parent = tabBtns["keybinds"].btn
@@ -3130,13 +3221,16 @@ local function ShowKeybindDialog(emoteId, emote, isEdit)
 	local existing = main:FindFirstChild("VexroKeybindOverlay")
 	if existing then existing:Destroy() end
 
-	local overlay = Instance.new("Frame")
+	local overlay = Instance.new("TextButton")
 	overlay.Name = "VexroKeybindOverlay"
 	overlay.Size = UDim2.new(1, 0, 1, 0)
 	overlay.BackgroundColor3 = Color3.new(0, 0, 0)
 	overlay.BackgroundTransparency = 0.5
+	overlay.Text = ""
+	overlay.AutoButtonColor = false
 	overlay.ZIndex = 200
 	overlay.Parent = main
+	overlay.MouseButton1Click:Connect(function() end) -- tüm tıklamaları yut
 
 	local dialog = Instance.new("Frame")
 	dialog.Size = UDim2.new(0.85, 0, 0, 260)
@@ -3364,7 +3458,7 @@ RefreshKeybindsPanel = function()
 		delBtn.Size = UDim2.new(0, 32, 0, 32)
 		delBtn.Position = UDim2.new(1, -40, 0.5, -16)
 		delBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-		delBtn.Image = Icons.KeybindRemove
+		delBtn.Image = ResolveAssetImage(Icons.KeybindRemove)
 		delBtn.ImageColor3 = Color3.new(1,1,1)
 		delBtn.ZIndex = 7
 		delBtn.Parent = row
@@ -3599,16 +3693,17 @@ local function MakeCard(emote, ci, animate)
 		kbBtn.BackgroundTransparency = 1
 		kbBtn.Text = ""
 		kbBtn.ZIndex = 4
+		kbBtn.ClipsDescendants = true
 		kbBtn.Parent = cardContainer
 		Instance.new("UICorner", kbBtn).CornerRadius = UDim.new(0, 4)
 
 		local kbIcon = Instance.new("ImageLabel")
-		local kbIconSz = isMobile and 28 or 34
-		kbIcon.Size = UDim2.new(0, kbIconSz, 0, kbIconSz)
+		kbIcon.Size = UDim2.new(0.6, 0, 0.6, 0)
 		kbIcon.Position = UDim2.fromScale(0.5, 0.5)
 		kbIcon.AnchorPoint = Vector2.new(0.5, 0.5)
 		kbIcon.BackgroundTransparency = 1
-		kbIcon.Image = kbHasBinding and Icons.KeybindActive or Icons.Keybind
+		kbIcon.ScaleType = Enum.ScaleType.Fit
+		kbIcon.Image = ResolveAssetImage(kbHasBinding and Icons.KeybindActive or Icons.Keybind)
 		kbIcon.ImageColor3 = kbHasBinding and currentTheme.accent or currentTheme.textDim
 		kbIcon.ZIndex = 5
 		kbIcon.Parent = kbBtn
@@ -3659,14 +3754,14 @@ local function MakeCard(emote, ci, animate)
 			removeIcon.Position = UDim2.fromScale(0.5, 0.5)
 			removeIcon.AnchorPoint = Vector2.new(0.5, 0.5)
 			removeIcon.BackgroundTransparency = 1
-			removeIcon.Image = Icons.KeybindRemove
+			removeIcon.Image = ResolveAssetImage(Icons.KeybindRemove)
 			removeIcon.ImageColor3 = Color3.new(1, 1, 1)
 			removeIcon.ZIndex = 16
 			removeIcon.Parent = longPressOverlay
 			removeIcon.MouseButton1Click:Connect(function()
 				RemoveKeybind(emote.id)
 				kbHasBinding = false
-				kbIcon.Image = Icons.Keybind
+				kbIcon.Image = ResolveAssetImage(Icons.Keybind)
 				kbIcon.ImageColor3 = currentTheme.textDim
 				if longPressOverlay then longPressOverlay:Destroy(); longPressOverlay = nil end
 			end)
@@ -3926,7 +4021,7 @@ UpdateTabData = function()
 		titleIcon.Visible = true
 	elseif currentTab == "keybinds" then
 		title.Text = L.keybinds
-		titleIcon.Image = "rbxassetid://122679509852670"
+		titleIcon.Image = ResolveAssetImage("rbxassetid://122679509852670")
 		titleIcon.ImageColor3 = currentTheme.accent
 		titleIcon.Visible = true
 	end
