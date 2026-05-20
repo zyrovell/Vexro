@@ -3398,8 +3398,9 @@ local function MakeCard(emote, ci, animate)
 	-- Dynamic text height based on card size, but capped
 	local NAME_H = math.clamp(CARD * 0.35, 18, 28)
 	local FAV_H = math.clamp(CARD * 0.3, 18, 24)
-	local CARD_TOTAL_H = CARD + NAME_H + FAV_H
-	
+	local KB_H = (not isMobile) and FAV_H or 0  -- keybind row height (PC only)
+	local CARD_TOTAL_H = KB_H + CARD + NAME_H + FAV_H
+
 	-- Ana kart container
 	local cardContainer = Instance.new("Frame")
 	cardContainer.Size = UDim2.new(0, CARD, 0, CARD_TOTAL_H)
@@ -3431,7 +3432,7 @@ local function MakeCard(emote, ci, animate)
 	
 	local card = Instance.new("ImageButton")
 	card.Size = UDim2.new(1, 0, 0, CARD)
-	card.Position = UDim2.new(0, 0, 0, 0)
+	card.Position = UDim2.new(0, 0, 0, KB_H)
 	card.BackgroundColor3 = currentTheme.tertiary
 	card.ScaleType = Enum.ScaleType.Fit
 	card.ZIndex = 3
@@ -3460,7 +3461,7 @@ local function MakeCard(emote, ci, animate)
 	-- İsim Label (resmin altında)
 	local nameLbl = Instance.new("TextLabel")
 	nameLbl.Size = UDim2.new(1, -4, 0, NAME_H - 2) 
-	nameLbl.Position = UDim2.new(0, 2, 0, CARD)
+	nameLbl.Position = UDim2.new(0, 2, 0, KB_H + CARD)
 	nameLbl.BackgroundColor3 = currentTheme.secondary
 	nameLbl.Text = emote.name
 	nameLbl.TextColor3 = currentTheme.text
@@ -3490,7 +3491,7 @@ local function MakeCard(emote, ci, animate)
 	local isFav = IsFavorite(emote.id)
 	local favBtn = Instance.new("TextButton")
 	favBtn.Size = UDim2.new(1, 0, 0, FAV_H)
-	favBtn.Position = UDim2.new(0, 0, 0, CARD + NAME_H)
+	favBtn.Position = UDim2.new(0, 0, 0, KB_H + CARD + NAME_H)
 	favBtn.BackgroundColor3 = currentTheme.accent
 	favBtn.BackgroundTransparency = 1 -- Kareyi kaldır
 	favBtn.Text = ""
@@ -3588,102 +3589,112 @@ local function MakeCard(emote, ci, animate)
 		end
 	end)
 
-	-- Keybind button (top-right corner of card image) -- PC only
+	-- Keybind button row at TOP of card (PC only, same style as favBtn at bottom)
 	local kbHasBinding = GetKeybind(emote.id) ~= nil
 	if not isMobile then
-	-- Keybind button (top-right corner of card image)
-	local kbBtn = Instance.new("ImageButton")
-	kbBtn.Size = UDim2.new(0, 26, 0, 26)
-	kbBtn.Position = UDim2.new(1, -30, 0, 4)
-	kbBtn.BackgroundColor3 = currentTheme.secondary
-	kbBtn.BackgroundTransparency = 0.3
-	kbBtn.Image = kbHasBinding and Icons.KeybindActive or Icons.Keybind
-	kbBtn.ImageColor3 = kbHasBinding and currentTheme.accent or currentTheme.textDim
-	kbBtn.ZIndex = 10
-	kbBtn.Parent = card
-	Instance.new("UICorner", kbBtn).CornerRadius = UDim.new(1, 0)
+		local kbBtn = Instance.new("TextButton")
+		kbBtn.Size = UDim2.new(1, 0, 0, KB_H)
+		kbBtn.Position = UDim2.new(0, 0, 0, 0)
+		kbBtn.BackgroundColor3 = currentTheme.accent
+		kbBtn.BackgroundTransparency = 1
+		kbBtn.Text = ""
+		kbBtn.ZIndex = 4
+		kbBtn.Parent = cardContainer
+		Instance.new("UICorner", kbBtn).CornerRadius = UDim.new(0, 4)
 
-	kbBtn.MouseButton1Click:Connect(function()
-		ShowKeybindDialog(emote.id, emote, kbHasBinding)
-	end)
+		local kbIcon = Instance.new("ImageLabel")
+		local kbIconSz = isMobile and 28 or 34
+		kbIcon.Size = UDim2.new(0, kbIconSz, 0, kbIconSz)
+		kbIcon.Position = UDim2.fromScale(0.5, 0.5)
+		kbIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+		kbIcon.BackgroundTransparency = 1
+		kbIcon.Image = kbHasBinding and Icons.KeybindActive or Icons.Keybind
+		kbIcon.ImageColor3 = kbHasBinding and currentTheme.accent or currentTheme.textDim
+		kbIcon.ZIndex = 5
+		kbIcon.Parent = kbBtn
 
-	-- Long press detection for keybind removal (PC only)
-	local longPressTimer = nil
-	local longPressOverlay = nil
-
-	local function ShowRemoveOverlay()
-		if not GetKeybind(emote.id) then return end
-		if longPressOverlay then return end
-		longPressOverlay = Instance.new("Frame")
-		longPressOverlay.Size = UDim2.new(1, 0, 0, 0)
-		longPressOverlay.Position = UDim2.new(0, 0, 1, 0)
-		longPressOverlay.AnchorPoint = Vector2.new(0, 1)
-		longPressOverlay.BackgroundColor3 = Color3.fromRGB(180, 30, 30)
-		longPressOverlay.BackgroundTransparency = 0.2
-		longPressOverlay.ZIndex = 15
-		longPressOverlay.ClipsDescendants = true
-		longPressOverlay.Parent = card
-		Instance.new("UICorner", longPressOverlay).CornerRadius = UDim.new(0, 8)
-
-		TweenService:Create(longPressOverlay, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-			Size = UDim2.new(1, 0, 1, 0),
-			Position = UDim2.new(0, 0, 0, 0)
-		}):Play()
-
-		local removeIcon = Instance.new("ImageButton")
-		removeIcon.Size = UDim2.new(0, 32, 0, 32)
-		removeIcon.Position = UDim2.fromScale(0.5, 0.5)
-		removeIcon.AnchorPoint = Vector2.new(0.5, 0.5)
-		removeIcon.BackgroundTransparency = 1
-		removeIcon.Image = Icons.KeybindRemove
-		removeIcon.ImageColor3 = Color3.new(1, 1, 1)
-		removeIcon.ZIndex = 16
-		removeIcon.Parent = longPressOverlay
-
-		removeIcon.MouseButton1Click:Connect(function()
-			RemoveKeybind(emote.id)
-			kbHasBinding = false
-			kbBtn.Image = Icons.Keybind
-			kbBtn.ImageColor3 = currentTheme.textDim
-			if longPressOverlay then
-				longPressOverlay:Destroy()
-				longPressOverlay = nil
-			end
+		kbBtn.MouseEnter:Connect(function()
+			TweenService:Create(kbBtn, TweenInfo.new(0.15, Enum.EasingStyle.Back), {
+				BackgroundColor3 = kbHasBinding and currentTheme.tertiary or currentTheme.accent,
+				Size = UDim2.new(1, 6, 0, KB_H + 6),
+				Rotation = math.random(-2, 2)
+			}):Play()
+		end)
+		kbBtn.MouseLeave:Connect(function()
+			TweenService:Create(kbBtn, TweenInfo.new(0.15, Enum.EasingStyle.Quad), {
+				BackgroundColor3 = currentTheme.stroke,
+				Size = UDim2.new(1, 0, 0, KB_H),
+				Rotation = 0
+			}):Play()
 		end)
 
-		-- Auto-hide after 2.5s
-		task.delay(2.5, function()
-			if longPressOverlay then
-				TweenService:Create(longPressOverlay, TweenInfo.new(0.2), {BackgroundTransparency = 1}):Play()
-				task.delay(0.2, function()
-					if longPressOverlay then longPressOverlay:Destroy(); longPressOverlay = nil end
-				end)
+		kbBtn.MouseButton1Click:Connect(function()
+			ShowKeybindDialog(emote.id, emote, kbHasBinding)
+			-- Update icon after dialog closes via Refresh
+		end)
+
+		-- Long press: show red remove overlay on card
+		local longPressTimer = nil
+		local longPressOverlay = nil
+
+		local function ShowRemoveOverlay()
+			if not GetKeybind(emote.id) then return end
+			if longPressOverlay then return end
+			longPressOverlay = Instance.new("Frame")
+			longPressOverlay.Size = UDim2.new(1, 0, 0, 0)
+			longPressOverlay.Position = UDim2.new(0, 0, 1, 0)
+			longPressOverlay.AnchorPoint = Vector2.new(0, 1)
+			longPressOverlay.BackgroundColor3 = Color3.fromRGB(180, 30, 30)
+			longPressOverlay.BackgroundTransparency = 0.2
+			longPressOverlay.ZIndex = 15
+			longPressOverlay.ClipsDescendants = true
+			longPressOverlay.Parent = card
+			Instance.new("UICorner", longPressOverlay).CornerRadius = UDim.new(0, 8)
+			TweenService:Create(longPressOverlay, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+				Size = UDim2.new(1, 0, 1, 0),
+				Position = UDim2.new(0, 0, 0, 0)
+			}):Play()
+			local removeIcon = Instance.new("ImageButton")
+			removeIcon.Size = UDim2.new(0, 32, 0, 32)
+			removeIcon.Position = UDim2.fromScale(0.5, 0.5)
+			removeIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+			removeIcon.BackgroundTransparency = 1
+			removeIcon.Image = Icons.KeybindRemove
+			removeIcon.ImageColor3 = Color3.new(1, 1, 1)
+			removeIcon.ZIndex = 16
+			removeIcon.Parent = longPressOverlay
+			removeIcon.MouseButton1Click:Connect(function()
+				RemoveKeybind(emote.id)
+				kbHasBinding = false
+				kbIcon.Image = Icons.Keybind
+				kbIcon.ImageColor3 = currentTheme.textDim
+				if longPressOverlay then longPressOverlay:Destroy(); longPressOverlay = nil end
+			end)
+			task.delay(2.5, function()
+				if longPressOverlay then
+					TweenService:Create(longPressOverlay, TweenInfo.new(0.2), {BackgroundTransparency = 1}):Play()
+					task.delay(0.2, function()
+						if longPressOverlay then longPressOverlay:Destroy(); longPressOverlay = nil end
+					end)
+				end
+			end)
+		end
+
+		local pressStart = 0
+		card.InputBegan:Connect(function(inp)
+			if inp.UserInputType == Enum.UserInputType.MouseButton1 then
+				pressStart = tick()
+				longPressTimer = task.delay(0.6, ShowRemoveOverlay)
 			end
 		end)
-	end
-
-	local pressStart = 0
-	card.InputBegan:Connect(function(inp)
-		if inp.UserInputType == Enum.UserInputType.MouseButton1 then
-			pressStart = tick()
-			longPressTimer = task.delay(0.6, ShowRemoveOverlay)
-		elseif inp.UserInputType == Enum.UserInputType.Touch then
-			pressStart = tick()
-			longPressTimer = task.delay(0.6, ShowRemoveOverlay)
-		end
-	end)
-	card.InputEnded:Connect(function(inp)
-		if inp.UserInputType == Enum.UserInputType.MouseButton1 then
-			if longPressTimer then
-				task.cancel(longPressTimer)
-				longPressTimer = nil
+		card.InputEnded:Connect(function(inp)
+			if inp.UserInputType == Enum.UserInputType.MouseButton1 then
+				if longPressTimer then task.cancel(longPressTimer); longPressTimer = nil end
+				if tick() - pressStart < 0.4 and longPressOverlay then
+					longPressOverlay:Destroy(); longPressOverlay = nil
+				end
 			end
-			if tick() - pressStart < 0.4 and longPressOverlay then
-				longPressOverlay:Destroy()
-				longPressOverlay = nil
-			end
-		end
-	end)
+		end)
 	end -- isMobile check for keybind block
 
 	card.MouseEnter:Connect(function()
