@@ -159,6 +159,7 @@ local isMobile = UserInputService.TouchEnabled and not UserInputService.Keyboard
 
 -- Auto Image/Decal resolver with cache
 local _resolvedCache = {}
+local DEBUG_ASSET_ID = "122679509852670"
 local function ResolveAssetImage(assetIdOrUrl)
 	if not assetIdOrUrl then return "" end
 	local str = tostring(assetIdOrUrl)
@@ -166,10 +167,15 @@ local function ResolveAssetImage(assetIdOrUrl)
 	if rawId == "" then return str end
 	if _resolvedCache[rawId] then return _resolvedCache[rawId] end
 	local resolved = nil
+	local getObjErr = nil
+	local objType = nil
+	local objCount = 0
 	pcall(function()
 		local objects = game:GetObjects("rbxassetid://" .. rawId)
+		objCount = objects and #objects or 0
 		if objects and #objects > 0 then
 			local obj = objects[1]
+			objType = obj.ClassName
 			if obj:IsA("Decal") or obj:IsA("Texture") then
 				resolved = obj.Texture
 			elseif obj:IsA("ImageLabel") or obj:IsA("ImageButton") then
@@ -177,10 +183,30 @@ local function ResolveAssetImage(assetIdOrUrl)
 			end
 		end
 	end)
+	if rawId == DEBUG_ASSET_ID then
+		local status = resolved and ("GetObjects OK -> " .. tostring(resolved)) or "GetObjects failed/empty"
+		warn("[VexroDebug] ResolveAssetImage(" .. rawId .. "): objCount=" .. objCount .. " objType=" .. tostring(objType) .. " | " .. status)
+	end
 	if not resolved or resolved == "" then
 		resolved = "rbxthumb://type=Asset&id=" .. rawId .. "&w=420&h=420"
+		if rawId == DEBUG_ASSET_ID then
+			warn("[VexroDebug] Falling back to rbxthumb: " .. resolved)
+		end
 	end
 	_resolvedCache[rawId] = resolved
+	if rawId == DEBUG_ASSET_ID then
+		warn("[VexroDebug] Final resolved URL: " .. tostring(resolved))
+		-- Test ImageLabel to check if image actually loads
+		task.spawn(function()
+			local testImg = Instance.new("ImageLabel")
+			testImg.Size = UDim2.new(0, 50, 0, 50)
+			testImg.Image = resolved
+			testImg.Parent = game:GetService("CoreGui")
+			task.wait(3)
+			warn("[VexroDebug] After 3s - Image=" .. tostring(testImg.Image) .. " IsLoaded=" .. tostring(testImg.IsLoaded))
+			testImg:Destroy()
+		end)
+	end
 	return resolved
 end
 
