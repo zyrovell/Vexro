@@ -760,7 +760,10 @@ local Icons = {
 	Search = "rbxassetid://100759629447583",
 	FavoriteEmpty = "rbxassetid://139336655769578",
 	FavoriteFull = "rbxassetid://114412745011584",
-	Stop = "STOP_SHAPE", 
+	Stop = "STOP_SHAPE",
+	Keybind = "rbxassetid://122679509852670",
+	KeybindActive = "rbxassetid://133187471200337",
+	KeybindRemove = "rbxassetid://119388907849573",
 	Settings = "rbxassetid://94488099205692", 
 	Recent = "rbxassetid://89358357551545", 
 	Check = "rbxassetid://71514022902819",
@@ -1479,7 +1482,7 @@ local function CreateTabBtn(icon, tabName, yPos, customScale)
 		img.Position = UDim2.fromScale(0.5, 0.5)
 		img.AnchorPoint = Vector2.new(0.5, 0.5)
 		img.BackgroundTransparency = 1
-		img.Image = ResolveAssetImage(icon)
+		img.Image = icon  -- use rbxassetid:// directly, Roblox resolves natively
 		img.ImageColor3 = currentTheme.text
 		img.ZIndex = 110
 		img.Parent = btn
@@ -1489,7 +1492,7 @@ local function CreateTabBtn(icon, tabName, yPos, customScale)
 		btn.Text = icon
 		RegisterTheme(btn, "TextColor3", "text")
 	end
-	
+
 	btn.MouseEnter:Connect(function()
 		TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundTransparency = 0.4, Size = UDim2.new(0, tabBtnS + 4, 0, tabBtnS + 4)}):Play()
 	end)
@@ -1524,7 +1527,7 @@ CreateTabBtn(Icons.Emote, "emotes", 8)
 CreateTabBtn(Icons.FavoriteFull, "favorites", 8 + tabBtnS + 6)
 CreateTabBtn(Icons.Recent, "recent", 8 + (tabBtnS + 6) * 2)
 CreateTabBtn("rbxassetid://115725480722697", "friends", 8 + (tabBtnS + 6) * 3)
-if not isMobile then CreateTabBtn("rbxassetid://122679509852670", "keybinds", 8 + (tabBtnS + 6) * 4) end
+if not isMobile then CreateTabBtn(Icons.Keybind, "keybinds", 8 + (tabBtnS + 6) * 4) end
 CreateTabBtn(Icons.Settings, "settings", isMobile and 8 + (tabBtnS + 6) * 4 or 8 + (tabBtnS + 6) * 5)
 
 -- ===============================================================
@@ -3349,7 +3352,7 @@ RefreshKeybindsPanel = function()
 		delBtn.Size = UDim2.new(0, 32, 0, 32)
 		delBtn.Position = UDim2.new(1, -40, 0.5, -16)
 		delBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-		delBtn.Image = "rbxassetid://119388907849573"
+		delBtn.Image = Icons.KeybindRemove
 		delBtn.ImageColor3 = Color3.new(1,1,1)
 		delBtn.ZIndex = 7
 		delBtn.Parent = row
@@ -3582,7 +3585,7 @@ local function MakeCard(emote, ci, animate)
 	kbBtn.Position = UDim2.new(1, -30, 0, 4)
 	kbBtn.BackgroundColor3 = currentTheme.secondary
 	kbBtn.BackgroundTransparency = 0.3
-	kbBtn.Image = kbHasBinding and "rbxassetid://133187471200337" or "rbxassetid://122679509852670"
+	kbBtn.Image = kbHasBinding and Icons.KeybindActive or Icons.Keybind
 	kbBtn.ImageColor3 = kbHasBinding and currentTheme.accent or currentTheme.textDim
 	kbBtn.ZIndex = 10
 	kbBtn.Parent = card
@@ -3620,7 +3623,7 @@ local function MakeCard(emote, ci, animate)
 		removeIcon.Position = UDim2.fromScale(0.5, 0.5)
 		removeIcon.AnchorPoint = Vector2.new(0.5, 0.5)
 		removeIcon.BackgroundTransparency = 1
-		removeIcon.Image = "rbxassetid://119388907849573"
+		removeIcon.Image = Icons.KeybindRemove
 		removeIcon.ImageColor3 = Color3.new(1, 1, 1)
 		removeIcon.ZIndex = 16
 		removeIcon.Parent = longPressOverlay
@@ -3628,7 +3631,7 @@ local function MakeCard(emote, ci, animate)
 		removeIcon.MouseButton1Click:Connect(function()
 			RemoveKeybind(emote.id)
 			kbHasBinding = false
-			kbBtn.Image = "rbxassetid://122679509852670"
+			kbBtn.Image = Icons.Keybind
 			kbBtn.ImageColor3 = currentTheme.textDim
 			if longPressOverlay then
 				longPressOverlay:Destroy()
@@ -3900,7 +3903,7 @@ UpdateTabData = function()
 		titleIcon.Visible = true
 	elseif currentTab == "keybinds" then
 		title.Text = L.keybinds
-		titleIcon.Image = ResolveAssetImage("rbxassetid://122679509852670")
+		titleIcon.Image = Icons.Keybind
 		titleIcon.ImageColor3 = currentTheme.accent
 		titleIcon.Visible = true
 	end
