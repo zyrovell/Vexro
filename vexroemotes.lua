@@ -24,9 +24,10 @@ pcall(function()
 	local b = game:GetService("Lighting"):FindFirstChild("VexroGlassBlur")
 	if b then b:Destroy() end
 end)
-if getgenv().VexroEmotesCleanup then
-	pcall(getgenv().VexroEmotesCleanup)
-	getgenv().VexroEmotesCleanup = nil
+local _genv = (type(getgenv) == "function") and getgenv or function() return {} end
+if _genv().VexroEmotesCleanup then
+	pcall(_genv().VexroEmotesCleanup)
+	_genv().VexroEmotesCleanup = nil
 end
 
 local Players = game:GetService("Players")
@@ -1271,8 +1272,8 @@ end
 local function StopEmote(showNotif)
 	StopAllTracks()
 	if showNotif then Notify(L.stopped, "", 113416463749658) end
-	if getgenv().VexroBroadcastStop then
-		pcall(getgenv().VexroBroadcastStop)
+	if _genv().VexroBroadcastStop then
+		pcall(_genv().VexroBroadcastStop)
 	end
 end
 
@@ -1299,7 +1300,7 @@ local function PlayEmote(id, name, silent)
 	StopAllTracks()
 	
 	-- MODIFIED: Save last played emote for Auto-Reload (Continue)
-	getgenv().lastVexroEmote = {id = id, name = name}
+	_genv().lastVexroEmote = {id = id, name = name}
 	
 	-- FIX: Catalog ID'leri direkt LoadAnimation ile çalışmadığı için game:GetObjects ile asıl Animation'ı çekiyoruz.
 	-- Cache kullanarak tekrarlanan çağrılardan kaynaklanan kasılmayı önlüyoruz.
@@ -1350,8 +1351,8 @@ local function PlayEmote(id, name, silent)
 		end
 		lastEmoteTime = tick()
 		-- Arkadaşlara sync gönder
-		if getgenv().VexroBroadcastSync then
-			pcall(getgenv().VexroBroadcastSync, id, name)
+		if _genv().VexroBroadcastSync then
+			pcall(_genv().VexroBroadcastSync, id, name)
 		end
 	else
 		Notify(utf8.char(0x274C), L.emoteLoadFail)
@@ -2259,7 +2260,7 @@ do
 
 	contBtn.MouseButton1Click:Connect(function()
 		Settings.loopEmote = not Settings.loopEmote
-		getgenv().autoReloadEnabled_Vexro = Settings.loopEmote
+		_genv().autoReloadEnabled_Vexro = Settings.loopEmote
 		contBtn.Text = Settings.loopEmote and L.on or L.off
 		TweenService:Create(contBtn, TweenInfo.new(0.2), {
 			BackgroundColor3 = Settings.loopEmote and currentTheme.success or currentTheme.critical
@@ -2376,8 +2377,8 @@ do
 		SaveData()
 		gui:Destroy()
 		pcall(function()
-			if getgenv and getgenv().lastVexroEmote then
-				getgenv().lastVexroEmote = nil
+			if _genv().lastVexroEmote then
+				_genv().lastVexroEmote = nil
 			end
 		end)
 		loadstring(game:HttpGet("https://raw.githubusercontent.com/zyrovell/Vexro/main/vexroemotes.lua"))()
@@ -2506,13 +2507,13 @@ local function _SaveFriend()
 			playFriendEmote = FriendData.playFriendEmote,
 			syncEmote      = FriendData.syncEmote,
 		})
-		getgenv().VexroFriendSave = enc
+		_genv().VexroFriendSave = enc
 	end)
 end
 
 local function _LoadFriend()
 	pcall(function()
-		local raw = getgenv().VexroFriendSave
+		local raw = _genv().VexroFriendSave
 		if not raw then return end
 		local ok, d = pcall(HttpService.JSONDecode, HttpService, raw)
 		if not ok then return end
@@ -2873,7 +2874,7 @@ end
 
 
 -- Emote sync broadcast (PlayEmote sonrası çağrılır)
-getgenv().VexroBroadcastSync = function(emoteId, emoteName)
+_genv().VexroBroadcastSync = function(emoteId, emoteName)
 	if not FriendData.syncEmote then return end
 	local hasSyncFriend = false
 	for _, fd in pairs(FriendData.friends) do
@@ -2883,7 +2884,7 @@ getgenv().VexroBroadcastSync = function(emoteId, emoteName)
 	_MyAttr(ATTR_SYNC, tostring(emoteId) .. "|" .. tostring(emoteName))
 end
 
-getgenv().VexroBroadcastStop = function()
+_genv().VexroBroadcastStop = function()
 	_MyAttr(ATTR_STOP, tostring(tick()))
 	FriendData.currentSyncPartner = nil
 end
@@ -3106,14 +3107,14 @@ do
 end
 
 -- Cleanup kaydı güncelle
-local _prevClean = getgenv().VexroEmotesCleanup
-getgenv().VexroEmotesCleanup = function()
+local _prevClean = _genv().VexroEmotesCleanup
+_genv().VexroEmotesCleanup = function()
 	if _prevClean then pcall(_prevClean) end
 	for _, c in ipairs(_friendConns) do pcall(function() c:Disconnect() end) end
 	_friendConns = {}
 	_SetAddMode(false)
-	pcall(function() getgenv().VexroBroadcastSync = nil end)
-	pcall(function() getgenv().VexroBroadcastStop = nil end)
+	pcall(function() _genv().VexroBroadcastSync = nil end)
+	pcall(function() _genv().VexroBroadcastStop = nil end)
 end
 
 end -- arkadaş sistemi do...end sonu
@@ -4191,13 +4192,13 @@ local function _CleanupScript()
 	pcall(function() _charAddedConn:Disconnect() end)
 	pcall(function() DisableCopyEmotePrompts() end)
 	pcall(function() StopHUDTracking() end)
-	getgenv().VexroEmotesCleanup = nil
-	getgenv().lastVexroEmote = nil
-	getgenv().autoReloadEnabled_Vexro = nil
+	_genv().VexroEmotesCleanup = nil
+	_genv().lastVexroEmote = nil
+	_genv().autoReloadEnabled_Vexro = nil
 	pcall(function() gui:Destroy() end)
 end
 
-getgenv().VexroEmotesCleanup = _CleanupScript
+_genv().VexroEmotesCleanup = _CleanupScript
 
 closeBtn.MouseButton1Click:Connect(function()
 	TweenService:Create(main, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1, Rotation = -30}):Play()
@@ -4296,7 +4297,7 @@ end -- drag scope
 -- ===============================================================
 
 -- Enable auto reload before listener registration
-getgenv().autoReloadEnabled_Vexro = Settings.loopEmote
+_genv().autoReloadEnabled_Vexro = Settings.loopEmote
 
 local _charAddedConn = player.CharacterAdded:Connect(function(newChar)
 	local newHum = newChar:WaitForChild("Humanoid", 5)
@@ -4311,9 +4312,9 @@ local _charAddedConn = player.CharacterAdded:Connect(function(newChar)
 	end
 	
 	-- Auto-reload last emote after respawn
-	if getgenv().lastVexroEmote and getgenv().autoReloadEnabled_Vexro then
+	if _genv().lastVexroEmote and _genv().autoReloadEnabled_Vexro then
 		task.wait(1)
-		PlayEmote(getgenv().lastVexroEmote.id, getgenv().lastVexroEmote.name, true)
+		PlayEmote(_genv().lastVexroEmote.id, _genv().lastVexroEmote.name, true)
 		Notify("[R]", L.ready or "Emote reapplied")
 	end
 end)
@@ -4434,7 +4435,7 @@ local function PlayComboStep(emoteId, emoteName)
 		end)
 
 		currentAnimTrack = track
-		getgenv().lastVexroEmote = {id = emoteId, name = emoteName}
+		_genv().lastVexroEmote = {id = emoteId, name = emoteName}
 		AddToRecent(emoteId)
 
 		-- HUD'u göster (defer: ShowEmoteHUD aşağıda tanımlanır)
