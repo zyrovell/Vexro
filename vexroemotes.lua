@@ -160,69 +160,6 @@ local isMobile = UserInputService.TouchEnabled and not UserInputService.Keyboard
 
 -- Auto Image/Decal resolver with cache
 local _resolvedCache = {}
-local DEBUG_ASSET_ID = "122679509852670"
-local _debugLines = {}
-local _debugGui = nil
-local _debugLabel = nil
-local _safeWarn = (type(warn) == "function") and warn or print
-local function _dbg(msg)
-	pcall(function()
-		table.insert(_debugLines, msg)
-		if #_debugLines > 12 then table.remove(_debugLines, 1) end
-		if _debugLabel and _debugLabel.Parent then
-			_debugLabel.Text = table.concat(_debugLines, "\n")
-		end
-		_safeWarn("[VexroDebug] " .. tostring(msg))
-	end)
-end
-local function _initDebugGui()
-	pcall(function()
-		local cg = game:GetService("CoreGui")
-		local old = cg:FindFirstChild("VexroDebugGui")
-		if old then old:Destroy() end
-		local sg = Instance.new("ScreenGui")
-		sg.Name = "VexroDebugGui"
-		sg.ResetOnSpawn = false
-		sg.Parent = cg
-		local bg = Instance.new("Frame")
-		bg.Size = UDim2.new(0, 520, 0, 220)
-		bg.Position = UDim2.new(0, 10, 0, 10)
-		bg.BackgroundColor3 = Color3.new(0, 0, 0)
-		bg.BackgroundTransparency = 0.35
-		bg.BorderSizePixel = 0
-		bg.ZIndex = 999
-		bg.Parent = sg
-		Instance.new("UICorner", bg).CornerRadius = UDim.new(0, 8)
-		local lbl = Instance.new("TextLabel")
-		lbl.Size = UDim2.new(1, -10, 1, -10)
-		lbl.Position = UDim2.new(0, 5, 0, 5)
-		lbl.BackgroundTransparency = 1
-		lbl.TextColor3 = Color3.new(1, 1, 0)
-		lbl.Font = Enum.Font.Code
-		lbl.TextSize = 11
-		lbl.TextXAlignment = Enum.TextXAlignment.Left
-		lbl.TextYAlignment = Enum.TextYAlignment.Top
-		lbl.TextWrapped = true
-		lbl.ZIndex = 1000
-		lbl.Text = "[VexroDebug] baslatildi..."
-		lbl.Parent = bg
-		local closeBtn = Instance.new("TextButton")
-		closeBtn.Size = UDim2.new(0, 24, 0, 24)
-		closeBtn.Position = UDim2.new(1, -28, 0, 4)
-		closeBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-		closeBtn.Text = "X"
-		closeBtn.TextColor3 = Color3.new(1,1,1)
-		closeBtn.Font = Enum.Font.GothamBold
-		closeBtn.TextSize = 12
-		closeBtn.ZIndex = 1001
-		closeBtn.Parent = bg
-		Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(1,0)
-		closeBtn.MouseButton1Click:Connect(function() pcall(function() sg:Destroy() end) end)
-		_debugGui = sg
-		_debugLabel = lbl
-	end)
-end
-
 local function ResolveAssetImage(assetIdOrUrl)
 	if not assetIdOrUrl then return "" end
 	local str = tostring(assetIdOrUrl)
@@ -230,14 +167,10 @@ local function ResolveAssetImage(assetIdOrUrl)
 	if rawId == "" then return str end
 	if _resolvedCache[rawId] then return _resolvedCache[rawId] end
 	local resolved = nil
-	local objType = nil
-	local objCount = 0
-	local ok, err = pcall(function()
+	pcall(function()
 		local objects = game:GetObjects("rbxassetid://" .. rawId)
-		objCount = objects and #objects or 0
 		if objects and #objects > 0 then
 			local obj = objects[1]
-			objType = obj.ClassName
 			if obj:IsA("Decal") or obj:IsA("Texture") then
 				resolved = obj.Texture
 			elseif obj:IsA("ImageLabel") or obj:IsA("ImageButton") then
@@ -245,44 +178,12 @@ local function ResolveAssetImage(assetIdOrUrl)
 			end
 		end
 	end)
-	if rawId == DEBUG_ASSET_ID then
-		if not ok then
-			_dbg("GetObjects ERR: " .. tostring(err))
-		else
-			_dbg("GetObjects ok | count=" .. objCount .. " type=" .. tostring(objType) .. " resolved=" .. tostring(resolved))
-		end
-	end
 	if not resolved or resolved == "" then
 		resolved = "rbxthumb://type=Asset&id=" .. rawId .. "&w=420&h=420"
-		if rawId == DEBUG_ASSET_ID then
-			_dbg("Fallback -> rbxthumb URL")
-		end
 	end
 	_resolvedCache[rawId] = resolved
-	if rawId == DEBUG_ASSET_ID then
-		_dbg("Final URL: " .. tostring(resolved))
-		pcall(function()
-			task.spawn(function()
-				pcall(function()
-					task.wait(4)
-					local testImg = Instance.new("ImageLabel")
-					testImg.Size = UDim2.new(0, 64, 0, 64)
-					testImg.Position = UDim2.new(0, 10, 0, 230)
-					testImg.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-					testImg.Image = resolved
-					testImg.ZIndex = 1000
-					testImg.Parent = (_debugGui and _debugGui.Parent) or game:GetService("CoreGui")
-					task.wait(4)
-					_dbg("IsLoaded=" .. tostring(testImg.IsLoaded) .. " Image=" .. tostring(testImg.Image):sub(1,60))
-					task.wait(3)
-					testImg:Destroy()
-				end)
-			end)
-		end)
-	end
 	return resolved
 end
-pcall(_initDebugGui)
 
 local logo = [[
 
@@ -3467,7 +3368,7 @@ RefreshKeybindsPanel = function()
 		customName.Parent = row
 		-- Delete button
 		local delBtn = Instance.new("ImageButton")
-		delBtn.Size = UDim2.new(0, 32, 0, 32)
+		delBtn.Size = UDim2.new(0, 42, 0, 42)
 		delBtn.Position = UDim2.new(1, -40, 0.5, -16)
 		delBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
 		delBtn.Image = ResolveAssetImage(Icons.KeybindRemove)
@@ -3710,7 +3611,7 @@ local function MakeCard(emote, ci, animate)
 		Instance.new("UICorner", kbBtn).CornerRadius = UDim.new(0, 4)
 
 		local kbIcon = Instance.new("ImageLabel")
-		kbIcon.Size = UDim2.new(0.6, 0, 0.6, 0)
+		kbIcon.Size = UDim2.new(0.85, 0, 0.85, 0)
 		kbIcon.Position = UDim2.fromScale(0.5, 0.5)
 		kbIcon.AnchorPoint = Vector2.new(0.5, 0.5)
 		kbIcon.BackgroundTransparency = 1
@@ -3762,7 +3663,7 @@ local function MakeCard(emote, ci, animate)
 				Position = UDim2.new(0, 0, 0, 0)
 			}):Play()
 			local removeIcon = Instance.new("ImageButton")
-			removeIcon.Size = UDim2.new(0, 32, 0, 32)
+			removeIcon.Size = UDim2.new(0, 42, 0, 42)
 			removeIcon.Position = UDim2.fromScale(0.5, 0.5)
 			removeIcon.AnchorPoint = Vector2.new(0.5, 0.5)
 			removeIcon.BackgroundTransparency = 1
