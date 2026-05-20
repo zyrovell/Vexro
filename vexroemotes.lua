@@ -203,14 +203,14 @@ print(logo)
 
 local Themes = {
 	Dark = {
-		primary = Color3.fromRGB(12, 12, 16),
-		secondary = Color3.fromRGB(18, 18, 24),
-		tertiary = Color3.fromRGB(26, 26, 34),
-		sidebar = Color3.fromRGB(10, 10, 14),
-		accent = Color3.fromRGB(180, 180, 180),
+		primary = Color3.fromRGB(0, 0, 0),
+		secondary = Color3.fromRGB(6, 6, 8),
+		tertiary = Color3.fromRGB(12, 12, 16),
+		sidebar = Color3.fromRGB(0, 0, 0),
+		accent = Color3.fromRGB(200, 200, 220),
 		text = Color3.new(1, 1, 1),
-		textDim = Color3.fromRGB(150, 150, 160),
-		stroke = Color3.fromRGB(60, 60, 80),
+		textDim = Color3.fromRGB(140, 140, 155),
+		stroke = Color3.fromRGB(40, 40, 55),
 		critical = Color3.fromRGB(220, 60, 60),
 		success = Color3.fromRGB(80, 200, 100)
 	},
@@ -319,6 +319,7 @@ local themeElements = {}
 local mainStrokeGrad, miniIconGrad -- Forward declaration for the theme system
 local UpdateTabStyles
 local UpdateTabData
+local _updateTitleGrad  -- forward declared; assigned after title label is created
 
 local function RegisterTheme(el, prop, key)
 	if el then themeElements[#themeElements + 1] = {el = el, prop = prop, key = key} end
@@ -457,6 +458,7 @@ local function ApplyTheme(name)
 		}
 	end
 
+	if _updateTitleGrad then pcall(_updateTitleGrad) end
 	if UpdateTabStyles then UpdateTabStyles() end
 end
 
@@ -1532,17 +1534,7 @@ CreateTabBtn(Icons.FavoriteFull, "favorites", 8 + tabBtnS + 6)
 CreateTabBtn(Icons.Recent, "recent", 8 + (tabBtnS + 6) * 2)
 CreateTabBtn("rbxassetid://115725480722697", "friends", 8 + (tabBtnS + 6) * 3)
 if not isMobile then
-	CreateTabBtn("", "keybinds", 8 + (tabBtnS + 6) * 4)
-	local kbTabImg = Instance.new("ImageLabel")
-	kbTabImg.Size = UDim2.fromScale(0.75, 0.75)
-	kbTabImg.Position = UDim2.fromScale(0.5, 0.5)
-	kbTabImg.AnchorPoint = Vector2.new(0.5, 0.5)
-	kbTabImg.BackgroundTransparency = 1
-	kbTabImg.Image = ResolveAssetImage("rbxassetid://122679509852670")
-	kbTabImg.ImageColor3 = currentTheme.text
-	kbTabImg.ZIndex = 110
-	kbTabImg.Parent = tabBtns["keybinds"].btn
-	RegisterTheme(kbTabImg, "ImageColor3", "text")
+	CreateTabBtn(Icons.Keybind, "keybinds", 8 + (tabBtnS + 6) * 4)
 end
 CreateTabBtn(Icons.Settings, "settings", isMobile and 8 + (tabBtnS + 6) * 4 or 8 + (tabBtnS + 6) * 5)
 
@@ -1598,6 +1590,22 @@ title.ZIndex = 5
 title.Parent = titleBar
 Instance.new("UITextSizeConstraint", title).MaxTextSize = isMobile and 16 or 20
 RegisterTheme(title, "TextColor3", "text")
+
+local titleGrad = Instance.new("UIGradient")
+_updateTitleGrad = function()
+	local a = currentTheme.accent
+	titleGrad.Color = ColorSequence.new{
+		ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(
+			math.clamp(math.floor(a.R * 255 * 0.85), 180, 255),
+			math.clamp(math.floor(a.G * 255 * 0.85), 180, 255),
+			math.clamp(math.floor(a.B * 255 * 0.85), 180, 255)
+		))
+	}
+end
+_updateTitleGrad()
+titleGrad.Rotation = 0
+titleGrad.Parent = title
 
 local btnS = math.floor((isMobile and 28 or 36) * BUTTON_SCALE)
 
@@ -2149,7 +2157,7 @@ do
 end -- notif row scope
 
 do
-	local contRow = MakeSettingRow("105648271243690", L.loopText or "Loop", 4)
+	local contRow = MakeSettingRow("103179694587186", L.loopText or "Loop", 4)
 	local contBtn = Instance.new("TextButton")
 	contBtn.Size = UDim2.new(0.4, 0, 0, 36)
 	contBtn.Position = UDim2.new(0.56, 0, 0.5, -18)
@@ -3611,7 +3619,7 @@ local function MakeCard(emote, ci, animate)
 		Instance.new("UICorner", kbBtn).CornerRadius = UDim.new(0, 4)
 
 		local kbIcon = Instance.new("ImageLabel")
-		kbIcon.Size = UDim2.new(0.85, 0, 0.85, 0)
+		kbIcon.Size = UDim2.new(0.95, 0, 0.95, 0)
 		kbIcon.Position = UDim2.fromScale(0.5, 0.5)
 		kbIcon.AnchorPoint = Vector2.new(0.5, 0.5)
 		kbIcon.BackgroundTransparency = 1
@@ -3906,7 +3914,7 @@ UpdateTabData = function()
 		filtered = currentData
 		title.Text = L.favorites
 		titleIcon.Image = ResolveAssetImage(Icons.FavoriteFull)
-		titleIcon.ImageColor3 = currentTheme.text
+		titleIcon.ImageColor3 = currentTheme.accent
 		titleIcon.Visible = true
 
 	elseif currentTab == "recent" then
@@ -3920,12 +3928,12 @@ UpdateTabData = function()
 		filtered = currentData
 		title.Text = L.recent
 		titleIcon.Image = ResolveAssetImage(Icons.Recent)
-		titleIcon.ImageColor3 = currentTheme.text
+		titleIcon.ImageColor3 = currentTheme.accent
 		titleIcon.Visible = true
 	elseif currentTab == "settings" then
 		title.Text = L.settings
 		titleIcon.Image = ResolveAssetImage(Icons.Settings)
-		titleIcon.ImageColor3 = currentTheme.text
+		titleIcon.ImageColor3 = currentTheme.accent
 		titleIcon.Visible = true
 	elseif currentTab == "friends" then
 		title.Text = L.friendTab or "Arkadaşlar"
