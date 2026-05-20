@@ -882,10 +882,14 @@ if not hum or hum.RigType == Enum.HumanoidRigType.R6 then
 	return
 end
 
+-- Emotes must be declared at top scope (used by later code)
+local Emotes = {}
+
 -- ===============================================================
 -- SPLASH SCREEN
 -- ===============================================================
 
+do
 local _splashTheme = Themes[Settings.theme] or Themes.Dark
 local _splashPrimary = _splashTheme.primary
 local _splashAccent  = _splashTheme.accent
@@ -1099,8 +1103,6 @@ TweenService:Create(splashBox, TweenInfo.new(0.7, Enum.EasingStyle.Back), {Size 
 -- EMOTE LOADING
 -- ===============================================================
 
-local Emotes = {}
-
 TweenService:Create(loadingBar, TweenInfo.new(0.5), {Size = UDim2.new(0.3, 0, 1, 0)}):Play()
 task.wait(0.3)
 
@@ -1159,6 +1161,7 @@ TweenService:Create(splashBox, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.Ea
 task.wait(0.5)
 pcall(function() splashBlur:Destroy() end)
 splash:Destroy()
+end -- SPLASH SCREEN scope
 
 -- ===============================================================
 -- UI SIZE SETTINGS
