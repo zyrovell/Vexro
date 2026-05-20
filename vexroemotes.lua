@@ -2895,6 +2895,8 @@ friendAddBtn.Parent = friendsPanel
 Instance.new("UICorner", friendAddBtn).CornerRadius = UDim.new(0, 10)
 RegisterTheme(friendAddBtn, "BackgroundColor3", "accent")
 
+friendAddModeBtn = friendAddBtn
+
 friendAddBtn.MouseButton1Click:Connect(function()
 	_SetAddMode(not FriendData.addModeActive)
 	TweenService:Create(friendAddBtn, TweenInfo.new(0.2), {
@@ -3019,6 +3021,7 @@ RefreshFriendList = function()
 		end)
 	end
 	emptyFriendLbl.Visible = not hasAny
+	flHeader.Visible = hasAny
 end
 RefreshFriendList()
 
@@ -3142,7 +3145,7 @@ local function UpdatePageUI()
 		for _, c in ipairs(nextBtn.ChevronIcon:GetChildren()) do c.BackgroundColor3 = Color3.new(0, 0, 0) end
 	end
 	
-	pageBar.Visible = currentTab ~= "settings" and pages > 1
+	pageBar.Visible = currentTab ~= "settings" and currentTab ~= "friends" and currentTab ~= "keybinds" and pages > 1
 	
 	local empty = #filtered == 0 and currentTab ~= "settings"
 	emptyLbl.Visible = empty
@@ -3980,7 +3983,7 @@ UpdateTabData = function()
 	title.Position = UDim2.new(0, titleIcon.Visible and (10 + tabIconSz + 6) or 10, 0, 0)
 	
 	UpdateTabStyles()
-	if not isSettings and not isKeybinds then Refresh(true) end
+	if not isSettings and not isKeybinds and not isFriends then Refresh(true) end
 end
 
 tabBtns["emotes"].btn.MouseButton1Click:Connect(function() currentTab = "emotes"; UpdateTabData() end)
