@@ -163,21 +163,25 @@ local DEBUG_ASSET_ID = "122679509852670"
 local _debugLines = {}
 local _debugGui = nil
 local _debugLabel = nil
+local _safeWarn = (type(warn) == "function") and warn or print
 local function _dbg(msg)
-	table.insert(_debugLines, msg)
-	if #_debugLines > 12 then table.remove(_debugLines, 1) end
-	if _debugLabel then
-		_debugLabel.Text = table.concat(_debugLines, "\n")
-	end
-	warn("[VexroDebug] " .. msg)
+	pcall(function()
+		table.insert(_debugLines, msg)
+		if #_debugLines > 12 then table.remove(_debugLines, 1) end
+		if _debugLabel and _debugLabel.Parent then
+			_debugLabel.Text = table.concat(_debugLines, "\n")
+		end
+		_safeWarn("[VexroDebug] " .. tostring(msg))
+	end)
 end
 local function _initDebugGui()
 	pcall(function()
 		local cg = game:GetService("CoreGui")
+		local old = cg:FindFirstChild("VexroDebugGui")
+		if old then old:Destroy() end
 		local sg = Instance.new("ScreenGui")
 		sg.Name = "VexroDebugGui"
 		sg.ResetOnSpawn = false
-		sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 		sg.Parent = cg
 		local bg = Instance.new("Frame")
 		bg.Size = UDim2.new(0, 520, 0, 220)
@@ -199,7 +203,7 @@ local function _initDebugGui()
 		lbl.TextYAlignment = Enum.TextYAlignment.Top
 		lbl.TextWrapped = true
 		lbl.ZIndex = 1000
-		lbl.Text = "[VexroDebug] başlatıldı..."
+		lbl.Text = "[VexroDebug] baslatildi..."
 		lbl.Parent = bg
 		local closeBtn = Instance.new("TextButton")
 		closeBtn.Size = UDim2.new(0, 24, 0, 24)
@@ -212,7 +216,7 @@ local function _initDebugGui()
 		closeBtn.ZIndex = 1001
 		closeBtn.Parent = bg
 		Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(1,0)
-		closeBtn.MouseButton1Click:Connect(function() sg:Destroy() end)
+		closeBtn.MouseButton1Click:Connect(function() pcall(function() sg:Destroy() end) end)
 		_debugGui = sg
 		_debugLabel = lbl
 	end)
@@ -256,24 +260,28 @@ local function ResolveAssetImage(assetIdOrUrl)
 	_resolvedCache[rawId] = resolved
 	if rawId == DEBUG_ASSET_ID then
 		_dbg("Final URL: " .. tostring(resolved))
-		task.spawn(function()
-			task.wait(4)
-			local testImg = Instance.new("ImageLabel")
-			testImg.Size = UDim2.new(0, 64, 0, 64)
-			testImg.Position = UDim2.new(0, 10, 0, 230)
-			testImg.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-			testImg.Image = resolved
-			testImg.ZIndex = 1000
-			pcall(function() testImg.Parent = _debugGui and _debugGui.Parent or game:GetService("CoreGui") end)
-			task.wait(4)
-			_dbg("IsLoaded=" .. tostring(testImg.IsLoaded) .. " Image=" .. tostring(testImg.Image):sub(1, 60))
-			task.wait(3)
-			testImg:Destroy()
+		pcall(function()
+			task.spawn(function()
+				pcall(function()
+					task.wait(4)
+					local testImg = Instance.new("ImageLabel")
+					testImg.Size = UDim2.new(0, 64, 0, 64)
+					testImg.Position = UDim2.new(0, 10, 0, 230)
+					testImg.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+					testImg.Image = resolved
+					testImg.ZIndex = 1000
+					testImg.Parent = (_debugGui and _debugGui.Parent) or game:GetService("CoreGui")
+					task.wait(4)
+					_dbg("IsLoaded=" .. tostring(testImg.IsLoaded) .. " Image=" .. tostring(testImg.Image):sub(1,60))
+					task.wait(3)
+					testImg:Destroy()
+				end)
+			end)
 		end)
 	end
 	return resolved
 end
-_initDebugGui()
+pcall(_initDebugGui)
 
 local logo = [[
 
