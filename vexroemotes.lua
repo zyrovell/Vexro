@@ -178,7 +178,7 @@ local function ResolveAssetImage(assetIdOrUrl)
 		end
 	end)
 	if not resolved or resolved == "" then
-		resolved = "rbxassetid://" .. rawId
+		resolved = "rbxthumb://type=Asset&id=" .. rawId .. "&w=420&h=420"
 	end
 	_resolvedCache[rawId] = resolved
 	return resolved
@@ -1527,7 +1527,7 @@ CreateTabBtn(Icons.Emote, "emotes", 8)
 CreateTabBtn(Icons.FavoriteFull, "favorites", 8 + tabBtnS + 6)
 CreateTabBtn(Icons.Recent, "recent", 8 + (tabBtnS + 6) * 2)
 CreateTabBtn("rbxassetid://115725480722697", "friends", 8 + (tabBtnS + 6) * 3)
-if not isMobile then CreateTabBtn(Icons.Keybind, "keybinds", 8 + (tabBtnS + 6) * 4, nil, Icons.Keybind) end
+if not isMobile then CreateTabBtn(utf8.char(0x2328), "keybinds", 8 + (tabBtnS + 6) * 4) end
 CreateTabBtn(Icons.Settings, "settings", isMobile and 8 + (tabBtnS + 6) * 4 or 8 + (tabBtnS + 6) * 5)
 
 -- ===============================================================
