@@ -722,6 +722,15 @@ local L = {
 	reject           = isTR and "Reddet"                           or (isES and "Rechazar"                or (isAR and "رفض"                   or (isFR and "Refuser"               or (isHI and "अस्वीकार करें"              or (isPT and "Rejeitar"               or (isRU and "Отклонить"              or "Reject")))))),
 	friendAlreadySyncing = isTR and "Hata! Oyuncu zaten başka birisiyle beraber emote oynuyor." or (isES and "Error! El jugador ya está sincronizado con otro." or (isAR and "خطأ! اللاعب يلعب مع شخص آخر." or (isFR and "Erreur! Le joueur est déjà synchronisé avec quelqu'un d'autre." or (isHI and "त्रुटि! खिलाड़ी पहले से किसी और के साथ खेल रहा है।" or (isPT and "Erro! O jogador já está sincronizado com outro." or (isRU and "Ошибка! Игрок уже играет с другим." or "Error! Player is already syncing with someone else.")))))),
 	showHUDDesc      = isTR and "Emote oynarken altta oynatma barı görünsün" or (isES and "Muestra la barra de control al reproducir emotes" or (isAR and "يظهر شريط التحكم أسفل الشاشة أثناء تشغيل الحركة" or (isFR and "Affiche la barre de controle en bas lors de la lecture" or (isHI and "इमोट चलाते समय नीचे प्लेबार दिखाता है" or (isPT and "Exibe a barra de controle na parte inferior ao reproduzir" or (isRU and "Показывает панель управления внизу при воспроизведении" or "Shows the playback control bar while emote plays")))))),
+	keybinds         = isTR and "Keybindler"           or (isES and "Teclas"               or (isAR and "اختصارات"             or (isFR and "Raccourcis"           or (isHI and "कीबाइंड"              or (isPT and "Teclas"               or (isRU and "Горячие клавиши"     or "Keybinds")))))),
+	newKeybind       = isTR and "Yeni Keybind Oluştur" or (isES and "Crear Nuevo Keybind"  or (isAR and "إنشاء اختصار جديد"    or (isFR and "Nouveau Raccourci"     or (isHI and "नया कीबाइंड बनाएं"   or (isPT and "Novo Keybind"         or (isRU and "Новая клавиша"        or "New Keybind")))))),
+	editKeybind      = isTR and "Keybind Değiştir"     or (isES and "Cambiar Keybind"      or (isAR and "تغيير الاختصار"        or (isFR and "Modifier Raccourci"    or (isHI and "कीबाइंड बदलें"       or (isPT and "Alterar Keybind"      or (isRU and "Изменить клавишу"     or "Edit Keybind")))))),
+	kbName           = isTR and "İsim"                 or (isES and "Nombre"               or (isAR and "الاسم"                 or (isFR and "Nom"                   or (isHI and "नाम"                  or (isPT and "Nome"                 or (isRU and "Название"            or "Name")))))),
+	kbAssign         = isTR and "Atama"                or (isES and "Asignación"           or (isAR and "التعيين"               or (isFR and "Attribution"           or (isHI and "असाइन करें"           or (isPT and "Atribuição"           or (isRU and "Назначение"          or "Assign")))))),
+	kbRecording      = isTR and "Tuşa Bas"             or (isES and "Presiona Tecla"       or (isAR and "اضغط مفتاحاً"          or (isFR and "Appuyez sur Touche"    or (isHI and "कुंजी दबाएं"          or (isPT and "Pressione Tecla"      or (isRU and "Нажмите клавишу"     or "Press Key")))))),
+	kbCancel         = isTR and "İptal"                or (isES and "Cancelar"             or (isAR and "إلغاء"                 or (isFR and "Annuler"               or (isHI and "रद्द करें"             or (isPT and "Cancelar"             or (isRU and "Отмена"              or "Cancel")))))),
+	kbSave           = isTR and "Kaydet"               or (isES and "Guardar"              or (isAR and "حفظ"                   or (isFR and "Enregistrer"           or (isHI and "सहेजें"               or (isPT and "Salvar"               or (isRU and "Сохранить"           or "Save")))))),
+	kbEmpty          = isTR and "Henüz keybind yok"    or (isES and "Sin keybinds aún"     or (isAR and "لا توجد اختصارات بعد"  or (isFR and "Aucun raccourci"        or (isHI and "कोई कीबाइंड नहीं"    or (isPT and "Nenhum keybind ainda" or (isRU and "Нет горячих клавиш"  or "No keybinds yet")))))),
 }
 
 local Icons = {
@@ -3116,7 +3125,7 @@ local function ShowKeybindDialog(emoteId, emote, isEdit)
 	titleLbl.Size = UDim2.new(1, -16, 0, 36)
 	titleLbl.Position = UDim2.new(0, 8, 0, 8)
 	titleLbl.BackgroundTransparency = 1
-	titleLbl.Text = isEdit and "Keybind Değiştir" or "Yeni Keybind Oluştur"
+	titleLbl.Text = isEdit and L.editKeybind or L.newKeybind
 	titleLbl.TextColor3 = currentTheme.text
 	titleLbl.Font = Enum.Font.GothamBold
 	titleLbl.TextSize = 16
@@ -3128,7 +3137,7 @@ local function ShowKeybindDialog(emoteId, emote, isEdit)
 	nameLblTitle.Size = UDim2.new(0, 60, 0, 24)
 	nameLblTitle.Position = UDim2.new(0, 12, 0, 52)
 	nameLblTitle.BackgroundTransparency = 1
-	nameLblTitle.Text = "İsim"
+	nameLblTitle.Text = L.kbName
 	nameLblTitle.TextColor3 = currentTheme.textDim
 	nameLblTitle.Font = Enum.Font.GothamBold
 	nameLblTitle.TextSize = 13
@@ -3160,7 +3169,7 @@ local function ShowKeybindDialog(emoteId, emote, isEdit)
 	atamaLbl.Size = UDim2.new(0, 80, 0, 24)
 	atamaLbl.Position = UDim2.new(0, 12, 0, 122)
 	atamaLbl.BackgroundTransparency = 1
-	atamaLbl.Text = "Atama"
+	atamaLbl.Text = L.kbAssign
 	atamaLbl.TextColor3 = currentTheme.textDim
 	atamaLbl.Font = Enum.Font.GothamBold
 	atamaLbl.TextSize = 13
@@ -3177,7 +3186,7 @@ local function ShowKeybindDialog(emoteId, emote, isEdit)
 	keyBtn.Size = UDim2.new(1, -24, 0, 36)
 	keyBtn.Position = UDim2.new(0, 12, 0, 148)
 	keyBtn.BackgroundColor3 = currentTheme.tertiary
-	keyBtn.Text = recordedKey and ("[" .. recordedKey .. "]") or "Key Recording"
+	keyBtn.Text = recordedKey and ("[" .. recordedKey .. "]") or L.kbRecording
 	keyBtn.TextColor3 = recordedKey and currentTheme.accent or currentTheme.textDim
 	keyBtn.Font = Enum.Font.GothamBold
 	keyBtn.TextSize = 13
@@ -3215,7 +3224,7 @@ local function ShowKeybindDialog(emoteId, emote, isEdit)
 	cancelBtn.Size = UDim2.new(0.45, -6, 0, 38)
 	cancelBtn.Position = UDim2.new(0, 12, 0, 208)
 	cancelBtn.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
-	cancelBtn.Text = "İptal"
+	cancelBtn.Text = L.kbCancel
 	cancelBtn.TextColor3 = Color3.new(1, 1, 1)
 	cancelBtn.Font = Enum.Font.GothamBold
 	cancelBtn.TextSize = 14
@@ -3228,7 +3237,7 @@ local function ShowKeybindDialog(emoteId, emote, isEdit)
 	saveBtn.Size = UDim2.new(0.55, -18, 0, 38)
 	saveBtn.Position = UDim2.new(0.45, 6, 0, 208)
 	saveBtn.BackgroundColor3 = Color3.fromRGB(40, 160, 80)
-	saveBtn.Text = "Kaydet"
+	saveBtn.Text = L.kbSave
 	saveBtn.TextColor3 = Color3.new(1, 1, 1)
 	saveBtn.Font = Enum.Font.GothamBold
 	saveBtn.TextSize = 14
@@ -3337,7 +3346,7 @@ RefreshKeybindsPanel = function()
 		local emptyLbl2 = Instance.new("TextLabel")
 		emptyLbl2.Size = UDim2.new(1, 0, 0, 60)
 		emptyLbl2.BackgroundTransparency = 1
-		emptyLbl2.Text = "Henüz keybind yok"
+		emptyLbl2.Text = L.kbEmpty
 		emptyLbl2.TextColor3 = currentTheme.textDim
 		emptyLbl2.Font = Enum.Font.Gotham
 		emptyLbl2.TextSize = 14
@@ -3870,7 +3879,7 @@ UpdateTabData = function()
 		titleIcon.ImageColor3 = currentTheme.accent
 		titleIcon.Visible = true
 	elseif currentTab == "keybinds" then
-		title.Text = "Keybinds"
+		title.Text = L.keybinds
 		titleIcon.Image = ResolveAssetImage("rbxassetid://122679509852670")
 		titleIcon.ImageColor3 = currentTheme.accent
 		titleIcon.Visible = true
