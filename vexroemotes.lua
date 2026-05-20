@@ -1523,8 +1523,8 @@ CreateTabBtn(Icons.Emote, "emotes", 8)
 CreateTabBtn(Icons.FavoriteFull, "favorites", 8 + tabBtnS + 6)
 CreateTabBtn(Icons.Recent, "recent", 8 + (tabBtnS + 6) * 2)
 CreateTabBtn("rbxassetid://115725480722697", "friends", 8 + (tabBtnS + 6) * 3)
-CreateTabBtn("rbxassetid://122679509852670", "keybinds", 8 + (tabBtnS + 6) * 4)
-CreateTabBtn(Icons.Settings, "settings", 8 + (tabBtnS + 6) * 5)
+if not isMobile then CreateTabBtn("rbxassetid://122679509852670", "keybinds", 8 + (tabBtnS + 6) * 4) end
+CreateTabBtn(Icons.Settings, "settings", isMobile and 8 + (tabBtnS + 6) * 4 or 8 + (tabBtnS + 6) * 5)
 
 -- ===============================================================
 -- CONTENT
@@ -3572,11 +3572,13 @@ local function MakeCard(emote, ci, animate)
 		end
 	end)
 
-	-- Keybind button (top-right corner of card image)
+	-- Keybind button (top-right corner of card image) -- PC only
 	local kbHasBinding = GetKeybind(emote.id) ~= nil
+	if not isMobile then
+	-- Keybind button (top-right corner of card image)
 	local kbBtn = Instance.new("ImageButton")
-	kbBtn.Size = UDim2.new(0, isMobile and 22 or 26, 0, isMobile and 22 or 26)
-	kbBtn.Position = UDim2.new(1, -(isMobile and 26 or 30), 0, isMobile and 4 or 4)
+	kbBtn.Size = UDim2.new(0, 26, 0, 26)
+	kbBtn.Position = UDim2.new(1, -30, 0, 4)
 	kbBtn.BackgroundColor3 = currentTheme.secondary
 	kbBtn.BackgroundTransparency = 0.3
 	kbBtn.Image = kbHasBinding and "rbxassetid://133187471200337" or "rbxassetid://122679509852670"
@@ -3589,7 +3591,7 @@ local function MakeCard(emote, ci, animate)
 		ShowKeybindDialog(emote.id, emote, kbHasBinding)
 	end)
 
-	-- Long press detection for keybind removal
+	-- Long press detection for keybind removal (PC only)
 	local longPressTimer = nil
 	local longPressOverlay = nil
 
@@ -3655,7 +3657,7 @@ local function MakeCard(emote, ci, animate)
 		end
 	end)
 	card.InputEnded:Connect(function(inp)
-		if inp.UserInputType == Enum.UserInputType.MouseButton1 or inp.UserInputType == Enum.UserInputType.Touch then
+		if inp.UserInputType == Enum.UserInputType.MouseButton1 then
 			if longPressTimer then
 				task.cancel(longPressTimer)
 				longPressTimer = nil
@@ -3666,6 +3668,7 @@ local function MakeCard(emote, ci, animate)
 			end
 		end
 	end)
+	end -- isMobile check for keybind block
 
 	card.MouseEnter:Connect(function()
 		-- Hafif büyütme ve tilt efekti
@@ -3918,7 +3921,7 @@ tabBtns["favorites"].btn.MouseButton1Click:Connect(function() currentTab = "favo
 tabBtns["recent"].btn.MouseButton1Click:Connect(function() currentTab = "recent"; UpdateTabData() end)
 tabBtns["settings"].btn.MouseButton1Click:Connect(function() currentTab = "settings"; UpdateTabData() end)
 tabBtns["friends"].btn.MouseButton1Click:Connect(function() currentTab = "friends"; UpdateTabData() end)
-tabBtns["keybinds"].btn.MouseButton1Click:Connect(function() currentTab = "keybinds"; UpdateTabData() end)
+if not isMobile then tabBtns["keybinds"].btn.MouseButton1Click:Connect(function() currentTab = "keybinds"; UpdateTabData() end) end
 
 local searchToken = 0
 search:GetPropertyChangedSignal("Text"):Connect(function()
@@ -4198,21 +4201,23 @@ ApplyTheme(Settings.theme)
 UpdateTabStyles()
 UpdateTabData()
 
--- Keybind playback listener
-UserInputService.InputBegan:Connect(function(inp, gp)
-	if gp then return end
-	if inp.UserInputType ~= Enum.UserInputType.Keyboard then return end
-	local keyName = inp.KeyCode.Name
-	for emoteId, kb in pairs(KeybindsSet) do
-		if kb.key == keyName then
-			local emote = EmotesById[emoteId]
-			if emote then
-				PlayEmote(emote.id, emote.name)
+-- Keybind playback listener (PC only)
+if not isMobile then
+	UserInputService.InputBegan:Connect(function(inp, gp)
+		if gp then return end
+		if inp.UserInputType ~= Enum.UserInputType.Keyboard then return end
+		local keyName = inp.KeyCode.Name
+		for emoteId, kb in pairs(KeybindsSet) do
+			if kb.key == keyName then
+				local emote = EmotesById[emoteId]
+				if emote then
+					PlayEmote(emote.id, emote.name)
+				end
+				break
 			end
-			break
 		end
-	end
-end)
+	end)
+end
 
 task.wait(0.25)
 Notify(utf8.char(0x2705) .. " " .. L.ready, #Emotes .. " emotes")
