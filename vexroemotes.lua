@@ -1534,7 +1534,7 @@ if not isMobile then
 	kbTabImg.Position = UDim2.fromScale(0.5, 0.5)
 	kbTabImg.AnchorPoint = Vector2.new(0.5, 0.5)
 	kbTabImg.BackgroundTransparency = 1
-	kbTabImg.Image = "rbxassetid://122679509852670"
+	kbTabImg.Image = ResolveAssetImage("rbxassetid://122679509852670")
 	kbTabImg.ImageColor3 = currentTheme.text
 	kbTabImg.ZIndex = 110
 	kbTabImg.Parent = tabBtns["keybinds"].btn
@@ -3367,7 +3367,7 @@ RefreshKeybindsPanel = function()
 		delBtn.Size = UDim2.new(0, 32, 0, 32)
 		delBtn.Position = UDim2.new(1, -40, 0.5, -16)
 		delBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-		delBtn.Image = Icons.KeybindRemove
+		delBtn.Image = ResolveAssetImage(Icons.KeybindRemove)
 		delBtn.ImageColor3 = Color3.new(1,1,1)
 		delBtn.ZIndex = 7
 		delBtn.Parent = row
@@ -3612,7 +3612,7 @@ local function MakeCard(emote, ci, animate)
 		kbIcon.AnchorPoint = Vector2.new(0.5, 0.5)
 		kbIcon.BackgroundTransparency = 1
 		kbIcon.ScaleType = Enum.ScaleType.Fit
-		kbIcon.Image = kbHasBinding and Icons.KeybindActive or Icons.Keybind
+		kbIcon.Image = ResolveAssetImage(kbHasBinding and Icons.KeybindActive or Icons.Keybind)
 		kbIcon.ImageColor3 = kbHasBinding and currentTheme.accent or currentTheme.textDim
 		kbIcon.ZIndex = 5
 		kbIcon.Parent = kbBtn
@@ -3663,14 +3663,14 @@ local function MakeCard(emote, ci, animate)
 			removeIcon.Position = UDim2.fromScale(0.5, 0.5)
 			removeIcon.AnchorPoint = Vector2.new(0.5, 0.5)
 			removeIcon.BackgroundTransparency = 1
-			removeIcon.Image = Icons.KeybindRemove
+			removeIcon.Image = ResolveAssetImage(Icons.KeybindRemove)
 			removeIcon.ImageColor3 = Color3.new(1, 1, 1)
 			removeIcon.ZIndex = 16
 			removeIcon.Parent = longPressOverlay
 			removeIcon.MouseButton1Click:Connect(function()
 				RemoveKeybind(emote.id)
 				kbHasBinding = false
-				kbIcon.Image = Icons.Keybind
+				kbIcon.Image = ResolveAssetImage(Icons.Keybind)
 				kbIcon.ImageColor3 = currentTheme.textDim
 				if longPressOverlay then longPressOverlay:Destroy(); longPressOverlay = nil end
 			end)
@@ -3930,7 +3930,7 @@ UpdateTabData = function()
 		titleIcon.Visible = true
 	elseif currentTab == "keybinds" then
 		title.Text = L.keybinds
-		titleIcon.Image = "rbxassetid://122679509852670"
+		titleIcon.Image = ResolveAssetImage("rbxassetid://122679509852670")
 		titleIcon.ImageColor3 = currentTheme.accent
 		titleIcon.Visible = true
 	end
