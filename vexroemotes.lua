@@ -1955,7 +1955,7 @@ local function MakeSettingRow(imgId, txt, order, height)
 		icon.AnchorPoint = Vector2.new(0, 0.5)
 		icon.Position = UDim2.new(0, 12, 0.5, 0)
 		icon.BackgroundTransparency = 1
-		icon.Image = "rbxassetid://" .. imgId
+		icon.Image = ResolveAssetImage("rbxassetid://" .. imgId)
 		icon.ImageColor3 = currentTheme.text
 		icon.ZIndex = 7
 		icon.Parent = row
