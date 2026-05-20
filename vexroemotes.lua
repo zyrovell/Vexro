@@ -761,9 +761,9 @@ local Icons = {
 	FavoriteEmpty = "rbxassetid://139336655769578",
 	FavoriteFull = "rbxassetid://114412745011584",
 	Stop = "STOP_SHAPE",
-	Keybind = "rbxthumb://type=Asset&id=122679509852670&w=420&h=420",
-	KeybindActive = "rbxthumb://type=Asset&id=133187471200337&w=420&h=420",
-	KeybindRemove = "rbxthumb://type=Asset&id=119388907849573&w=420&h=420",
+	Keybind = "rbxassetid://122679509852670",
+	KeybindActive = "rbxassetid://133187471200337",
+	KeybindRemove = "rbxassetid://119388907849573",
 	Settings = "rbxassetid://94488099205692", 
 	Recent = "rbxassetid://89358357551545", 
 	Check = "rbxassetid://71514022902819",
@@ -1527,7 +1527,19 @@ CreateTabBtn(Icons.Emote, "emotes", 8)
 CreateTabBtn(Icons.FavoriteFull, "favorites", 8 + tabBtnS + 6)
 CreateTabBtn(Icons.Recent, "recent", 8 + (tabBtnS + 6) * 2)
 CreateTabBtn("rbxassetid://115725480722697", "friends", 8 + (tabBtnS + 6) * 3)
-if not isMobile then CreateTabBtn(utf8.char(0x2328), "keybinds", 8 + (tabBtnS + 6) * 4) end
+if not isMobile then
+	CreateTabBtn("", "keybinds", 8 + (tabBtnS + 6) * 4)
+	local kbTabImg = Instance.new("ImageLabel")
+	kbTabImg.Size = UDim2.fromScale(0.75, 0.75)
+	kbTabImg.Position = UDim2.fromScale(0.5, 0.5)
+	kbTabImg.AnchorPoint = Vector2.new(0.5, 0.5)
+	kbTabImg.BackgroundTransparency = 1
+	kbTabImg.Image = "rbxassetid://122679509852670"
+	kbTabImg.ImageColor3 = currentTheme.text
+	kbTabImg.ZIndex = 110
+	kbTabImg.Parent = tabBtns["keybinds"].btn
+	RegisterTheme(kbTabImg, "ImageColor3", "text")
+end
 CreateTabBtn(Icons.Settings, "settings", isMobile and 8 + (tabBtnS + 6) * 4 or 8 + (tabBtnS + 6) * 5)
 
 -- ===============================================================
@@ -3903,7 +3915,7 @@ UpdateTabData = function()
 		titleIcon.Visible = true
 	elseif currentTab == "keybinds" then
 		title.Text = L.keybinds
-		titleIcon.Image = Icons.Keybind
+		titleIcon.Image = "rbxassetid://122679509852670"
 		titleIcon.ImageColor3 = currentTheme.accent
 		titleIcon.Visible = true
 	end
