@@ -178,7 +178,7 @@ local function ResolveAssetImage(assetIdOrUrl)
 		end
 	end)
 	if not resolved or resolved == "" then
-		resolved = "rbxthumb://type=Asset&id=" .. rawId .. "&w=420&h=420"
+		resolved = "rbxassetid://" .. rawId
 	end
 	_resolvedCache[rawId] = resolved
 	return resolved
@@ -722,6 +722,31 @@ local L = {
 	reject           = isTR and "Reddet"                           or (isES and "Rechazar"                or (isAR and "رفض"                   or (isFR and "Refuser"               or (isHI and "अस्वीकार करें"              or (isPT and "Rejeitar"               or (isRU and "Отклонить"              or "Reject")))))),
 	friendAlreadySyncing = isTR and "Hata! Oyuncu zaten başka birisiyle beraber emote oynuyor." or (isES and "Error! El jugador ya está sincronizado con otro." or (isAR and "خطأ! اللاعب يلعب مع شخص آخر." or (isFR and "Erreur! Le joueur est déjà synchronisé avec quelqu'un d'autre." or (isHI and "त्रुटि! खिलाड़ी पहले से किसी और के साथ खेल रहा है।" or (isPT and "Erro! O jogador já está sincronizado com outro." or (isRU and "Ошибка! Игрок уже играет с другим." or "Error! Player is already syncing with someone else.")))))),
 	showHUDDesc      = isTR and "Emote oynarken altta oynatma barı görünsün" or (isES and "Muestra la barra de control al reproducir emotes" or (isAR and "يظهر شريط التحكم أسفل الشاشة أثناء تشغيل الحركة" or (isFR and "Affiche la barre de controle en bas lors de la lecture" or (isHI and "इमोट चलाते समय नीचे प्लेबार दिखाता है" or (isPT and "Exibe a barra de controle na parte inferior ao reproduzir" or (isRU and "Показывает панель управления внизу при воспроизведении" or "Shows the playback control bar while emote plays")))))),
+	keybinds         = isTR and "Keybindler"           or (isES and "Teclas"               or (isAR and "اختصارات"             or (isFR and "Raccourcis"           or (isHI and "कीबाइंड"              or (isPT and "Teclas"               or (isRU and "Горячие клавиши"     or "Keybinds")))))),
+	newKeybind       = isTR and "Yeni Keybind Oluştur" or (isES and "Crear Nuevo Keybind"  or (isAR and "إنشاء اختصار جديد"    or (isFR and "Nouveau Raccourci"     or (isHI and "नया कीबाइंड बनाएं"   or (isPT and "Novo Keybind"         or (isRU and "Новая клавиша"        or "New Keybind")))))),
+	editKeybind      = isTR and "Keybind Değiştir"     or (isES and "Cambiar Keybind"      or (isAR and "تغيير الاختصار"        or (isFR and "Modifier Raccourci"    or (isHI and "कीबाइंड बदलें"       or (isPT and "Alterar Keybind"      or (isRU and "Изменить клавишу"     or "Edit Keybind")))))),
+	kbName           = isTR and "İsim"                 or (isES and "Nombre"               or (isAR and "الاسم"                 or (isFR and "Nom"                   or (isHI and "नाम"                  or (isPT and "Nome"                 or (isRU and "Название"            or "Name")))))),
+	kbAssign         = isTR and "Atama"                or (isES and "Asignación"           or (isAR and "التعيين"               or (isFR and "Attribution"           or (isHI and "असाइन करें"           or (isPT and "Atribuição"           or (isRU and "Назначение"          or "Assign")))))),
+	kbRecording      = isTR and "Tuşa Bas"             or (isES and "Presiona Tecla"       or (isAR and "اضغط مفتاحاً"          or (isFR and "Appuyez sur Touche"    or (isHI and "कुंजी दबाएं"          or (isPT and "Pressione Tecla"      or (isRU and "Нажмите клавишу"     or "Press Key")))))),
+	kbCancel         = isTR and "İptal"                or (isES and "Cancelar"             or (isAR and "إلغاء"                 or (isFR and "Annuler"               or (isHI and "रद्द करें"             or (isPT and "Cancelar"             or (isRU and "Отмена"              or "Cancel")))))),
+	kbSave           = isTR and "Kaydet"               or (isES and "Guardar"              or (isAR and "حفظ"                   or (isFR and "Enregistrer"           or (isHI and "सहेजें"               or (isPT and "Salvar"               or (isRU and "Сохранить"           or "Save")))))),
+	kbEmpty          = isTR and "Henüz keybind yok"    or (isES and "Sin keybinds aún"     or (isAR and "لا توجد اختصارات بعد"  or (isFR and "Aucun raccourci"        or (isHI and "कोई कीबाइंड नहीं"    or (isPT and "Nenhum keybind ainda" or (isRU and "Нет горячих клавиш"  or "No keybinds yet")))))),
+	autoRejectLbl    = isTR and "Arkadaş isteklerini otomatik reddet."     or (isES and "Rechazar solicitudes automáticamente."  or (isAR and "رفض طلبات الصداقة تلقائياً."         or (isFR and "Refuser les demandes automatiquement."    or (isHI and "मित्र अनुरोध स्वचालित रूप से अस्वीकार करें।" or (isPT and "Rejeitar pedidos automaticamente."      or (isRU and "Автоматически отклонять запросы."      or "Auto-reject friend requests.")))))),
+	addFriendBtn     = isTR and "+ Arkadaş Ekle"                           or (isES and "+ Añadir Amigo"                         or (isAR and "+ إضافة صديق"                          or (isFR and "+ Ajouter Ami"                          or (isHI and "+ मित्र जोड़ें"                              or (isPT and "+ Adicionar Amigo"                    or (isRU and "+ Добавить друга"                     or "+ Add Friend")))))),
+	blocked          = isTR and "Engellendi"                                or (isES and "Bloqueado"                              or (isAR and "محظور"                                 or (isFR and "Bloqué"                                  or (isHI and "ब्लॉक किया"                               or (isPT and "Bloqueado"                             or (isRU and "Заблокирован"                          or "Blocked")))))),
+	requestSent      = isTR and "✓ İstek Gönderildi"                       or (isES and "✓ Solicitud Enviada"                    or (isAR and "✓ تم إرسال الطلب"                       or (isFR and "✓ Demande Envoyée"                        or (isHI and "✓ अनुरोध भेजा"                            or (isPT and "✓ Pedido Enviado"                      or (isRU and "✓ Запрос отправлен"                    or "✓ Request Sent")))))),
+	addFriendMode    = isTR and "+ Arkadaş Ekle Modu"                      or (isES and "+ Modo Añadir Amigo"                    or (isAR and "+ وضع إضافة الأصدقاء"                  or (isFR and "+ Mode Ajout Ami"                         or (isHI and "+ मित्र जोड़ें मोड"                         or (isPT and "+ Modo Adicionar Amigo"               or (isRU and "+ Режим добавления друга"             or "+ Add Friend Mode")))))),
+	friendInfoTxt    = isTR and "Arkadaş eklemek aynı emote'u arkadaşlarınızla veya arkadaşınızla beraber senkronize oynamanızı sağlar." or (isES and "Agregar amigos permite sincronizar emotes juntos." or (isAR and "إضافة أصدقاء تتيح مزامنة الحركات معاً." or (isFR and "Ajouter des amis permet de synchroniser les emotes ensemble." or (isHI and "मित्र जोड़ने से एक साथ इमोट सिंक्रनाइज़ करना संभव होता है।" or (isPT and "Adicionar amigos permite sincronizar emotes juntos." or (isRU and "Добавление друзей позволяет синхронизировать эмоции вместе." or "Adding friends lets you sync emotes together.")))))),
+	friendListHeader = isTR and "Arkadaş Listesi"                          or (isES and "Lista de Amigos"                        or (isAR and "قائمة الأصدقاء"                         or (isFR and "Liste d'Amis"                             or (isHI and "मित्र सूची"                               or (isPT and "Lista de Amigos"                       or (isRU and "Список друзей"                         or "Friend List")))))),
+	noFriends        = isTR and "Henüz arkadaş yok. Arkadaş Ekle butonunu kullan!" or (isES and "Sin amigos. ¡Usa el botón Añadir Amigo!" or (isAR and "لا أصدقاء بعد. استخدم زر إضافة صديق!" or (isFR and "Aucun ami. Utilisez le bouton Ajouter Ami!" or (isHI and "कोई मित्र नहीं। मित्र जोड़ें बटन का उपयोग करें!" or (isPT and "Sem amigos. Use o botão Adicionar Amigo!" or (isRU and "Нет друзей. Используйте кнопку добавления!" or "No friends yet. Use Add Friend button!")))))),
+	emoteLoadFail    = isTR and "Emote yüklenemedi!"                        or (isES and "¡Error al cargar emote!"                or (isAR and "فشل تحميل الحركة!"                      or (isFR and "Échec du chargement!"                     or (isHI and "इमोट लोड नहीं हुआ!"                         or (isPT and "Falha ao carregar emote!"               or (isRU and "Ошибка загрузки эмоции!"               or "Failed to load emote!")))))),
+	alreadyFriends   = isTR and "Zaten arkadaşsınız!"                       or (isES and "¡Ya son amigos!"                        or (isAR and "أنتم أصدقاء بالفعل!"                    or (isFR and "Vous êtes déjà amis!"                     or (isHI and "पहले से मित्र हैं!"                          or (isPT and "Já são amigos!"                        or (isRU and "Вы уже друзья!"                        or "Already friends!")))))),
+	spamProtect      = isTR and "Spam koruması aktif! %ds bekle"            or (isES and "¡Protección spam! Espera %ds"           or (isAR and "حماية من الإسبام! انتظر %dث"            or (isFR and "Anti-spam actif! Attends %ds"             or (isHI and "स्पैम सुरक्षा! %dस प्रतीक्षा करें"            or (isPT and "Proteção spam! Aguarde %ds"             or (isRU and "Спам-защита! Подожди %dс"               or "Spam protection! Wait %ds")))))),
+	waitRequest      = isTR and "Bu oyuncuya istek için %ds bekle"          or (isES and "Espera %ds para enviar solicitud"       or (isAR and "انتظر %dث لإرسال طلب لهذا اللاعب"       or (isFR and "Attends %ds pour envoyer demande"         or (isHI and "इस खिलाड़ी को अनुरोध के लिए %dस प्रतीक्षा करें" or (isPT and "Aguarde %ds para enviar pedido"          or (isRU and "Жди %dс для запроса"                   or "Wait %ds to send request")))))),
+	tooFastRequest   = isTR and "Çok hızlı istek! %ds timeout"             or (isES and "¡Demasiado rápido! %ds timeout"         or (isAR and "طلب سريع جداً! %dث مهلة"                or (isFR and "Trop rapide! %ds timeout"                 or (isHI and "बहुत तेज़ अनुरोध! %dस टाइमआउट"              or (isPT and "Muito rápido! %ds timeout"              or (isRU and "Слишком быстро! %dс таймаут"            or "Too fast! %ds timeout")))))),
+	friendReqSent    = isTR and "%s adlı oyuncuya arkadaşlık isteği gönderildi!" or (isES and "¡Solicitud enviada a %s!"         or (isAR and "تم إرسال طلب صداقة إلى %s!"              or (isFR and "Demande envoyée à %s!"                    or (isHI and "%s को मित्र अनुरोध भेजा!"                    or (isPT and "Pedido enviado para %s!"                or (isRU and "Запрос отправлен %s!"                  or "Friend request sent to %s!")))))),
+	friendReqAcceptedYou = isTR and "%s arkadaşlık isteğini kabul ettin!"   or (isES and "¡Aceptaste la solicitud de %s!"        or (isAR and "قبلت طلب %s!"                            or (isFR and "Vous avez accepté la demande de %s!"      or (isHI and "आपने %s का अनुरोध स्वीकार किया!"              or (isPT and "Você aceitou o pedido de %s!"           or (isRU and "Вы приняли запрос %s!"                 or "You accepted %s's request!")))))),
+	friendReqAcceptedThem = isTR and "%s arkadaşlık isteğini kabul etti!"   or (isES and "¡%s aceptó tu solicitud!"              or (isAR and "قبل %s طلبك!"                            or (isFR and "%s a accepté votre demande!"               or (isHI and "%s ने आपका अनुरोध स्वीकार किया!"              or (isPT and "%s aceitou seu pedido!"                 or (isRU and "%s принял ваш запрос!"                 or "%s accepted your request!")))))),
 }
 
 local Icons = {
@@ -1227,7 +1252,7 @@ local function PlayEmote(id, name, silent)
 			pcall(getgenv().VexroBroadcastSync, id, name)
 		end
 	else
-		Notify(utf8.char(0x274C), "Emote yüklenemedi!")
+		Notify(utf8.char(0x274C), L.emoteLoadFail)
 	end
 end
 
@@ -1406,6 +1431,7 @@ end
 local sidebar = Instance.new("Frame")
 sidebar.Size = UDim2.new(0, sideBarW, 1, 0)
 sidebar.BackgroundColor3 = currentTheme.sidebar
+sidebar.ClipsDescendants = true
 sidebar.ZIndex = 8
 sidebar.Parent = main
 Instance.new("UICorner", sidebar).CornerRadius = UDim.new(0, 14)
@@ -1498,8 +1524,8 @@ CreateTabBtn(Icons.Emote, "emotes", 8)
 CreateTabBtn(Icons.FavoriteFull, "favorites", 8 + tabBtnS + 6)
 CreateTabBtn(Icons.Recent, "recent", 8 + (tabBtnS + 6) * 2)
 CreateTabBtn("rbxassetid://115725480722697", "friends", 8 + (tabBtnS + 6) * 3)
-CreateTabBtn("rbxassetid://122679509852670", "keybinds", 8 + (tabBtnS + 6) * 4)
-CreateTabBtn(Icons.Settings, "settings", 8 + (tabBtnS + 6) * 5)
+if not isMobile then CreateTabBtn("rbxassetid://122679509852670", "keybinds", 8 + (tabBtnS + 6) * 4) end
+CreateTabBtn(Icons.Settings, "settings", isMobile and 8 + (tabBtnS + 6) * 4 or 8 + (tabBtnS + 6) * 5)
 
 -- ===============================================================
 -- CONTENT
@@ -2459,7 +2485,7 @@ ShowFriendRequestPanel = function(senderUserId, senderName)
 
 	local autoLbl = Instance.new("TextLabel")
 	autoLbl.Size = UDim2.new(1,-34,1,0); autoLbl.Position = UDim2.new(0,32,0,0)
-	autoLbl.BackgroundTransparency = 1; autoLbl.Text = "Arkadaş isteklerini otomatik reddet."
+	autoLbl.BackgroundTransparency = 1; autoLbl.Text = L.autoRejectLbl
 	autoLbl.TextColor3 = currentTheme.textDim; autoLbl.Font = Enum.Font.Gotham
 	autoLbl.TextSize = 11; autoLbl.TextXAlignment = Enum.TextXAlignment.Left
 	autoLbl.ZIndex = 98003; autoLbl.Parent = bar
@@ -2503,7 +2529,7 @@ ShowFriendRequestPanel = function(senderUserId, senderName)
 		_MyAttr(ATTR_RESP, tostring(senderUserId) .. ":1")
 		task.delay(1, function() _MyAttr(ATTR_RESP, "") end)
 		RefreshFriendList()
-		Notify(tostring(senderName) .. " arkadaşlık isteğini kabul ettin!", "", nil)
+		Notify(L.friendReqAcceptedYou:format(tostring(senderName)), "", nil)
 		_close()
 	end)
 
@@ -2550,7 +2576,7 @@ local function _WatchChar(char, uid, uname)
 			FriendData.friends[tostring(uid)] = {name = uname, syncEnabled = true}
 			_SaveFriend()
 			RefreshFriendList()
-			Notify(uname .. " arkadaşlık isteğini kabul etti!", "", nil)
+			Notify(L.friendReqAcceptedThem:format(uname), "", nil)
 		end
 	end)
 
@@ -2651,7 +2677,7 @@ _MakeBillboard = function(p)
 	btn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	btn.BackgroundTransparency = 0.08
 	btn.TextColor3 = Color3.fromRGB(30, 30, 30)
-	btn.Text = "+ Arkadaş Ekle"
+	btn.Text = L.addFriendBtn
 	btn.Font = Enum.Font.GothamBold
 	btn.TextSize = 11
 	btn.Parent = bb
@@ -2663,7 +2689,7 @@ _MakeBillboard = function(p)
 
 	btn.MouseButton1Click:Connect(function()
 		if FriendData.friends[tostring(p.UserId)] then
-			Notify("Zaten arkadaşsınız!", "", nil); return
+			Notify(L.alreadyFriends, "", nil); return
 		end
 
 		local now = tick()
@@ -2672,7 +2698,7 @@ _MakeBillboard = function(p)
 		-- Global timeout kontrolü
 		if now < _reqTimeoutUntil then
 			local rem = math.ceil(_reqTimeoutUntil - now)
-			Notify("Spam koruması aktif! " .. rem .. "s bekle", "", nil)
+			Notify(L.spamProtect:format(rem), "", nil)
 			return
 		end
 
@@ -2680,7 +2706,7 @@ _MakeBillboard = function(p)
 		local lastSent = _reqCooldowns[uid_s] or 0
 		if now - lastSent < REQ_COOLDOWN then
 			local rem = math.ceil(REQ_COOLDOWN - (now - lastSent))
-			Notify("Bu oyuncuya istek için " .. rem .. "s bekle", "", nil)
+			Notify(L.waitRequest:format(rem), "", nil)
 			return
 		end
 
@@ -2694,8 +2720,8 @@ _MakeBillboard = function(p)
 		if _reqSpamCount >= REQ_SPAM_LIMIT then
 			_reqTimeoutUntil = now + REQ_TIMEOUT_DUR
 			_reqSpamCount = 0
-			Notify("Çok hızlı istek! " .. REQ_TIMEOUT_DUR .. "s timeout", "", nil)
-			btn.Text = "Engellendi"
+			Notify(L.tooFastRequest:format(REQ_TIMEOUT_DUR), "", nil)
+			btn.Text = L.blocked
 			btn.BackgroundColor3 = Color3.fromRGB(150, 40, 40)
 			return
 		end
@@ -2703,10 +2729,10 @@ _MakeBillboard = function(p)
 		-- İstek gönder
 		_reqCooldowns[uid_s] = now
 		_MyAttr(ATTR_REQ, uid_s)
-		btn.Text = "✓ İstek Gönderildi"
+		btn.Text = L.requestSent
 		btn.BackgroundColor3 = Color3.fromRGB(60, 160, 90)
 		btn.TextColor3 = Color3.new(1, 1, 1)
-		Notify(p.Name .. " adlı oyuncuya arkadaşlık isteği gönderildi!", "", nil)
+		Notify(L.friendReqSent:format(p.Name), "", nil)
 		task.delay(3, function() _MyAttr(ATTR_REQ, "") end)
 	end)
 end
@@ -2808,7 +2834,7 @@ _MakeFriendToggle(
 local friendAddBtn = Instance.new("TextButton")
 friendAddBtn.Size = UDim2.new(1, 0, 0, 38)
 friendAddBtn.BackgroundColor3 = currentTheme.accent
-friendAddBtn.Text = "+ Arkadaş Ekle Modu"
+friendAddBtn.Text = L.addFriendMode
 friendAddBtn.TextColor3 = Color3.new(1, 1, 1)
 friendAddBtn.Font = Enum.Font.GothamBold
 friendAddBtn.TextSize = isMobile and 12 or 13
@@ -2838,7 +2864,7 @@ local infoBoxLbl = Instance.new("TextLabel")
 infoBoxLbl.Size = UDim2.new(1, -32, 1, 0)
 infoBoxLbl.Position = UDim2.new(0, 32, 0, 0)
 infoBoxLbl.BackgroundTransparency = 1
-infoBoxLbl.Text = "Arkadaş eklemek aynı emote'u arkadaşlarınızla veya arkadaşınızla beraber senkronize oynamanızı sağlar."
+infoBoxLbl.Text = L.friendInfoTxt
 infoBoxLbl.TextColor3 = Color3.fromRGB(200, 220, 255)
 infoBoxLbl.Font = Enum.Font.Gotham
 infoBoxLbl.TextSize = 10
@@ -2861,7 +2887,7 @@ infoIcon.Parent = infoBox
 -- Arkadaş listesi başlığı
 local flHeader = Instance.new("TextLabel")
 flHeader.Size = UDim2.new(1,0,0,22); flHeader.BackgroundTransparency = 1
-flHeader.Text = "Arkadaş Listesi"; flHeader.TextColor3 = currentTheme.textDim
+flHeader.Text = L.friendListHeader; flHeader.TextColor3 = currentTheme.textDim
 flHeader.Font = Enum.Font.GothamBold; flHeader.TextSize = 11
 flHeader.LayoutOrder = 4; flHeader.ZIndex = 5; flHeader.Parent = friendsPanel
 RegisterTheme(flHeader, "TextColor3", "textDim")
@@ -2876,7 +2902,7 @@ flListLayout.Padding = UDim.new(0,6); flListLayout.Parent = friendListContainer
 
 local emptyFriendLbl = Instance.new("TextLabel")
 emptyFriendLbl.Size = UDim2.new(1,0,0,36); emptyFriendLbl.BackgroundTransparency = 1
-emptyFriendLbl.Text = "Henüz arkadaş yok. Arkadaş Ekle butonunu kullan!"
+emptyFriendLbl.Text = L.noFriends
 emptyFriendLbl.TextColor3 = currentTheme.textDim; emptyFriendLbl.Font = Enum.Font.Gotham
 emptyFriendLbl.TextSize = 11; emptyFriendLbl.TextWrapped = true
 emptyFriendLbl.ZIndex = 6; emptyFriendLbl.Parent = friendListContainer
@@ -3116,7 +3142,7 @@ local function ShowKeybindDialog(emoteId, emote, isEdit)
 	titleLbl.Size = UDim2.new(1, -16, 0, 36)
 	titleLbl.Position = UDim2.new(0, 8, 0, 8)
 	titleLbl.BackgroundTransparency = 1
-	titleLbl.Text = isEdit and "Keybind Değiştir" or "Yeni Keybind Oluştur"
+	titleLbl.Text = isEdit and L.editKeybind or L.newKeybind
 	titleLbl.TextColor3 = currentTheme.text
 	titleLbl.Font = Enum.Font.GothamBold
 	titleLbl.TextSize = 16
@@ -3128,7 +3154,7 @@ local function ShowKeybindDialog(emoteId, emote, isEdit)
 	nameLblTitle.Size = UDim2.new(0, 60, 0, 24)
 	nameLblTitle.Position = UDim2.new(0, 12, 0, 52)
 	nameLblTitle.BackgroundTransparency = 1
-	nameLblTitle.Text = "İsim"
+	nameLblTitle.Text = L.kbName
 	nameLblTitle.TextColor3 = currentTheme.textDim
 	nameLblTitle.Font = Enum.Font.GothamBold
 	nameLblTitle.TextSize = 13
@@ -3160,7 +3186,7 @@ local function ShowKeybindDialog(emoteId, emote, isEdit)
 	atamaLbl.Size = UDim2.new(0, 80, 0, 24)
 	atamaLbl.Position = UDim2.new(0, 12, 0, 122)
 	atamaLbl.BackgroundTransparency = 1
-	atamaLbl.Text = "Atama"
+	atamaLbl.Text = L.kbAssign
 	atamaLbl.TextColor3 = currentTheme.textDim
 	atamaLbl.Font = Enum.Font.GothamBold
 	atamaLbl.TextSize = 13
@@ -3177,7 +3203,7 @@ local function ShowKeybindDialog(emoteId, emote, isEdit)
 	keyBtn.Size = UDim2.new(1, -24, 0, 36)
 	keyBtn.Position = UDim2.new(0, 12, 0, 148)
 	keyBtn.BackgroundColor3 = currentTheme.tertiary
-	keyBtn.Text = recordedKey and ("[" .. recordedKey .. "]") or "Key Recording"
+	keyBtn.Text = recordedKey and ("[" .. recordedKey .. "]") or L.kbRecording
 	keyBtn.TextColor3 = recordedKey and currentTheme.accent or currentTheme.textDim
 	keyBtn.Font = Enum.Font.GothamBold
 	keyBtn.TextSize = 13
@@ -3215,7 +3241,7 @@ local function ShowKeybindDialog(emoteId, emote, isEdit)
 	cancelBtn.Size = UDim2.new(0.45, -6, 0, 38)
 	cancelBtn.Position = UDim2.new(0, 12, 0, 208)
 	cancelBtn.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
-	cancelBtn.Text = "İptal"
+	cancelBtn.Text = L.kbCancel
 	cancelBtn.TextColor3 = Color3.new(1, 1, 1)
 	cancelBtn.Font = Enum.Font.GothamBold
 	cancelBtn.TextSize = 14
@@ -3228,7 +3254,7 @@ local function ShowKeybindDialog(emoteId, emote, isEdit)
 	saveBtn.Size = UDim2.new(0.55, -18, 0, 38)
 	saveBtn.Position = UDim2.new(0.45, 6, 0, 208)
 	saveBtn.BackgroundColor3 = Color3.fromRGB(40, 160, 80)
-	saveBtn.Text = "Kaydet"
+	saveBtn.Text = L.kbSave
 	saveBtn.TextColor3 = Color3.new(1, 1, 1)
 	saveBtn.Font = Enum.Font.GothamBold
 	saveBtn.TextSize = 14
@@ -3337,7 +3363,7 @@ RefreshKeybindsPanel = function()
 		local emptyLbl2 = Instance.new("TextLabel")
 		emptyLbl2.Size = UDim2.new(1, 0, 0, 60)
 		emptyLbl2.BackgroundTransparency = 1
-		emptyLbl2.Text = "Henüz keybind yok"
+		emptyLbl2.Text = L.kbEmpty
 		emptyLbl2.TextColor3 = currentTheme.textDim
 		emptyLbl2.Font = Enum.Font.Gotham
 		emptyLbl2.TextSize = 14
@@ -3547,11 +3573,13 @@ local function MakeCard(emote, ci, animate)
 		end
 	end)
 
-	-- Keybind button (top-right corner of card image)
+	-- Keybind button (top-right corner of card image) -- PC only
 	local kbHasBinding = GetKeybind(emote.id) ~= nil
+	if not isMobile then
+	-- Keybind button (top-right corner of card image)
 	local kbBtn = Instance.new("ImageButton")
-	kbBtn.Size = UDim2.new(0, isMobile and 22 or 26, 0, isMobile and 22 or 26)
-	kbBtn.Position = UDim2.new(1, -(isMobile and 26 or 30), 0, isMobile and 4 or 4)
+	kbBtn.Size = UDim2.new(0, 26, 0, 26)
+	kbBtn.Position = UDim2.new(1, -30, 0, 4)
 	kbBtn.BackgroundColor3 = currentTheme.secondary
 	kbBtn.BackgroundTransparency = 0.3
 	kbBtn.Image = kbHasBinding and "rbxassetid://133187471200337" or "rbxassetid://122679509852670"
@@ -3564,7 +3592,7 @@ local function MakeCard(emote, ci, animate)
 		ShowKeybindDialog(emote.id, emote, kbHasBinding)
 	end)
 
-	-- Long press detection for keybind removal
+	-- Long press detection for keybind removal (PC only)
 	local longPressTimer = nil
 	local longPressOverlay = nil
 
@@ -3630,7 +3658,7 @@ local function MakeCard(emote, ci, animate)
 		end
 	end)
 	card.InputEnded:Connect(function(inp)
-		if inp.UserInputType == Enum.UserInputType.MouseButton1 or inp.UserInputType == Enum.UserInputType.Touch then
+		if inp.UserInputType == Enum.UserInputType.MouseButton1 then
 			if longPressTimer then
 				task.cancel(longPressTimer)
 				longPressTimer = nil
@@ -3641,6 +3669,7 @@ local function MakeCard(emote, ci, animate)
 			end
 		end
 	end)
+	end -- isMobile check for keybind block
 
 	card.MouseEnter:Connect(function()
 		-- Hafif büyütme ve tilt efekti
@@ -3870,7 +3899,7 @@ UpdateTabData = function()
 		titleIcon.ImageColor3 = currentTheme.accent
 		titleIcon.Visible = true
 	elseif currentTab == "keybinds" then
-		title.Text = "Keybinds"
+		title.Text = L.keybinds
 		titleIcon.Image = ResolveAssetImage("rbxassetid://122679509852670")
 		titleIcon.ImageColor3 = currentTheme.accent
 		titleIcon.Visible = true
@@ -3893,7 +3922,7 @@ tabBtns["favorites"].btn.MouseButton1Click:Connect(function() currentTab = "favo
 tabBtns["recent"].btn.MouseButton1Click:Connect(function() currentTab = "recent"; UpdateTabData() end)
 tabBtns["settings"].btn.MouseButton1Click:Connect(function() currentTab = "settings"; UpdateTabData() end)
 tabBtns["friends"].btn.MouseButton1Click:Connect(function() currentTab = "friends"; UpdateTabData() end)
-tabBtns["keybinds"].btn.MouseButton1Click:Connect(function() currentTab = "keybinds"; UpdateTabData() end)
+if not isMobile then tabBtns["keybinds"].btn.MouseButton1Click:Connect(function() currentTab = "keybinds"; UpdateTabData() end) end
 
 local searchToken = 0
 search:GetPropertyChangedSignal("Text"):Connect(function()
@@ -4109,8 +4138,11 @@ end)
 UserInputService.InputChanged:Connect(function(input)
 	if resizing and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 		local delta = input.Position - resizeStart
-		local newW = math.clamp(sizeStart.X + delta.X, 400, 1200) -- Expanded max width
-		local newH = math.clamp(sizeStart.Y + delta.Y, 300, 800)
+		-- Min height: enough for all tabs + padding (6 tabs on PC, 5 on mobile)
+		local tabCount = isMobile and 5 or 6
+		local minH = 8 + (tabBtnS + 6) * tabCount + tabBtnS + 16
+		local newW = math.clamp(sizeStart.X + delta.X, 400, 1200)
+		local newH = math.clamp(sizeStart.Y + delta.Y, minH, 800)
 		main.Size = UDim2.new(0, newW, 0, newH)
 		
 		local now = tick()
@@ -4173,21 +4205,23 @@ ApplyTheme(Settings.theme)
 UpdateTabStyles()
 UpdateTabData()
 
--- Keybind playback listener
-UserInputService.InputBegan:Connect(function(inp, gp)
-	if gp then return end
-	if inp.UserInputType ~= Enum.UserInputType.Keyboard then return end
-	local keyName = inp.KeyCode.Name
-	for emoteId, kb in pairs(KeybindsSet) do
-		if kb.key == keyName then
-			local emote = EmotesById[emoteId]
-			if emote then
-				PlayEmote(emote.id, emote.name)
+-- Keybind playback listener (PC only)
+if not isMobile then
+	UserInputService.InputBegan:Connect(function(inp, gp)
+		if gp then return end
+		if inp.UserInputType ~= Enum.UserInputType.Keyboard then return end
+		local keyName = inp.KeyCode.Name
+		for emoteId, kb in pairs(KeybindsSet) do
+			if kb.key == keyName then
+				local emote = EmotesById[emoteId]
+				if emote then
+					PlayEmote(emote.id, emote.name)
+				end
+				break
 			end
-			break
 		end
-	end
-end)
+	end)
+end
 
 task.wait(0.25)
 Notify(utf8.char(0x2705) .. " " .. L.ready, #Emotes .. " emotes")
