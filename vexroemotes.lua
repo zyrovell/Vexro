@@ -160,6 +160,64 @@ local isMobile = UserInputService.TouchEnabled and not UserInputService.Keyboard
 -- Auto Image/Decal resolver with cache
 local _resolvedCache = {}
 local DEBUG_ASSET_ID = "122679509852670"
+local _debugLines = {}
+local _debugGui = nil
+local _debugLabel = nil
+local function _dbg(msg)
+	table.insert(_debugLines, msg)
+	if #_debugLines > 12 then table.remove(_debugLines, 1) end
+	if _debugLabel then
+		_debugLabel.Text = table.concat(_debugLines, "\n")
+	end
+	warn("[VexroDebug] " .. msg)
+end
+local function _initDebugGui()
+	pcall(function()
+		local cg = game:GetService("CoreGui")
+		local sg = Instance.new("ScreenGui")
+		sg.Name = "VexroDebugGui"
+		sg.ResetOnSpawn = false
+		sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+		sg.Parent = cg
+		local bg = Instance.new("Frame")
+		bg.Size = UDim2.new(0, 520, 0, 220)
+		bg.Position = UDim2.new(0, 10, 0, 10)
+		bg.BackgroundColor3 = Color3.new(0, 0, 0)
+		bg.BackgroundTransparency = 0.35
+		bg.BorderSizePixel = 0
+		bg.ZIndex = 999
+		bg.Parent = sg
+		Instance.new("UICorner", bg).CornerRadius = UDim.new(0, 8)
+		local lbl = Instance.new("TextLabel")
+		lbl.Size = UDim2.new(1, -10, 1, -10)
+		lbl.Position = UDim2.new(0, 5, 0, 5)
+		lbl.BackgroundTransparency = 1
+		lbl.TextColor3 = Color3.new(1, 1, 0)
+		lbl.Font = Enum.Font.Code
+		lbl.TextSize = 11
+		lbl.TextXAlignment = Enum.TextXAlignment.Left
+		lbl.TextYAlignment = Enum.TextYAlignment.Top
+		lbl.TextWrapped = true
+		lbl.ZIndex = 1000
+		lbl.Text = "[VexroDebug] başlatıldı..."
+		lbl.Parent = bg
+		local closeBtn = Instance.new("TextButton")
+		closeBtn.Size = UDim2.new(0, 24, 0, 24)
+		closeBtn.Position = UDim2.new(1, -28, 0, 4)
+		closeBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+		closeBtn.Text = "X"
+		closeBtn.TextColor3 = Color3.new(1,1,1)
+		closeBtn.Font = Enum.Font.GothamBold
+		closeBtn.TextSize = 12
+		closeBtn.ZIndex = 1001
+		closeBtn.Parent = bg
+		Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(1,0)
+		closeBtn.MouseButton1Click:Connect(function() sg:Destroy() end)
+		_debugGui = sg
+		_debugLabel = lbl
+	end)
+end
+
 local function ResolveAssetImage(assetIdOrUrl)
 	if not assetIdOrUrl then return "" end
 	local str = tostring(assetIdOrUrl)
@@ -167,10 +225,9 @@ local function ResolveAssetImage(assetIdOrUrl)
 	if rawId == "" then return str end
 	if _resolvedCache[rawId] then return _resolvedCache[rawId] end
 	local resolved = nil
-	local getObjErr = nil
 	local objType = nil
 	local objCount = 0
-	pcall(function()
+	local ok, err = pcall(function()
 		local objects = game:GetObjects("rbxassetid://" .. rawId)
 		objCount = objects and #objects or 0
 		if objects and #objects > 0 then
@@ -184,31 +241,39 @@ local function ResolveAssetImage(assetIdOrUrl)
 		end
 	end)
 	if rawId == DEBUG_ASSET_ID then
-		local status = resolved and ("GetObjects OK -> " .. tostring(resolved)) or "GetObjects failed/empty"
-		warn("[VexroDebug] ResolveAssetImage(" .. rawId .. "): objCount=" .. objCount .. " objType=" .. tostring(objType) .. " | " .. status)
+		if not ok then
+			_dbg("GetObjects ERR: " .. tostring(err))
+		else
+			_dbg("GetObjects ok | count=" .. objCount .. " type=" .. tostring(objType) .. " resolved=" .. tostring(resolved))
+		end
 	end
 	if not resolved or resolved == "" then
 		resolved = "rbxthumb://type=Asset&id=" .. rawId .. "&w=420&h=420"
 		if rawId == DEBUG_ASSET_ID then
-			warn("[VexroDebug] Falling back to rbxthumb: " .. resolved)
+			_dbg("Fallback -> rbxthumb URL")
 		end
 	end
 	_resolvedCache[rawId] = resolved
 	if rawId == DEBUG_ASSET_ID then
-		warn("[VexroDebug] Final resolved URL: " .. tostring(resolved))
-		-- Test ImageLabel to check if image actually loads
+		_dbg("Final URL: " .. tostring(resolved))
 		task.spawn(function()
+			task.wait(4)
 			local testImg = Instance.new("ImageLabel")
-			testImg.Size = UDim2.new(0, 50, 0, 50)
+			testImg.Size = UDim2.new(0, 64, 0, 64)
+			testImg.Position = UDim2.new(0, 10, 0, 230)
+			testImg.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 			testImg.Image = resolved
-			testImg.Parent = game:GetService("CoreGui")
+			testImg.ZIndex = 1000
+			pcall(function() testImg.Parent = _debugGui and _debugGui.Parent or game:GetService("CoreGui") end)
+			task.wait(4)
+			_dbg("IsLoaded=" .. tostring(testImg.IsLoaded) .. " Image=" .. tostring(testImg.Image):sub(1, 60))
 			task.wait(3)
-			warn("[VexroDebug] After 3s - Image=" .. tostring(testImg.Image) .. " IsLoaded=" .. tostring(testImg.IsLoaded))
 			testImg:Destroy()
 		end)
 	end
 	return resolved
 end
+_initDebugGui()
 
 local logo = [[
 
