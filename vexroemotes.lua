@@ -2418,6 +2418,7 @@ end)
 -- ARKADAŞ & BERABER EMOTE SİSTEMİ
 -- ===============================================================
 local friendAddModeBtn
+local _syncLock = false
 do
 local ATTR_REQ  = "VFR_Req"   -- "<targetUserId>"
 local ATTR_RESP = "VFR_Resp"  -- "<senderId>:1|0"
@@ -2638,11 +2639,12 @@ local function _WatchChar(char, uid, uname)
 	-- Emote senkron
 	_conn(ATTR_SYNC, function()
 		if not FriendData.playFriendEmote then return end
+		if _syncLock then return end
 		local fdata = FriendData.friends[tostring(uid)]
 		if not fdata or not fdata.syncEnabled then return end
 		local v = char:GetAttribute(ATTR_SYNC)
 		if not v or v == "" then return end
-		-- Çakışma kontrolü
+		-- Çakışma kontrolü: başka biriyle zaten senkronda mı
 		if FriendData.currentSyncPartner and FriendData.currentSyncPartner ~= tostring(uid) then
 			Notify(L.friendAlreadySyncing or "Hata! Zaten başka birisiyle senkrondayız.", "", nil)
 			return
@@ -2652,8 +2654,10 @@ local function _WatchChar(char, uid, uname)
 		local eid = tonumber(v:sub(1, sep-1))
 		local ename = v:sub(sep+1)
 		if eid and FriendData.syncEmote then
+			_syncLock = true
 			FriendData.currentSyncPartner = tostring(uid)
 			PlayEmote(eid, ename, true)
+			task.defer(function() _syncLock = false end)
 		end
 	end)
 
@@ -2742,9 +2746,14 @@ _MakeBillboard = function(p)
 	btnStroke.Thickness = 1
 	btnStroke.Parent = btn
 
+	local _btnBusy = false
 	btn.MouseButton1Click:Connect(function()
+		if _btnBusy then return end
+		_btnBusy = true
+		local function _done() _btnBusy = false end
+
 		if FriendData.friends[tostring(p.UserId)] then
-			Notify(L.alreadyFriends, "", nil); return
+			Notify(L.alreadyFriends, "", nil); _done(); return
 		end
 
 		local now = tick()
@@ -2754,7 +2763,7 @@ _MakeBillboard = function(p)
 		if now < _reqTimeoutUntil then
 			local rem = math.ceil(_reqTimeoutUntil - now)
 			Notify(L.spamProtect:format(rem), "", nil)
-			return
+			_done(); return
 		end
 
 		-- Aynı kişiye tekrar istek cooldown
@@ -2762,7 +2771,7 @@ _MakeBillboard = function(p)
 		if now - lastSent < REQ_COOLDOWN then
 			local rem = math.ceil(REQ_COOLDOWN - (now - lastSent))
 			Notify(L.waitRequest:format(rem), "", nil)
-			return
+			_done(); return
 		end
 
 		-- Spam sayacı güncelle
@@ -2778,7 +2787,7 @@ _MakeBillboard = function(p)
 			Notify(L.tooFastRequest:format(REQ_TIMEOUT_DUR), "", nil)
 			btn.Text = L.blocked
 			btn.BackgroundColor3 = Color3.fromRGB(150, 40, 40)
-			return
+			_done(); return
 		end
 
 		-- İstek gönder
@@ -2789,6 +2798,7 @@ _MakeBillboard = function(p)
 		btn.TextColor3 = Color3.new(1, 1, 1)
 		Notify(L.friendReqSent:format(p.Name), "", nil)
 		task.delay(3, function() _MyAttr(ATTR_REQ, "") end)
+		_done()
 	end)
 end
 
@@ -3515,17 +3525,22 @@ local function MakeCard(emote, ci, animate)
 	-- Cards are dynamic, register/unregister is complex. We set color directly on refresh.
 	card.BackgroundColor3 = currentTheme.tertiary
 
-	-- Async asset validation: if the thumbnail fails to load, remove this emote entirely
+	-- Async asset validation with 15-second timeout
 	task.spawn(function()
+		local _done = false
+		local function _onResult(_, status)
+			if _done then return end
+			_done = true
+			if status == Enum.AssetFetchStatus.Failure then
+				task.defer(function()
+					if cardContainer and cardContainer.Parent then cardContainer:Destroy() end
+					_MarkBadEmote(emote.id)
+				end)
+			end
+		end
+		task.delay(15, function() _onResult(nil, Enum.AssetFetchStatus.Failure) end)
 		pcall(function()
-			game:GetService("ContentProvider"):PreloadAsync({card}, function(_, status)
-				if status == Enum.AssetFetchStatus.Failure then
-					task.defer(function()
-						if cardContainer and cardContainer.Parent then cardContainer:Destroy() end
-						_MarkBadEmote(emote.id)
-					end)
-				end
-			end)
+			game:GetService("ContentProvider"):PreloadAsync({card}, _onResult)
 		end)
 	end)
 	
@@ -3549,7 +3564,7 @@ local function MakeCard(emote, ci, animate)
 	nameLbl.Size = UDim2.new(1, -4, 0, NAME_H - 2) 
 	nameLbl.Position = UDim2.new(0, 2, 0, KB_H + CARD)
 	nameLbl.BackgroundColor3 = currentTheme.secondary
-	nameLbl.Text = emote.name
+	nameLbl.Text = #emote.name > 26 and emote.name:sub(1, 25) .. "…" or emote.name
 	nameLbl.TextColor3 = currentTheme.text
 	nameLbl.Font = Enum.Font.GothamBold
 	nameLbl.TextScaled = true
@@ -3821,9 +3836,13 @@ local function MakeCard(emote, ci, animate)
 			end
 		end)
 		
+		-- Break any active friend sync when user manually picks a new emote
+		if FriendData and FriendData.currentSyncPartner then
+			FriendData.currentSyncPartner = nil
+		end
 		PlayEmote(emote.id, emote.name)
 	end)
-	
+
 	return cardContainer
 end
 
@@ -3850,6 +3869,27 @@ local function UpdateCards(animate)
 	local rows = math.ceil(ci / math.max(cols, 1))
 	scroll.CanvasSize = UDim2.new(0, 0, 0, rows * (CARD_TOTAL_H + PAD) + PAD)
 	scroll.CanvasPosition = Vector2.zero
+
+	-- Background preload next page thumbnails so page changes feel instant
+	local _npStart = page * perPage + 1
+	local _npEnd   = math.min((page + 1) * perPage, #filtered)
+	if _npStart <= _npEnd then
+		task.spawn(function()
+			local _imgs = {}
+			for _i = _npStart, _npEnd do
+				local _fe = filtered[_i]
+				if _fe and not _badEmotes[tostring(_fe.id)] then
+					local _img = Instance.new("ImageLabel")
+					_img.Image = "rbxthumb://type=Asset&id=" .. _fe.id .. "&w=420&h=420"
+					_imgs[#_imgs + 1] = _img
+				end
+			end
+			if #_imgs > 0 then
+				pcall(function() game:GetService("ContentProvider"):PreloadAsync(_imgs) end)
+				for _, _img in ipairs(_imgs) do _img:Destroy() end
+			end
+		end)
+	end
 end
 
 local function Refresh(animate)
@@ -4057,7 +4097,7 @@ search:GetPropertyChangedSignal("Text"):Connect(function()
 	filtered = {}
 	for i = 1, #currentData do
 		local e = currentData[i]
-		if not _badEmotes[tostring(e.id)] and (q == "" or (e._lname or e.name:lower()):find(q, 1, true)) then
+		if not _badEmotes[tostring(e.id)] and (q == "" or (#q <= #(e._lname or e.name) and (e._lname or e.name:lower()):find(q, 1, true))) then
 			filtered[#filtered + 1] = e
 		end
 	end
