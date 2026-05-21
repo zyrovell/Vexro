@@ -1303,22 +1303,31 @@ local TARGET_PC_CARD = 75 -- Was 75
 local TARGET_MOBILE_CARD = 55 -- Was 55
 
 local function GetDefaultSize()
-	-- Calculate width needed for 7 columns exactly + padding
 	local PAD = isMobile and 4 or 6
 	local targetCard = isMobile and TARGET_MOBILE_CARD or TARGET_PC_CARD
-	
-	-- Width for 7 cards + sidebar
-	local perfectWidth = (targetCard * 7) + (PAD * 6) + sideBarW + 20
-	
+
+	local perfectWidth = (targetCard * 7) + (PAD * 6) + 20
 	local vp = workspace.CurrentCamera.ViewportSize
 	local finalW = math.clamp(perfectWidth, 400, vp.X * 0.95)
-	
-	-- Height for 2 rows approx
-	local cardH = targetCard + (targetCard * 0.3 * 2) + PAD -- approx card total height
-	local perfectHeight = (cardH * 2) + 60 + bottomBarH + 20
-	
-	local finalH = math.clamp(perfectHeight, 300, vp.Y * 0.8)
-	
+
+	-- Inline constants to avoid forward-declaration issues
+	local _tabBtnS = math.floor((isMobile and 36 or 42) * BUTTON_SCALE)
+	local _tabStripH = _tabBtnS + 10
+	local _titleH = isMobile and 38 or 46
+	local _searchH = isMobile and 32 or 38
+	local _pageH = isMobile and 30 or 36
+
+	-- Card row height including keybind strip (PC only)
+	local KB_H = (not isMobile) and math.clamp(targetCard * 0.45, 30, 40) or 0
+	local NAME_H = math.clamp(targetCard * 0.35, 18, 28)
+	local FAV_H = math.clamp(targetCard * 0.3, 18, 24)
+	local rowH = KB_H + targetCard + NAME_H + FAV_H
+
+	-- Fixed overhead = space above + below scroll area
+	local overhead = _titleH + _tabStripH + _searchH + 16 + _pageH + bottomBarH + 20
+	local perfectHeight = overhead + (rowH + PAD) * 2 + PAD
+
+	local finalH = math.clamp(perfectHeight, 350, vp.Y * 0.85)
 	return UDim2.new(0, finalW, 0, finalH)
 end
 
@@ -1601,11 +1610,34 @@ tabStrip = Instance.new("Frame")
 tabStrip.Name = "TabStrip"
 tabStrip.Size = UDim2.new(1, 0, 0, tabStripH)
 tabStrip.Position = UDim2.new(0, 0, 0, titleH + 4)
-tabStrip.BackgroundColor3 = currentTheme.primary
+tabStrip.BackgroundColor3 = currentTheme.sidebar
 tabStrip.ZIndex = 8
 tabStrip.ClipsDescendants = false
 tabStrip.Parent = content
-RegisterTheme(tabStrip, "BackgroundColor3", "primary")
+Instance.new("UICorner", tabStrip).CornerRadius = UDim.new(0, 10)
+RegisterTheme(tabStrip, "BackgroundColor3", "sidebar")
+
+local tabStripStroke = Instance.new("UIStroke")
+tabStripStroke.Color = currentTheme.stroke
+tabStripStroke.Thickness = 1.5
+tabStripStroke.Transparency = 0.3
+tabStripStroke.Parent = tabStrip
+RegisterTheme(tabStripStroke, "Color", "stroke")
+
+-- | ayraçları sekme butonları arasına
+for i = 1, _nTabs - 1 do
+	local sepX = i / _nTabs
+	local sep = Instance.new("Frame")
+	sep.Name = "TabSep"
+	sep.Size = UDim2.new(0, 1, 0, math.floor(tabBtnS * 0.55))
+	sep.Position = UDim2.new(sepX, 0, 0.5, -math.floor(tabBtnS * 0.55 / 2))
+	sep.BackgroundColor3 = currentTheme.stroke
+	sep.BackgroundTransparency = 0.35
+	sep.BorderSizePixel = 0
+	sep.ZIndex = 8
+	sep.Parent = tabStrip
+	RegisterTheme(sep, "BackgroundColor3", "stroke")
+end
 
 -- Buton ve quatrefoil'leri tabStrip'e bağla
 for _, item in ipairs(_tabStripRef) do
