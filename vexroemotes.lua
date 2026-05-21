@@ -70,16 +70,22 @@ local _onSpeedChanged  -- function(); HUD hız butonlarını + info panel'i gün
 local _onPauseStateChanged  -- function(isPaused); HUD duraklat butonunu günceller
 local MAX_RECENT = 20
 
+local _savePending = false
 local function SaveData()
-	pcall(function()
-		if writefile then
-			writefile(DATA_FILE, HttpService:JSONEncode({
-				favorites = Favorites,
-				recent = RecentEmotes,
-				settings = Settings,
-				keybinds = Keybinds
-			}))
-		end
+	if _savePending then return end
+	_savePending = true
+	task.delay(0.25, function()
+		_savePending = false
+		pcall(function()
+			if writefile then
+				writefile(DATA_FILE, HttpService:JSONEncode({
+					favorites = Favorites,
+					recent = RecentEmotes,
+					settings = Settings,
+					keybinds = Keybinds
+				}))
+			end
+		end)
 	end)
 end
 
@@ -109,7 +115,7 @@ local function LoadData()
 					Settings.notifications = data.settings.notifications ~= false
 					Settings.loopEmote = data.settings.loopEmote ~= false
 					Settings.language = data.settings.language or nil
-					Settings.copyEmoteEnabled = data.settings.copyEmoteEnabled == true
+					-- copyEmoteEnabled intentionally NOT loaded — always starts off
 					Settings.stopOnWalk = data.settings.stopOnWalk ~= false
 					Settings.showHUD = data.settings.showHUD ~= false
 				end
@@ -487,9 +493,11 @@ end
 
 if not selectedLang then
 
+local langTheme = Themes[Settings.theme] or Themes.Dark
+
 local langScreen = Instance.new("Frame")
 langScreen.Size = UDim2.fromScale(1, 1)
-langScreen.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
+langScreen.BackgroundColor3 = langTheme.primary
 langScreen.ZIndex = 20000
 langScreen.Parent = gui
 
@@ -498,7 +506,7 @@ for i = 1, 15 do
 	local s = math.random(3, 8)
 	particle.Size = UDim2.new(0, s, 0, s)
 	particle.Position = UDim2.new(math.random(), 0, math.random(), 0)
-	particle.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
+	particle.BackgroundColor3 = langTheme.accent
 	particle.BackgroundTransparency = math.random(5, 8) / 10
 	particle.ZIndex = 20000
 	particle.Parent = langScreen
@@ -518,22 +526,22 @@ local langBox = Instance.new("Frame")
 langBox.Size = UDim2.new(0, 0, 0, 0)
 langBox.Position = UDim2.fromScale(0.5, 0.5)
 langBox.AnchorPoint = Vector2.new(0.5, 0.5)
-langBox.BackgroundColor3 = Color3.fromRGB(18, 18, 28)
+langBox.BackgroundColor3 = langTheme.secondary
 langBox.ZIndex = 20001
 langBox.Rotation = -15
 langBox.Parent = langScreen
 Instance.new("UICorner", langBox).CornerRadius = UDim.new(0, 20)
 
 local langBoxStroke = Instance.new("UIStroke")
-langBoxStroke.Color = Color3.fromRGB(100, 100, 180)
+langBoxStroke.Color = langTheme.stroke
 langBoxStroke.Thickness = 2
 langBoxStroke.Parent = langBox
 
 local langStrokeGrad = Instance.new("UIGradient")
 langStrokeGrad.Color = ColorSequence.new{
-	ColorSequenceKeypoint.new(0, Color3.fromRGB(138, 43, 226)),
-	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(75, 0, 130)),
-	ColorSequenceKeypoint.new(1, Color3.fromRGB(138, 43, 226))
+	ColorSequenceKeypoint.new(0, langTheme.accent),
+	ColorSequenceKeypoint.new(0.5, langTheme.stroke),
+	ColorSequenceKeypoint.new(1, langTheme.accent)
 }
 langStrokeGrad.Parent = langBoxStroke
 
@@ -566,17 +574,17 @@ local function MakeLangBtn(txt, index, lang)
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(0.44, 0, 0, 55)
 	btn.Position = UDim2.new(x, 0, 0, y)
-	btn.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+	btn.BackgroundColor3 = langTheme.tertiary
 	btn.Text = txt
-	btn.TextColor3 = Color3.new(1, 1, 1)
+	btn.TextColor3 = langTheme.text
 	btn.Font = Enum.Font.GothamBold
 	btn.TextSize = isMobile and 14 or 16
 	btn.ZIndex = 20003
 	btn.Parent = langBox
 	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
-	
+
 	local btnStroke = Instance.new("UIStroke")
-	btnStroke.Color = Color3.fromRGB(70, 70, 100)
+	btnStroke.Color = langTheme.stroke
 	btnStroke.Transparency = 0.5
 	btnStroke.Parent = btn
 	
@@ -589,13 +597,13 @@ local function MakeLangBtn(txt, index, lang)
 	Instance.new("UICorner", shine).CornerRadius = UDim.new(0, 12)
 	
 	btn.MouseEnter:Connect(function()
-		TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 90)}):Play()
-		TweenService:Create(btnStroke, TweenInfo.new(0.2), {Transparency = 0, Color = Color3.fromRGB(138, 43, 226)}):Play()
+		TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = langTheme.accent}):Play()
+		TweenService:Create(btnStroke, TweenInfo.new(0.2), {Transparency = 0, Color = langTheme.accent}):Play()
 		TweenService:Create(shine, TweenInfo.new(0.3), {Size = UDim2.new(1, 0, 1, 0)}):Play()
 	end)
 	btn.MouseLeave:Connect(function()
-		TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40, 40, 60)}):Play()
-		TweenService:Create(btnStroke, TweenInfo.new(0.2), {Transparency = 0.5, Color = Color3.fromRGB(70, 70, 100)}):Play()
+		TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = langTheme.tertiary}):Play()
+		TweenService:Create(btnStroke, TweenInfo.new(0.2), {Transparency = 0.5, Color = langTheme.stroke}):Play()
 		TweenService:Create(shine, TweenInfo.new(0.3), {Size = UDim2.new(0, 0, 1, 0)}):Play()
 	end)
 	btn.MouseButton1Click:Connect(function()
@@ -603,14 +611,14 @@ local function MakeLangBtn(txt, index, lang)
 		ripple.Size = UDim2.new(0, 0, 0, 0)
 		ripple.Position = UDim2.new(0.5, 0, 0.5, 0)
 		ripple.AnchorPoint = Vector2.new(0.5, 0.5)
-		ripple.BackgroundColor3 = Color3.new(1, 1, 1)
+		ripple.BackgroundColor3 = langTheme.accent
 		ripple.BackgroundTransparency = 0.7
 		ripple.ZIndex = 20005
 		ripple.Parent = btn
 		Instance.new("UICorner", ripple).CornerRadius = UDim.new(1, 0)
-		
+
 		TweenService:Create(ripple, TweenInfo.new(0.4), {Size = UDim2.new(2, 0, 2, 0), BackgroundTransparency = 1}):Play()
-		TweenService:Create(btn, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(138, 43, 226)}):Play()
+		TweenService:Create(btn, TweenInfo.new(0.1), {BackgroundColor3 = langTheme.accent}):Play()
 		task.delay(0.4, function() ripple:Destroy() end)
 		task.wait(0.15)
 		selectedLang = lang
@@ -630,9 +638,9 @@ MakeLangBtn("🇷🇺  Русский",  8, "RU")
 local rememberBtn = Instance.new("TextButton")
 rememberBtn.Size = UDim2.new(0.92, 0, 0, 40)
 rememberBtn.Position = UDim2.new(0.04, 0, 1, -50)
-rememberBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+rememberBtn.BackgroundColor3 = langTheme.tertiary
 rememberBtn.Text = "💾  Remember Language"
-rememberBtn.TextColor3 = Color3.fromRGB(180, 180, 200)
+rememberBtn.TextColor3 = langTheme.textDim
 rememberBtn.Font = Enum.Font.GothamBold
 rememberBtn.TextSize = isMobile and 13 or 15
 rememberBtn.ZIndex = 20003
@@ -640,7 +648,7 @@ rememberBtn.Parent = langBox
 Instance.new("UICorner", rememberBtn).CornerRadius = UDim.new(0, 12)
 
 local rememberStroke = Instance.new("UIStroke")
-rememberStroke.Color = Color3.fromRGB(70, 70, 100)
+rememberStroke.Color = langTheme.stroke
 rememberStroke.Transparency = 0.5
 rememberStroke.Parent = rememberBtn
 
@@ -648,14 +656,14 @@ rememberBtn.MouseButton1Click:Connect(function()
 	rememberLang = not rememberLang
 	if rememberLang then
 		TweenService:Create(rememberBtn, TweenInfo.new(0.2),
-			{BackgroundColor3 = Color3.fromRGB(60, 140, 80)}):Play()
+			{BackgroundColor3 = langTheme.success}):Play()
 		rememberBtn.Text       = "✅  Remember Language"
 		rememberBtn.TextColor3 = Color3.new(1, 1, 1)
 	else
 		TweenService:Create(rememberBtn, TweenInfo.new(0.2),
-			{BackgroundColor3 = Color3.fromRGB(40, 40, 60)}):Play()
+			{BackgroundColor3 = langTheme.tertiary}):Play()
 		rememberBtn.Text       = "💾  Remember Language"
-		rememberBtn.TextColor3 = Color3.fromRGB(180, 180, 200)
+		rememberBtn.TextColor3 = langTheme.textDim
 	end
 end)
 
@@ -734,6 +742,8 @@ local L = {
 	kbCancel         = isTR and "İptal"                or (isES and "Cancelar"             or (isAR and "إلغاء"                 or (isFR and "Annuler"               or (isHI and "रद्द करें"             or (isPT and "Cancelar"             or (isRU and "Отмена"              or "Cancel")))))),
 	kbSave           = isTR and "Kaydet"               or (isES and "Guardar"              or (isAR and "حفظ"                   or (isFR and "Enregistrer"           or (isHI and "सहेजें"               or (isPT and "Salvar"               or (isRU and "Сохранить"           or "Save")))))),
 	kbEmpty          = isTR and "Henüz keybind yok"    or (isES and "Sin keybinds aún"     or (isAR and "لا توجد اختصارات بعد"  or (isFR and "Aucun raccourci"        or (isHI and "कोई कीबाइंड नहीं"    or (isPT and "Nenhum keybind ainda" or (isRU and "Нет горячих клавиш"  or "No keybinds yet")))))),
+	noSearch         = isTR and "Sonuç bulunamadı"     or (isES and "Sin resultados"        or (isAR and "لا توجد نتائج"            or (isFR and "Aucun résultat"         or (isHI and "कोई परिणाम नहीं"      or (isPT and "Sem resultados"       or (isRU and "Ничего не найдено"   or "No results found")))))),
+	kbInvalidKey     = isTR and "Geçersiz tuş!"        or (isES and "¡Tecla inválida!"      or (isAR and "مفتاح غير صالح!"          or (isFR and "Touche invalide!"       or (isHI and "अमान्य कुंजी!"         or (isPT and "Tecla inválida!"      or (isRU and "Недопустимая клавиша!" or "Invalid key!")))))),
 	autoRejectLbl    = isTR and "Arkadaş isteklerini otomatik reddet."     or (isES and "Rechazar solicitudes automáticamente."  or (isAR and "رفض طلبات الصداقة تلقائياً."         or (isFR and "Refuser les demandes automatiquement."    or (isHI and "मित्र अनुरोध स्वचालित रूप से अस्वीकार करें।" or (isPT and "Rejeitar pedidos automaticamente."      or (isRU and "Автоматически отклонять запросы."      or "Auto-reject friend requests.")))))),
 	addFriendBtn     = isTR and "+ Arkadaş Ekle"                           or (isES and "+ Añadir Amigo"                         or (isAR and "+ إضافة صديق"                          or (isFR and "+ Ajouter Ami"                          or (isHI and "+ मित्र जोड़ें"                              or (isPT and "+ Adicionar Amigo"                    or (isRU and "+ Добавить друга"                     or "+ Add Friend")))))),
 	blocked          = isTR and "Engellendi"                                or (isES and "Bloqueado"                              or (isAR and "محظور"                                 or (isFR and "Bloqué"                                  or (isHI and "ब्लॉक किया"                               or (isPT and "Bloqueado"                             or (isRU and "Заблокирован"                          or "Blocked")))))),
@@ -1050,8 +1060,10 @@ end
 LoadEmotes()
 
 -- Build lookup table for O(1) emote access by ID
+-- Pre-compute lowercase names so search never calls .lower() at runtime
 for _, emote in ipairs(Emotes) do
 	EmotesById[emote.id] = emote
+	emote._lname = emote.name:lower()
 end
 TweenService:Create(loadingBar, TweenInfo.new(1), {Size = UDim2.new(1, 0, 1, 0)}):Play()
 task.wait(1)
@@ -1085,6 +1097,8 @@ local cards = {}
 local sideBarW = math.floor((isMobile and 50 or 60) * BUTTON_SCALE)
 local bottomBarH = isMobile and 26 or 22
 local currentCardSize = 0 -- Dynamic card size
+local _badEmotes = {}     -- [tostring(id)] = true  →  asset failed to load
+local _refreshPending = false
 
 -- ===============================================================
 -- FAVORITES & RECENT
@@ -2414,6 +2428,7 @@ end)
 -- ARKADAŞ & BERABER EMOTE SİSTEMİ
 -- ===============================================================
 local friendAddModeBtn
+local _syncLock = false
 do
 local ATTR_REQ  = "VFR_Req"   -- "<targetUserId>"
 local ATTR_RESP = "VFR_Resp"  -- "<senderId>:1|0"
@@ -2634,11 +2649,12 @@ local function _WatchChar(char, uid, uname)
 	-- Emote senkron
 	_conn(ATTR_SYNC, function()
 		if not FriendData.playFriendEmote then return end
+		if _syncLock then return end
 		local fdata = FriendData.friends[tostring(uid)]
 		if not fdata or not fdata.syncEnabled then return end
 		local v = char:GetAttribute(ATTR_SYNC)
 		if not v or v == "" then return end
-		-- Çakışma kontrolü
+		-- Çakışma kontrolü: başka biriyle zaten senkronda mı
 		if FriendData.currentSyncPartner and FriendData.currentSyncPartner ~= tostring(uid) then
 			Notify(L.friendAlreadySyncing or "Hata! Zaten başka birisiyle senkrondayız.", "", nil)
 			return
@@ -2648,8 +2664,10 @@ local function _WatchChar(char, uid, uname)
 		local eid = tonumber(v:sub(1, sep-1))
 		local ename = v:sub(sep+1)
 		if eid and FriendData.syncEmote then
+			_syncLock = true
 			FriendData.currentSyncPartner = tostring(uid)
 			PlayEmote(eid, ename, true)
+			task.defer(function() _syncLock = false end)
 		end
 	end)
 
@@ -2738,9 +2756,14 @@ _MakeBillboard = function(p)
 	btnStroke.Thickness = 1
 	btnStroke.Parent = btn
 
+	local _btnBusy = false
 	btn.MouseButton1Click:Connect(function()
+		if _btnBusy then return end
+		_btnBusy = true
+		local function _done() _btnBusy = false end
+
 		if FriendData.friends[tostring(p.UserId)] then
-			Notify(L.alreadyFriends, "", nil); return
+			Notify(L.alreadyFriends, "", nil); _done(); return
 		end
 
 		local now = tick()
@@ -2750,7 +2773,7 @@ _MakeBillboard = function(p)
 		if now < _reqTimeoutUntil then
 			local rem = math.ceil(_reqTimeoutUntil - now)
 			Notify(L.spamProtect:format(rem), "", nil)
-			return
+			_done(); return
 		end
 
 		-- Aynı kişiye tekrar istek cooldown
@@ -2758,7 +2781,7 @@ _MakeBillboard = function(p)
 		if now - lastSent < REQ_COOLDOWN then
 			local rem = math.ceil(REQ_COOLDOWN - (now - lastSent))
 			Notify(L.waitRequest:format(rem), "", nil)
-			return
+			_done(); return
 		end
 
 		-- Spam sayacı güncelle
@@ -2774,7 +2797,7 @@ _MakeBillboard = function(p)
 			Notify(L.tooFastRequest:format(REQ_TIMEOUT_DUR), "", nil)
 			btn.Text = L.blocked
 			btn.BackgroundColor3 = Color3.fromRGB(150, 40, 40)
-			return
+			_done(); return
 		end
 
 		-- İstek gönder
@@ -2785,6 +2808,7 @@ _MakeBillboard = function(p)
 		btn.TextColor3 = Color3.new(1, 1, 1)
 		Notify(L.friendReqSent:format(p.Name), "", nil)
 		task.delay(3, function() _MyAttr(ATTR_REQ, "") end)
+		_done()
 	end)
 end
 
@@ -2894,6 +2918,8 @@ friendAddBtn.ZIndex = 6
 friendAddBtn.Parent = friendsPanel
 Instance.new("UICorner", friendAddBtn).CornerRadius = UDim.new(0, 10)
 RegisterTheme(friendAddBtn, "BackgroundColor3", "accent")
+
+friendAddModeBtn = friendAddBtn
 
 friendAddBtn.MouseButton1Click:Connect(function()
 	_SetAddMode(not FriendData.addModeActive)
@@ -3019,6 +3045,7 @@ RefreshFriendList = function()
 		end)
 	end
 	emptyFriendLbl.Visible = not hasAny
+	flHeader.Visible = hasAny
 end
 RefreshFriendList()
 
@@ -3142,19 +3169,68 @@ local function UpdatePageUI()
 		for _, c in ipairs(nextBtn.ChevronIcon:GetChildren()) do c.BackgroundColor3 = Color3.new(0, 0, 0) end
 	end
 	
-	pageBar.Visible = currentTab ~= "settings" and pages > 1
+	pageBar.Visible = currentTab ~= "settings" and currentTab ~= "friends" and currentTab ~= "keybinds" and pages > 1
 	
 	local empty = #filtered == 0 and currentTab ~= "settings"
 	emptyLbl.Visible = empty
-	if currentTab == "favorites" then emptyLbl.Text = L.noFav
-	elseif currentTab == "recent" then emptyLbl.Text = L.noRecent end
+	if empty then
+		local q = search and search.Text ~= "" or false
+		if q then
+			emptyLbl.Text = L.noSearch or "No results found"
+		elseif currentTab == "favorites" then
+			emptyLbl.Text = L.noFav
+		elseif currentTab == "recent" then
+			emptyLbl.Text = L.noRecent
+		else
+			emptyLbl.Text = L.noSearch or "No results found"
+		end
+	end
+end
+
+local function _MarkBadEmote(emoteId)
+	local key = tostring(emoteId)
+	if _badEmotes[key] then return end
+	_badEmotes[key] = true
+	-- Remove from master Emotes list
+	for i = #Emotes, 1, -1 do
+		if tostring(Emotes[i].id) == key then table.remove(Emotes, i); break end
+	end
+	EmotesById[tonumber(key)] = nil
+	-- Remove from current filtered list so page counts update
+	for i = #filtered, 1, -1 do
+		if tostring(filtered[i].id) == key then table.remove(filtered, i); break end
+	end
+	-- Debounced grid refresh so rapid failures coalesce into one redraw
+	if not _refreshPending then
+		_refreshPending = true
+		task.delay(0.8, function()
+			_refreshPending = false
+			if currentTab ~= "settings" and currentTab ~= "friends" and currentTab ~= "keybinds" then
+				page = math.clamp(page, 1, math.max(1, math.ceil(#filtered / perPage)))
+				Refresh(false)
+			end
+		end)
+	end
 end
 
 local function ClearCards()
 	for _, c in pairs(cards) do
-		if c and c.Parent then c:Destroy() end
+		if c and c.Parent then
+			-- Cancel any running tweens to avoid they reference destroyed instances
+			for _, desc in ipairs(c:GetDescendants()) do
+				if desc:IsA("TweenBase") then pcall(function() desc:Cancel() end) end
+			end
+			c:Destroy()
+		end
 	end
 	cards = {}
+	-- Prune _textGrads of entries whose parent was just destroyed
+	for i = #_textGrads, 1, -1 do
+		local g = _textGrads[i]
+		if not (g and g.Parent) then
+			table.remove(_textGrads, i)
+		end
+	end
 end
 
 -- ===============================================================
@@ -3321,8 +3397,25 @@ local function ShowKeybindDialog(emoteId, emote, isEdit)
 		overlay:Destroy()
 	end)
 
+	local _KB_BLACKLIST = {Unknown=true, Backspace=true, Delete=true, Escape=true,
+		Return=true, Tab=true, CapsLock=true, LeftShift=true, RightShift=true,
+		LeftControl=true, RightControl=true, LeftAlt=true, RightAlt=true,
+		LeftMeta=true, RightMeta=true, Insert=true, Home=true, End=true,
+		PageUp=true, PageDown=true, NumLock=true, ScrollLock=true, Pause=true, Print=true}
+
 	saveBtn.MouseButton1Click:Connect(function()
 		if not recordedKey then return end
+		if _KB_BLACKLIST[recordedKey] then
+			keyBtn.Text = L.kbInvalidKey or "Invalid key!"
+			keyBtn.TextColor3 = Color3.fromRGB(220, 50, 50)
+			task.delay(1.5, function()
+				if recordedKey then
+					keyBtn.Text = "[" .. recordedKey .. "]"
+					keyBtn.TextColor3 = currentTheme.accent
+				end
+			end)
+			return
+		end
 		if recordConn then pcall(function() recordConn:Disconnect() end) end
 		local kbName = nameBox.Text ~= "" and nameBox.Text or emote.name
 		SetKeybind(emoteId, kbName, recordedKey)
@@ -3480,7 +3573,26 @@ local function MakeCard(emote, ci, animate)
 	
 	card.Image = "rbxthumb://type=Asset&id=" .. emote.id .. "&w=420&h=420"
 	-- Cards are dynamic, register/unregister is complex. We set color directly on refresh.
-	card.BackgroundColor3 = currentTheme.tertiary 
+	card.BackgroundColor3 = currentTheme.tertiary
+
+	-- Async asset validation with 15-second timeout
+	task.spawn(function()
+		local _done = false
+		local function _onResult(_, status)
+			if _done then return end
+			_done = true
+			if status == Enum.AssetFetchStatus.Failure then
+				task.defer(function()
+					if cardContainer and cardContainer.Parent then cardContainer:Destroy() end
+					_MarkBadEmote(emote.id)
+				end)
+			end
+		end
+		task.delay(15, function() _onResult(nil, Enum.AssetFetchStatus.Failure) end)
+		pcall(function()
+			game:GetService("ContentProvider"):PreloadAsync({card}, _onResult)
+		end)
+	end)
 	
 	if animate then
 		card.ImageTransparency = 1
@@ -3502,7 +3614,7 @@ local function MakeCard(emote, ci, animate)
 	nameLbl.Size = UDim2.new(1, -4, 0, NAME_H - 2) 
 	nameLbl.Position = UDim2.new(0, 2, 0, KB_H + CARD)
 	nameLbl.BackgroundColor3 = currentTheme.secondary
-	nameLbl.Text = emote.name
+	nameLbl.Text = #emote.name > 20 and emote.name:sub(1, 19) .. "…" or emote.name
 	nameLbl.TextColor3 = currentTheme.text
 	nameLbl.Font = Enum.Font.GothamBold
 	nameLbl.TextScaled = true
@@ -3774,9 +3886,13 @@ local function MakeCard(emote, ci, animate)
 			end
 		end)
 		
+		-- Break any active friend sync when user manually picks a new emote
+		if FriendData and FriendData.currentSyncPartner then
+			FriendData.currentSyncPartner = nil
+		end
 		PlayEmote(emote.id, emote.name)
 	end)
-	
+
 	return cardContainer
 end
 
@@ -3803,6 +3919,27 @@ local function UpdateCards(animate)
 	local rows = math.ceil(ci / math.max(cols, 1))
 	scroll.CanvasSize = UDim2.new(0, 0, 0, rows * (CARD_TOTAL_H + PAD) + PAD)
 	scroll.CanvasPosition = Vector2.zero
+
+	-- Background preload next page thumbnails so page changes feel instant
+	local _npStart = page * perPage + 1
+	local _npEnd   = math.min((page + 1) * perPage, #filtered)
+	if _npStart <= _npEnd then
+		task.spawn(function()
+			local _imgs = {}
+			for _i = _npStart, _npEnd do
+				local _fe = filtered[_i]
+				if _fe and not _badEmotes[tostring(_fe.id)] then
+					local _img = Instance.new("ImageLabel")
+					_img.Image = "rbxthumb://type=Asset&id=" .. _fe.id .. "&w=420&h=420"
+					_imgs[#_imgs + 1] = _img
+				end
+			end
+			if #_imgs > 0 then
+				pcall(function() game:GetService("ContentProvider"):PreloadAsync(_imgs) end)
+				for _, _img in ipairs(_imgs) do _img:Destroy() end
+			end
+		end)
+	end
 end
 
 local function Refresh(animate)
@@ -3923,7 +4060,15 @@ UpdateTabData = function()
 	
 	if currentTab == "emotes" then
 		currentData = Emotes
-		filtered = Emotes
+		-- If bad emotes exist, build a clean filtered copy; otherwise share the table
+		if next(_badEmotes) then
+			filtered = {}
+			for _, e in ipairs(Emotes) do
+				if not _badEmotes[tostring(e.id)] then filtered[#filtered + 1] = e end
+			end
+		else
+			filtered = Emotes
+		end
 		title.Text = L.emotes
 		titleIcon.Image = ResolveAssetImage(Icons.Emote)
 		titleIcon.ImageColor3 = currentTheme.text
@@ -3939,7 +4084,7 @@ UpdateTabData = function()
 		filtered = currentData
 		title.Text = L.favorites
 		titleIcon.Image = ResolveAssetImage(Icons.FavoriteFull)
-		titleIcon.ImageColor3 = currentTheme.accent
+		titleIcon.ImageColor3 = (Settings.theme == "FrostedGlass" or Settings.theme == "DarkGlass") and currentTheme.accent or currentTheme.text
 		titleIcon.Visible = true
 
 	elseif currentTab == "recent" then
@@ -3953,22 +4098,22 @@ UpdateTabData = function()
 		filtered = currentData
 		title.Text = L.recent
 		titleIcon.Image = ResolveAssetImage(Icons.Recent)
-		titleIcon.ImageColor3 = currentTheme.accent
+		titleIcon.ImageColor3 = (Settings.theme == "FrostedGlass" or Settings.theme == "DarkGlass") and currentTheme.accent or currentTheme.text
 		titleIcon.Visible = true
 	elseif currentTab == "settings" then
 		title.Text = L.settings
 		titleIcon.Image = ResolveAssetImage(Icons.Settings)
-		titleIcon.ImageColor3 = currentTheme.accent
+		titleIcon.ImageColor3 = (Settings.theme == "FrostedGlass" or Settings.theme == "DarkGlass") and currentTheme.accent or currentTheme.text
 		titleIcon.Visible = true
 	elseif currentTab == "friends" then
 		title.Text = L.friendTab or "Arkadaşlar"
 		titleIcon.Image = ResolveAssetImage("rbxassetid://115725480722697")
-		titleIcon.ImageColor3 = currentTheme.accent
+		titleIcon.ImageColor3 = (Settings.theme == "FrostedGlass" or Settings.theme == "DarkGlass") and currentTheme.accent or currentTheme.text
 		titleIcon.Visible = true
 	elseif currentTab == "keybinds" then
 		title.Text = L.keybinds
 		titleIcon.Image = ResolveAssetImage("rbxassetid://122679509852670")
-		titleIcon.ImageColor3 = currentTheme.accent
+		titleIcon.ImageColor3 = (Settings.theme == "FrostedGlass" or Settings.theme == "DarkGlass") and currentTheme.accent or currentTheme.text
 		titleIcon.Visible = true
 	end
 	
@@ -3980,7 +4125,7 @@ UpdateTabData = function()
 	title.Position = UDim2.new(0, titleIcon.Visible and (10 + tabIconSz + 6) or 10, 0, 0)
 	
 	UpdateTabStyles()
-	if not isSettings and not isKeybinds then Refresh(true) end
+	if not isSettings and not isKeybinds and not isFriends then Refresh(true) end
 end
 
 tabBtns["emotes"].btn.MouseButton1Click:Connect(function() currentTab = "emotes"; UpdateTabData() end)
@@ -4002,7 +4147,7 @@ search:GetPropertyChangedSignal("Text"):Connect(function()
 	filtered = {}
 	for i = 1, #currentData do
 		local e = currentData[i]
-		if q == "" or e.name:lower():find(q, 1, true) then
+		if not _badEmotes[tostring(e.id)] and (q == "" or (#q <= #(e._lname or e.name) and (e._lname or e.name:lower()):find(q, 1, true))) then
 			filtered[#filtered + 1] = e
 		end
 	end
