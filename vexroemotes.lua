@@ -493,7 +493,10 @@ end
 
 if not selectedLang then
 
+-- Dil ekranı her zaman kaydedilmiş temayı kullanır; tema yoksa Dark varsayılan
 local langTheme = Themes[Settings.theme] or Themes.Dark
+-- Eğer kaydedilmiş tema yoksa (ilk kez) veya tema Dark ise, Dark'ı zorla
+if not Settings.theme or Settings.theme == "" then langTheme = Themes.Dark end
 
 local langScreen = Instance.new("Frame")
 langScreen.Size = UDim2.fromScale(1, 1)
@@ -1514,12 +1517,14 @@ local function CreateTabBtn(icon, tabName, yPos, customScale, rawImage)
 	end
 
 	btn.MouseEnter:Connect(function()
-		TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundTransparency = 0.4, Size = UDim2.new(0, tabBtnS + 4, 0, tabBtnS + 4)}):Play()
+		if currentTab ~= tabName then
+			TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundTransparency = 0.55, Size = UDim2.new(0, tabBtnS + 4, 0, tabBtnS + 4)}):Play()
+		end
 	end)
 	btn.MouseLeave:Connect(function()
 		local active = currentTab == tabName
 		TweenService:Create(btn, TweenInfo.new(0.15), {
-			BackgroundTransparency = active and 0.2 or 0.8,
+			BackgroundTransparency = active and 0 or 0.92,
 			Size = UDim2.new(0, tabBtnS, 0, tabBtnS)
 		}):Play()
 	end)
@@ -1540,6 +1545,19 @@ local function CreateTabBtn(icon, tabName, yPos, customScale, rawImage)
 	quatrefoil.Parent = sidebar
 	
 	tabBtns[tabName] = {btn = btn, stroke = stroke, img = imgElement, quatrefoil = quatrefoil}
+
+	-- Active-state gradient (disabled until tab becomes active; not used for MaterialYou)
+	local tabActiveGrad = Instance.new("UIGradient")
+	tabActiveGrad.Name = "TabActiveGrad"
+	tabActiveGrad.Rotation = 90
+	tabActiveGrad.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.25),
+		NumberSequenceKeypoint.new(1, 0.72)
+	})
+	tabActiveGrad.Enabled = false
+	tabActiveGrad.Parent = btn
+
+	tabBtns[tabName].grad = tabActiveGrad
 	return btn
 end
 
@@ -4013,15 +4031,33 @@ UpdateTabStyles = function()
 				Transparency = 1
 			}):Play()
 		else
+			local g = data.grad
+			if active and g then
+				-- Compute gradient colors from theme accent
+				local acc = currentTheme.accent
+				local topC = Color3.new(
+					math.min(1, acc.R + 0.18),
+					math.min(1, acc.G + 0.18),
+					math.min(1, acc.B + 0.18)
+				)
+				local botC = Color3.new(acc.R * 0.25, acc.G * 0.25, acc.B * 0.25)
+				g.Color = ColorSequence.new{
+					ColorSequenceKeypoint.new(0, topC),
+					ColorSequenceKeypoint.new(1, botC)
+				}
+				g.Enabled = true
+			elseif g then
+				g.Enabled = false
+			end
 			TweenService:Create(data.btn, TweenInfo.new(0.2), {
-				BackgroundTransparency = active and 0.2 or 0.8,
-				BackgroundColor3 = targetColor,
+				BackgroundTransparency = active and 0 or 0.92,
+				BackgroundColor3 = active and Color3.new(1, 1, 1) or currentTheme.sidebar,
 				Size = UDim2.new(0, active and tabBtnS + 4 or tabBtnS, 0, active and tabBtnS + 4 or tabBtnS)
 			}):Play()
 			TweenService:Create(data.stroke, TweenInfo.new(0.2), {
-				Transparency = active and 0 or 0.7,
-				Color = active and currentTheme.accent or currentTheme.stroke,
-				Thickness = active and 3 or 2
+				Transparency = active and 0.15 or 0.8,
+				Color = active and Color3.new(1, 1, 1) or currentTheme.stroke,
+				Thickness = active and 1.5 or 1.5
 			}):Play()
 		end
 		
