@@ -1050,8 +1050,10 @@ end
 LoadEmotes()
 
 -- Build lookup table for O(1) emote access by ID
+-- Pre-compute lowercase names so search never calls .lower() at runtime
 for _, emote in ipairs(Emotes) do
 	EmotesById[emote.id] = emote
+	emote._lname = emote.name:lower()
 end
 TweenService:Create(loadingBar, TweenInfo.new(1), {Size = UDim2.new(1, 0, 1, 0)}):Play()
 task.wait(1)
@@ -1085,6 +1087,8 @@ local cards = {}
 local sideBarW = math.floor((isMobile and 50 or 60) * BUTTON_SCALE)
 local bottomBarH = isMobile and 26 or 22
 local currentCardSize = 0 -- Dynamic card size
+local _badEmotes = {}     -- [tostring(id)] = true  →  asset failed to load
+local _refreshPending = false
 
 -- ===============================================================
 -- FAVORITES & RECENT
@@ -3153,6 +3157,32 @@ local function UpdatePageUI()
 	elseif currentTab == "recent" then emptyLbl.Text = L.noRecent end
 end
 
+local function _MarkBadEmote(emoteId)
+	local key = tostring(emoteId)
+	if _badEmotes[key] then return end
+	_badEmotes[key] = true
+	-- Remove from master Emotes list
+	for i = #Emotes, 1, -1 do
+		if tostring(Emotes[i].id) == key then table.remove(Emotes, i); break end
+	end
+	EmotesById[tonumber(key)] = nil
+	-- Remove from current filtered list so page counts update
+	for i = #filtered, 1, -1 do
+		if tostring(filtered[i].id) == key then table.remove(filtered, i); break end
+	end
+	-- Debounced grid refresh so rapid failures coalesce into one redraw
+	if not _refreshPending then
+		_refreshPending = true
+		task.delay(0.8, function()
+			_refreshPending = false
+			if currentTab ~= "settings" and currentTab ~= "friends" and currentTab ~= "keybinds" then
+				page = math.clamp(page, 1, math.max(1, math.ceil(#filtered / perPage)))
+				Refresh(false)
+			end
+		end)
+	end
+end
+
 local function ClearCards()
 	for _, c in pairs(cards) do
 		if c and c.Parent then c:Destroy() end
@@ -3483,7 +3513,21 @@ local function MakeCard(emote, ci, animate)
 	
 	card.Image = "rbxthumb://type=Asset&id=" .. emote.id .. "&w=420&h=420"
 	-- Cards are dynamic, register/unregister is complex. We set color directly on refresh.
-	card.BackgroundColor3 = currentTheme.tertiary 
+	card.BackgroundColor3 = currentTheme.tertiary
+
+	-- Async asset validation: if the thumbnail fails to load, remove this emote entirely
+	task.spawn(function()
+		pcall(function()
+			game:GetService("ContentProvider"):PreloadAsync({card}, function(_, status)
+				if status == Enum.AssetFetchStatus.Failure then
+					task.defer(function()
+						if cardContainer and cardContainer.Parent then cardContainer:Destroy() end
+						_MarkBadEmote(emote.id)
+					end)
+				end
+			end)
+		end)
+	end)
 	
 	if animate then
 		card.ImageTransparency = 1
@@ -3926,7 +3970,15 @@ UpdateTabData = function()
 	
 	if currentTab == "emotes" then
 		currentData = Emotes
-		filtered = Emotes
+		-- If bad emotes exist, build a clean filtered copy; otherwise share the table
+		if next(_badEmotes) then
+			filtered = {}
+			for _, e in ipairs(Emotes) do
+				if not _badEmotes[tostring(e.id)] then filtered[#filtered + 1] = e end
+			end
+		else
+			filtered = Emotes
+		end
 		title.Text = L.emotes
 		titleIcon.Image = ResolveAssetImage(Icons.Emote)
 		titleIcon.ImageColor3 = currentTheme.text
@@ -4005,7 +4057,7 @@ search:GetPropertyChangedSignal("Text"):Connect(function()
 	filtered = {}
 	for i = 1, #currentData do
 		local e = currentData[i]
-		if q == "" or e.name:lower():find(q, 1, true) then
+		if not _badEmotes[tostring(e.id)] and (q == "" or (e._lname or e.name:lower()):find(q, 1, true)) then
 			filtered[#filtered + 1] = e
 		end
 	end
