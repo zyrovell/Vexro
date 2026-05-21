@@ -48,7 +48,7 @@ if old then old:Destroy() end
 -- ===============================================================
 
 local DATA_FILE = "VexroEmotes_Data.json"
-local Settings = {theme = "Dark", speed = 1, notifications = true, loopEmote = true, language = nil, copyEmoteEnabled = false, stopOnWalk = true, showHUD = true}
+local Settings = {theme = "Dark", speed = 1, notifications = true, loopEmote = true, language = nil, copyEmoteEnabled = false, stopOnWalk = false, showHUD = true}
 
 local FriendData = {
 	friends        = {},   -- [userId:string] = {name, syncEnabled}
@@ -1528,13 +1528,12 @@ local function CreateTabBtn(icon, tabName, yPos, customScale, rawImage)
 
 	btn.MouseEnter:Connect(function()
 		if currentTab ~= tabName then
-			TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundTransparency = 0.55, Size = UDim2.new(0, tabBtnS + 4, 0, tabBtnS + 4)}):Play()
+			TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundTransparency = 0.7, BackgroundColor3 = currentTheme.stroke, Size = UDim2.new(0, tabBtnS + 2, 0, tabBtnS + 2)}):Play()
 		end
 	end)
 	btn.MouseLeave:Connect(function()
-		local active = currentTab == tabName
 		TweenService:Create(btn, TweenInfo.new(0.15), {
-			BackgroundTransparency = active and 0 or 0.92,
+			BackgroundTransparency = 1,
 			Size = UDim2.new(0, tabBtnS, 0, tabBtnS)
 		}):Play()
 	end)
@@ -1554,20 +1553,7 @@ local function CreateTabBtn(icon, tabName, yPos, customScale, rawImage)
 	quatrefoil.Visible = false
 	quatrefoil.Parent = sidebar
 	
-	tabBtns[tabName] = {btn = btn, stroke = stroke, img = imgElement, quatrefoil = quatrefoil}
-
-	-- Active-state gradient (disabled until tab becomes active; not used for MaterialYou)
-	local tabActiveGrad = Instance.new("UIGradient")
-	tabActiveGrad.Name = "TabActiveGrad"
-	tabActiveGrad.Rotation = 90
-	tabActiveGrad.Transparency = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 0.25),
-		NumberSequenceKeypoint.new(1, 0.72)
-	})
-	tabActiveGrad.Enabled = false
-	tabActiveGrad.Parent = btn
-
-	tabBtns[tabName].grad = tabActiveGrad
+	tabBtns[tabName] = {btn = btn, stroke = stroke, img = imgElement, quatrefoil = quatrefoil, yPos = yPos}
 	return btn
 end
 
@@ -1579,6 +1565,43 @@ if not isMobile then
 	CreateTabBtn(Icons.Keybind, "keybinds", 8 + (tabBtnS + 6) * 4)
 end
 CreateTabBtn(Icons.Settings, "settings", isMobile and 8 + (tabBtnS + 6) * 4 or 8 + (tabBtnS + 6) * 5)
+
+-- Sliding active-tab indicator (replaces per-btn gradient; hidden for MaterialYou)
+local _indS = tabBtnS + 4
+local _tabIndicator = Instance.new("Frame")
+_tabIndicator.Name = "TabIndicator"
+_tabIndicator.Size = UDim2.new(0, _indS, 0, _indS)
+_tabIndicator.Position = UDim2.new(0.5, -_indS/2, 0, 8 - 2)
+_tabIndicator.BackgroundColor3 = Color3.new(1, 1, 1)
+_tabIndicator.BackgroundTransparency = 0
+_tabIndicator.ZIndex = 8
+_tabIndicator.Parent = sidebar
+Instance.new("UICorner", _tabIndicator).CornerRadius = UDim.new(0, 12)
+
+local _indStroke = Instance.new("UIStroke")
+_indStroke.Color = Color3.new(1, 1, 1)
+_indStroke.Thickness = 1.5
+_indStroke.Transparency = 0.15
+_indStroke.Parent = _tabIndicator
+
+local _indGrad = Instance.new("UIGradient")
+_indGrad.Rotation = 90
+_indGrad.Transparency = NumberSequence.new{
+	NumberSequenceKeypoint.new(0, 0.25),
+	NumberSequenceKeypoint.new(1, 0.72)
+}
+_indGrad.Parent = _tabIndicator
+
+local function _UpdateIndicatorGrad()
+	local acc = currentTheme.accent
+	local topC = Color3.new(math.min(1, acc.R + 0.18), math.min(1, acc.G + 0.18), math.min(1, acc.B + 0.18))
+	local botC = Color3.new(acc.R * 0.25, acc.G * 0.25, acc.B * 0.25)
+	_indGrad.Color = ColorSequence.new{
+		ColorSequenceKeypoint.new(0, topC),
+		ColorSequenceKeypoint.new(1, botC)
+	}
+end
+_UpdateIndicatorGrad()
 
 -- ===============================================================
 -- CONTENT
@@ -4032,44 +4055,28 @@ UpdateTabStyles = function()
 			end
 		end
 		
+		-- Tüm temalarda butonlar şeffaf; aktif gösterge ayrı frame'de
+		TweenService:Create(data.btn, TweenInfo.new(0.2), {
+			BackgroundTransparency = 1,
+			Size = UDim2.new(0, tabBtnS, 0, tabBtnS)
+		}):Play()
+		data.stroke.Transparency = 1
+
 		if isM3 then
-			TweenService:Create(data.btn, TweenInfo.new(0.25, Enum.EasingStyle.Quint), {
-				BackgroundTransparency = active and 1 or 0.85,
-				BackgroundColor3 = currentTheme.sidebar,
-				Size = UDim2.new(0, tabBtnS, 0, tabBtnS)
-			}):Play()
-			TweenService:Create(data.stroke, TweenInfo.new(0.25), {
-				Transparency = 1
-			}):Play()
+			-- MaterialYou: quatrefoil göstergesi, sliding indicator gizli
+			if _tabIndicator then _tabIndicator.Visible = false end
 		else
-			local g = data.grad
-			if active and g then
-				-- Compute gradient colors from theme accent
-				local acc = currentTheme.accent
-				local topC = Color3.new(
-					math.min(1, acc.R + 0.18),
-					math.min(1, acc.G + 0.18),
-					math.min(1, acc.B + 0.18)
-				)
-				local botC = Color3.new(acc.R * 0.25, acc.G * 0.25, acc.B * 0.25)
-				g.Color = ColorSequence.new{
-					ColorSequenceKeypoint.new(0, topC),
-					ColorSequenceKeypoint.new(1, botC)
-				}
-				g.Enabled = true
-			elseif g then
-				g.Enabled = false
+			-- Diğer temalar: sliding indicator göster, aktif tab'a kaydır
+			if _tabIndicator then
+				_tabIndicator.Visible = true
+				if active then
+					_UpdateIndicatorGrad()
+					local targetY = data.yPos - 2
+					TweenService:Create(_tabIndicator, TweenInfo.new(0.28, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+						Position = UDim2.new(0.5, -_indS/2, 0, targetY)
+					}):Play()
+				end
 			end
-			TweenService:Create(data.btn, TweenInfo.new(0.2), {
-				BackgroundTransparency = active and 0 or 0.92,
-				BackgroundColor3 = active and Color3.new(1, 1, 1) or currentTheme.sidebar,
-				Size = UDim2.new(0, active and tabBtnS + 4 or tabBtnS, 0, active and tabBtnS + 4 or tabBtnS)
-			}):Play()
-			TweenService:Create(data.stroke, TweenInfo.new(0.2), {
-				Transparency = active and 0.15 or 0.8,
-				Color = active and Color3.new(1, 1, 1) or currentTheme.stroke,
-				Thickness = active and 1.5 or 1.5
-			}):Play()
 		end
 		
 		if data.img then
@@ -4319,6 +4326,7 @@ end)
 local function _CleanupScript()
 	pcall(function() _heartbeatConn:Disconnect() end)
 	pcall(function() _charAddedConn:Disconnect() end)
+	pcall(function() if _keybindInputConn then _keybindInputConn:Disconnect() end end)
 	pcall(function() DisableCopyEmotePrompts() end)
 	pcall(function() StopHUDTracking() end)
 	_genv().VexroEmotesCleanup = nil
@@ -4330,9 +4338,13 @@ end
 _genv().VexroEmotesCleanup = _CleanupScript
 
 closeBtn.MouseButton1Click:Connect(function()
-	TweenService:Create(main, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1, Rotation = -30}):Play()
-	task.wait(0.25)
-	_CleanupScript()
+	gui.Enabled = false  -- tüm input'u hemen kes
+	main.ClipsDescendants = true
+	TweenService:Create(main, TweenInfo.new(0.22, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {
+		Size = UDim2.new(0, 0, 0, 0),
+		BackgroundTransparency = 1
+	}):Play()
+	task.delay(0.22, _CleanupScript)
 end)
 end -- iconDrag scope
 end -- miniIcon/iconS scope
@@ -4465,8 +4477,9 @@ UpdateTabStyles()
 UpdateTabData()
 
 -- Keybind playback listener (PC only)
+local _keybindInputConn = nil
 if not isMobile then
-	UserInputService.InputBegan:Connect(function(inp, gp)
+	_keybindInputConn = UserInputService.InputBegan:Connect(function(inp, gp)
 		if gp then return end
 		if inp.UserInputType ~= Enum.UserInputType.Keyboard then return end
 		local keyName = inp.KeyCode.Name
