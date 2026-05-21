@@ -212,14 +212,14 @@ local Themes = {
 	-- Her tema kendi renk kişiliğiyle aynı mantığı izler.
 
 	Dark = {
-		primary     = Color3.fromRGB(8,  8,  8 ),   -- #080808  ana gövde
-		sidebar     = Color3.fromRGB(12, 12, 12),   -- #0C0C0C  üst bar / sol sidebar
-		secondary   = Color3.fromRGB(16, 16, 16),   -- #101010  kart & arama kutusu bg
-		tertiary    = Color3.fromRGB(20, 20, 20),   -- #141414  yükseltilmiş panel / butonlar
+		primary     = Color3.fromRGB(0,  0,  0 ),   -- #000000  AMOLED siyah
+		sidebar     = Color3.fromRGB(0,  0,  0 ),   -- #000000  AMOLED siyah
+		secondary   = Color3.fromRGB(0,  0,  0 ),   -- #000000  AMOLED siyah
+		tertiary    = Color3.fromRGB(22, 22, 22),   -- #161616  butonlar için koyu gri
 		accent      = Color3.fromRGB(200, 200, 200), -- #C8C8C8  aktif sekme vurgusu
 		text        = Color3.fromRGB(255, 255, 255), -- #FFFFFF  ana yazı
 		textDim     = Color3.fromRGB(140, 140, 140), -- #8C8C8C  pasif yazı
-		stroke      = Color3.fromRGB(28, 28, 28),   -- #1C1C1C  kenarlık / bölücü
+		stroke      = Color3.fromRGB(22, 22, 22),   -- #161616  kenarlık / bölücü
 		strokeHover = Color3.fromRGB(65, 65, 65),   -- #414141  kart hover kenarlık
 		critical    = Color3.fromRGB(196, 30, 30),   -- #C41E1E  kapat butonu
 		success     = Color3.fromRGB(80, 200, 100)
