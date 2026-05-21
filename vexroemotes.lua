@@ -208,115 +208,125 @@ print(logo)
 -- ===============================================================
 
 local Themes = {
+	-- Kontrast yapısı: primary(dip) → sidebar(+4) → secondary(+8) → tertiary(+12)
+	-- Her tema kendi renk kişiliğiyle aynı mantığı izler.
+
 	Dark = {
-		primary = Color3.fromRGB(0, 0, 0),
-		secondary = Color3.fromRGB(0, 0, 0),
-		tertiary = Color3.fromRGB(0, 0, 0),
-		sidebar = Color3.fromRGB(0, 0, 0),
-		accent = Color3.fromRGB(200, 200, 220),
-		text = Color3.new(1, 1, 1),
-		textDim = Color3.fromRGB(140, 140, 155),
-		stroke = Color3.fromRGB(40, 40, 55),
-		critical = Color3.fromRGB(220, 60, 60),
-		success = Color3.fromRGB(80, 200, 100)
+		primary     = Color3.fromRGB(16, 16, 16),   -- #101010  ana gövde
+		sidebar     = Color3.fromRGB(20, 20, 20),   -- #141414  üst bar / sol sidebar
+		secondary   = Color3.fromRGB(24, 24, 24),   -- #181818  kart & arama kutusu bg
+		tertiary    = Color3.fromRGB(28, 28, 28),   -- #1C1C1C  yükseltilmiş panel
+		accent      = Color3.fromRGB(200, 200, 200), -- #C8C8C8  aktif sekme vurgusu
+		text        = Color3.fromRGB(255, 255, 255), -- #FFFFFF  ana yazı
+		textDim     = Color3.fromRGB(160, 160, 160), -- #A0A0A0  pasif yazı
+		stroke      = Color3.fromRGB(38, 38, 38),   -- #262626  kenarlık / bölücü
+		strokeHover = Color3.fromRGB(80, 80, 80),   -- #505050  kart hover kenarlık
+		critical    = Color3.fromRGB(196, 30, 30),   -- #C41E1E  kapat butonu
+		success     = Color3.fromRGB(80, 200, 100)
 	},
 	Purple = {
-		primary = Color3.fromRGB(12, 8, 20),
-		secondary = Color3.fromRGB(20, 15, 34),
-		tertiary = Color3.fromRGB(30, 22, 50),
-		sidebar = Color3.fromRGB(15, 10, 26),
-		accent = Color3.fromRGB(138, 43, 226),
-		text = Color3.new(1, 1, 1),
-		textDim = Color3.fromRGB(180, 160, 220),
-		stroke = Color3.fromRGB(75, 0, 130),
-		critical = Color3.fromRGB(255, 60, 100),
-		success = Color3.fromRGB(100, 240, 120)
+		primary     = Color3.fromRGB(10, 6, 18),
+		sidebar     = Color3.fromRGB(14, 9, 24),
+		secondary   = Color3.fromRGB(20, 13, 34),
+		tertiary    = Color3.fromRGB(28, 18, 48),
+		accent      = Color3.fromRGB(138, 43, 226),
+		text        = Color3.fromRGB(255, 255, 255),
+		textDim     = Color3.fromRGB(180, 155, 220),
+		stroke      = Color3.fromRGB(55, 22, 90),
+		strokeHover = Color3.fromRGB(110, 45, 190),
+		critical    = Color3.fromRGB(255, 60, 100),
+		success     = Color3.fromRGB(100, 240, 120)
 	},
 	Blue = {
-		primary = Color3.fromRGB(8, 12, 22),
-		secondary = Color3.fromRGB(16, 22, 38),
-		tertiary = Color3.fromRGB(24, 32, 54),
-		sidebar = Color3.fromRGB(10, 16, 30),
-		accent = Color3.fromRGB(0, 160, 255),
-		text = Color3.new(1, 1, 1),
-		textDim = Color3.fromRGB(150, 180, 220),
-		stroke = Color3.fromRGB(30, 80, 160),
-		critical = Color3.fromRGB(250, 60, 80),
-		success = Color3.fromRGB(60, 230, 140)
+		primary     = Color3.fromRGB(8, 11, 20),
+		sidebar     = Color3.fromRGB(11, 15, 27),
+		secondary   = Color3.fromRGB(16, 21, 36),
+		tertiary    = Color3.fromRGB(22, 30, 50),
+		accent      = Color3.fromRGB(0, 160, 255),
+		text        = Color3.fromRGB(255, 255, 255),
+		textDim     = Color3.fromRGB(150, 180, 220),
+		stroke      = Color3.fromRGB(28, 55, 110),
+		strokeHover = Color3.fromRGB(60, 130, 220),
+		critical    = Color3.fromRGB(250, 60, 80),
+		success     = Color3.fromRGB(60, 230, 140)
 	},
 	Green = {
-		primary = Color3.fromRGB(8, 16, 12),
-		secondary = Color3.fromRGB(14, 28, 20),
-		tertiary = Color3.fromRGB(22, 40, 30),
-		sidebar = Color3.fromRGB(10, 22, 14),
-		accent = Color3.fromRGB(0, 230, 120),
-		text = Color3.new(1, 1, 1),
-		textDim = Color3.fromRGB(160, 220, 180),
-		stroke = Color3.fromRGB(30, 120, 60),
-		critical = Color3.fromRGB(240, 80, 80),
-		success = Color3.fromRGB(120, 255, 120)
+		primary     = Color3.fromRGB(8, 14, 10),
+		sidebar     = Color3.fromRGB(11, 18, 13),
+		secondary   = Color3.fromRGB(14, 24, 17),
+		tertiary    = Color3.fromRGB(20, 34, 24),
+		accent      = Color3.fromRGB(0, 220, 110),
+		text        = Color3.fromRGB(255, 255, 255),
+		textDim     = Color3.fromRGB(150, 215, 170),
+		stroke      = Color3.fromRGB(22, 80, 40),
+		strokeHover = Color3.fromRGB(40, 180, 80),
+		critical    = Color3.fromRGB(240, 80, 80),
+		success     = Color3.fromRGB(120, 255, 120)
 	},
 	Red = {
-		primary = Color3.fromRGB(22, 8, 10),
-		secondary = Color3.fromRGB(36, 14, 18),
-		tertiary = Color3.fromRGB(50, 20, 26),
-		sidebar = Color3.fromRGB(28, 10, 12),
-		accent = Color3.fromRGB(255, 60, 80),
-		text = Color3.new(1, 1, 1),
-		textDim = Color3.fromRGB(220, 160, 170),
-		stroke = Color3.fromRGB(150, 40, 60),
-		critical = Color3.fromRGB(255, 30, 30),
-		success = Color3.fromRGB(80, 240, 100)
+		primary     = Color3.fromRGB(18, 7, 8),
+		sidebar     = Color3.fromRGB(22, 9, 11),
+		secondary   = Color3.fromRGB(28, 12, 14),
+		tertiary    = Color3.fromRGB(38, 17, 20),
+		accent      = Color3.fromRGB(255, 60, 80),
+		text        = Color3.fromRGB(255, 255, 255),
+		textDim     = Color3.fromRGB(220, 155, 165),
+		stroke      = Color3.fromRGB(100, 28, 36),
+		strokeHover = Color3.fromRGB(200, 55, 75),
+		critical    = Color3.fromRGB(255, 30, 30),
+		success     = Color3.fromRGB(80, 240, 100)
 	},
 	Light = {
-		primary = Color3.fromRGB(240, 240, 245),
-		secondary = Color3.fromRGB(250, 250, 255),
-		tertiary = Color3.fromRGB(255, 255, 255),
-		sidebar = Color3.fromRGB(235, 235, 242),
-		accent = Color3.fromRGB(90, 90, 110),
-		text = Color3.fromRGB(30, 30, 36),
-		textDim = Color3.fromRGB(120, 120, 130),
-		stroke = Color3.fromRGB(200, 200, 215),
-		critical = Color3.fromRGB(220, 60, 60),
-		success = Color3.fromRGB(60, 180, 80)
+		primary     = Color3.fromRGB(238, 238, 244),
+		sidebar     = Color3.fromRGB(230, 230, 238),
+		secondary   = Color3.fromRGB(248, 248, 252),
+		tertiary    = Color3.fromRGB(255, 255, 255),
+		accent      = Color3.fromRGB(75, 80, 105),
+		text        = Color3.fromRGB(24, 24, 30),
+		textDim     = Color3.fromRGB(115, 115, 128),
+		stroke      = Color3.fromRGB(196, 196, 210),
+		strokeHover = Color3.fromRGB(130, 130, 150),
+		critical    = Color3.fromRGB(220, 50, 50),
+		success     = Color3.fromRGB(50, 175, 75)
 	},
 	MaterialYou = {
-		primary = Color3.fromRGB(17, 19, 27),
-		secondary = Color3.fromRGB(25, 28, 40),
-		tertiary = Color3.fromRGB(33, 37, 52),
-		sidebar = Color3.fromRGB(13, 15, 22),
-		accent = Color3.fromRGB(130, 177, 255),
-		text = Color3.fromRGB(225, 228, 240),
-		textDim = Color3.fromRGB(140, 145, 165),
-		stroke = Color3.fromRGB(55, 65, 92),
-		critical = Color3.fromRGB(255, 130, 120),
-		success = Color3.fromRGB(120, 210, 160)
+		primary     = Color3.fromRGB(16, 18, 26),
+		sidebar     = Color3.fromRGB(20, 22, 32),
+		secondary   = Color3.fromRGB(24, 27, 38),
+		tertiary    = Color3.fromRGB(32, 36, 52),
+		accent      = Color3.fromRGB(130, 177, 255),
+		text        = Color3.fromRGB(225, 228, 240),
+		textDim     = Color3.fromRGB(138, 143, 163),
+		stroke      = Color3.fromRGB(45, 52, 78),
+		strokeHover = Color3.fromRGB(100, 130, 200),
+		critical    = Color3.fromRGB(255, 130, 120),
+		success     = Color3.fromRGB(120, 210, 160)
 	},
-
 	FrostedGlass = {
-		primary = Color3.fromRGB(200, 210, 230),
-		secondary = Color3.fromRGB(215, 225, 240),
-		tertiary = Color3.fromRGB(225, 232, 248),
-		sidebar = Color3.fromRGB(190, 202, 222),
-		accent = Color3.fromRGB(80, 130, 220),
-		text = Color3.fromRGB(20, 24, 40),
-		textDim = Color3.fromRGB(90, 100, 130),
-		stroke = Color3.fromRGB(160, 180, 215),
-		critical = Color3.fromRGB(210, 50, 60),
-		success = Color3.fromRGB(40, 180, 100)
+		primary     = Color3.fromRGB(198, 208, 228),
+		sidebar     = Color3.fromRGB(188, 200, 222),
+		secondary   = Color3.fromRGB(212, 222, 240),
+		tertiary    = Color3.fromRGB(224, 232, 248),
+		accent      = Color3.fromRGB(75, 125, 215),
+		text        = Color3.fromRGB(18, 22, 38),
+		textDim     = Color3.fromRGB(85, 96, 126),
+		stroke      = Color3.fromRGB(155, 175, 212),
+		strokeHover = Color3.fromRGB(110, 150, 218),
+		critical    = Color3.fromRGB(210, 45, 55),
+		success     = Color3.fromRGB(35, 175, 95)
 	},
-
 	DarkGlass = {
-		primary = Color3.fromRGB(14, 14, 18),
-		secondary = Color3.fromRGB(20, 20, 26),
-		tertiary = Color3.fromRGB(28, 28, 36),
-		sidebar = Color3.fromRGB(10, 10, 14),
-		accent = Color3.fromRGB(180, 200, 255),
-		text = Color3.fromRGB(230, 235, 255),
-		textDim = Color3.fromRGB(130, 140, 170),
-		stroke = Color3.fromRGB(60, 65, 100),
-		critical = Color3.fromRGB(255, 80, 90),
-		success = Color3.fromRGB(80, 220, 130)
+		primary     = Color3.fromRGB(13, 13, 17),
+		sidebar     = Color3.fromRGB(17, 17, 22),
+		secondary   = Color3.fromRGB(22, 22, 28),
+		tertiary    = Color3.fromRGB(28, 28, 36),
+		accent      = Color3.fromRGB(175, 196, 255),
+		text        = Color3.fromRGB(228, 233, 255),
+		textDim     = Color3.fromRGB(128, 138, 168),
+		stroke      = Color3.fromRGB(52, 56, 88),
+		strokeHover = Color3.fromRGB(118, 138, 220),
+		critical    = Color3.fromRGB(255, 75, 85),
+		success     = Color3.fromRGB(75, 218, 128)
 	}
 }
 
@@ -3875,16 +3885,17 @@ local function MakeCard(emote, ci, animate)
 			Rotation = math.random(-2, 2)
 		}):Play()
 		-- Stroke parlaması
-		TweenService:Create(stroke, TweenInfo.new(0.2), {Transparency = 0, Thickness = 2.5, Color = currentTheme.accent}):Play()
+		local hoverColor = currentTheme.strokeHover or currentTheme.accent
+		TweenService:Create(stroke, TweenInfo.new(0.2), {Transparency = 0, Thickness = 2.5, Color = hoverColor}):Play()
 	end)
-	
+
 	card.MouseLeave:Connect(function()
 		-- Normale dönüş
 		TweenService:Create(card, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {
 			Size = UDim2.new(1, 0, 0, CARD),
 			Rotation = 0
 		}):Play()
-		TweenService:Create(stroke, TweenInfo.new(0.2), {Transparency = 0.6, Thickness = 2, Color = currentTheme.accent}):Play()
+		TweenService:Create(stroke, TweenInfo.new(0.2), {Transparency = 0.6, Thickness = 2, Color = currentTheme.stroke}):Play()
 	end)
 	
 	
