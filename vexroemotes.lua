@@ -70,16 +70,22 @@ local _onSpeedChanged  -- function(); HUD hız butonlarını + info panel'i gün
 local _onPauseStateChanged  -- function(isPaused); HUD duraklat butonunu günceller
 local MAX_RECENT = 20
 
+local _savePending = false
 local function SaveData()
-	pcall(function()
-		if writefile then
-			writefile(DATA_FILE, HttpService:JSONEncode({
-				favorites = Favorites,
-				recent = RecentEmotes,
-				settings = Settings,
-				keybinds = Keybinds
-			}))
-		end
+	if _savePending then return end
+	_savePending = true
+	task.delay(0.25, function()
+		_savePending = false
+		pcall(function()
+			if writefile then
+				writefile(DATA_FILE, HttpService:JSONEncode({
+					favorites = Favorites,
+					recent = RecentEmotes,
+					settings = Settings,
+					keybinds = Keybinds
+				}))
+			end
+		end)
 	end)
 end
 
@@ -736,6 +742,8 @@ local L = {
 	kbCancel         = isTR and "İptal"                or (isES and "Cancelar"             or (isAR and "إلغاء"                 or (isFR and "Annuler"               or (isHI and "रद्द करें"             or (isPT and "Cancelar"             or (isRU and "Отмена"              or "Cancel")))))),
 	kbSave           = isTR and "Kaydet"               or (isES and "Guardar"              or (isAR and "حفظ"                   or (isFR and "Enregistrer"           or (isHI and "सहेजें"               or (isPT and "Salvar"               or (isRU and "Сохранить"           or "Save")))))),
 	kbEmpty          = isTR and "Henüz keybind yok"    or (isES and "Sin keybinds aún"     or (isAR and "لا توجد اختصارات بعد"  or (isFR and "Aucun raccourci"        or (isHI and "कोई कीबाइंड नहीं"    or (isPT and "Nenhum keybind ainda" or (isRU and "Нет горячих клавиш"  or "No keybinds yet")))))),
+	noSearch         = isTR and "Sonuç bulunamadı"     or (isES and "Sin resultados"        or (isAR and "لا توجد نتائج"            or (isFR and "Aucun résultat"         or (isHI and "कोई परिणाम नहीं"      or (isPT and "Sem resultados"       or (isRU and "Ничего не найдено"   or "No results found")))))),
+	kbInvalidKey     = isTR and "Geçersiz tuş!"        or (isES and "¡Tecla inválida!"      or (isAR and "مفتاح غير صالح!"          or (isFR and "Touche invalide!"       or (isHI and "अमान्य कुंजी!"         or (isPT and "Tecla inválida!"      or (isRU and "Недопустимая клавиша!" or "Invalid key!")))))),
 	autoRejectLbl    = isTR and "Arkadaş isteklerini otomatik reddet."     or (isES and "Rechazar solicitudes automáticamente."  or (isAR and "رفض طلبات الصداقة تلقائياً."         or (isFR and "Refuser les demandes automatiquement."    or (isHI and "मित्र अनुरोध स्वचालित रूप से अस्वीकार करें।" or (isPT and "Rejeitar pedidos automaticamente."      or (isRU and "Автоматически отклонять запросы."      or "Auto-reject friend requests.")))))),
 	addFriendBtn     = isTR and "+ Arkadaş Ekle"                           or (isES and "+ Añadir Amigo"                         or (isAR and "+ إضافة صديق"                          or (isFR and "+ Ajouter Ami"                          or (isHI and "+ मित्र जोड़ें"                              or (isPT and "+ Adicionar Amigo"                    or (isRU and "+ Добавить друга"                     or "+ Add Friend")))))),
 	blocked          = isTR and "Engellendi"                                or (isES and "Bloqueado"                              or (isAR and "محظور"                                 or (isFR and "Bloqué"                                  or (isHI and "ब्लॉक किया"                               or (isPT and "Bloqueado"                             or (isRU and "Заблокирован"                          or "Blocked")))))),
@@ -3165,8 +3173,18 @@ local function UpdatePageUI()
 	
 	local empty = #filtered == 0 and currentTab ~= "settings"
 	emptyLbl.Visible = empty
-	if currentTab == "favorites" then emptyLbl.Text = L.noFav
-	elseif currentTab == "recent" then emptyLbl.Text = L.noRecent end
+	if empty then
+		local q = search and search.Text ~= "" or false
+		if q then
+			emptyLbl.Text = L.noSearch or "No results found"
+		elseif currentTab == "favorites" then
+			emptyLbl.Text = L.noFav
+		elseif currentTab == "recent" then
+			emptyLbl.Text = L.noRecent
+		else
+			emptyLbl.Text = L.noSearch or "No results found"
+		end
+	end
 end
 
 local function _MarkBadEmote(emoteId)
@@ -3197,9 +3215,22 @@ end
 
 local function ClearCards()
 	for _, c in pairs(cards) do
-		if c and c.Parent then c:Destroy() end
+		if c and c.Parent then
+			-- Cancel any running tweens to avoid they reference destroyed instances
+			for _, desc in ipairs(c:GetDescendants()) do
+				if desc:IsA("TweenBase") then pcall(function() desc:Cancel() end) end
+			end
+			c:Destroy()
+		end
 	end
 	cards = {}
+	-- Prune _textGrads of entries whose parent was just destroyed
+	for i = #_textGrads, 1, -1 do
+		local g = _textGrads[i]
+		if not (g and g.Parent) then
+			table.remove(_textGrads, i)
+		end
+	end
 end
 
 -- ===============================================================
@@ -3366,8 +3397,25 @@ local function ShowKeybindDialog(emoteId, emote, isEdit)
 		overlay:Destroy()
 	end)
 
+	local _KB_BLACKLIST = {Unknown=true, Backspace=true, Delete=true, Escape=true,
+		Return=true, Tab=true, CapsLock=true, LeftShift=true, RightShift=true,
+		LeftControl=true, RightControl=true, LeftAlt=true, RightAlt=true,
+		LeftMeta=true, RightMeta=true, Insert=true, Home=true, End=true,
+		PageUp=true, PageDown=true, NumLock=true, ScrollLock=true, Pause=true, Print=true}
+
 	saveBtn.MouseButton1Click:Connect(function()
 		if not recordedKey then return end
+		if _KB_BLACKLIST[recordedKey] then
+			keyBtn.Text = L.kbInvalidKey or "Invalid key!"
+			keyBtn.TextColor3 = Color3.fromRGB(220, 50, 50)
+			task.delay(1.5, function()
+				if recordedKey then
+					keyBtn.Text = "[" .. recordedKey .. "]"
+					keyBtn.TextColor3 = currentTheme.accent
+				end
+			end)
+			return
+		end
 		if recordConn then pcall(function() recordConn:Disconnect() end) end
 		local kbName = nameBox.Text ~= "" and nameBox.Text or emote.name
 		SetKeybind(emoteId, kbName, recordedKey)
@@ -3566,7 +3614,7 @@ local function MakeCard(emote, ci, animate)
 	nameLbl.Size = UDim2.new(1, -4, 0, NAME_H - 2) 
 	nameLbl.Position = UDim2.new(0, 2, 0, KB_H + CARD)
 	nameLbl.BackgroundColor3 = currentTheme.secondary
-	nameLbl.Text = #emote.name > 26 and emote.name:sub(1, 25) .. "…" or emote.name
+	nameLbl.Text = #emote.name > 20 and emote.name:sub(1, 19) .. "…" or emote.name
 	nameLbl.TextColor3 = currentTheme.text
 	nameLbl.Font = Enum.Font.GothamBold
 	nameLbl.TextScaled = true
