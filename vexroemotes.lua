@@ -109,7 +109,7 @@ local function LoadData()
 					Settings.notifications = data.settings.notifications ~= false
 					Settings.loopEmote = data.settings.loopEmote ~= false
 					Settings.language = data.settings.language or nil
-					Settings.copyEmoteEnabled = data.settings.copyEmoteEnabled == true
+					-- copyEmoteEnabled intentionally NOT loaded — always starts off
 					Settings.stopOnWalk = data.settings.stopOnWalk ~= false
 					Settings.showHUD = data.settings.showHUD ~= false
 				end
@@ -487,9 +487,11 @@ end
 
 if not selectedLang then
 
+local langTheme = Themes[Settings.theme] or Themes.Dark
+
 local langScreen = Instance.new("Frame")
 langScreen.Size = UDim2.fromScale(1, 1)
-langScreen.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
+langScreen.BackgroundColor3 = langTheme.primary
 langScreen.ZIndex = 20000
 langScreen.Parent = gui
 
@@ -498,7 +500,7 @@ for i = 1, 15 do
 	local s = math.random(3, 8)
 	particle.Size = UDim2.new(0, s, 0, s)
 	particle.Position = UDim2.new(math.random(), 0, math.random(), 0)
-	particle.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
+	particle.BackgroundColor3 = langTheme.accent
 	particle.BackgroundTransparency = math.random(5, 8) / 10
 	particle.ZIndex = 20000
 	particle.Parent = langScreen
@@ -518,22 +520,22 @@ local langBox = Instance.new("Frame")
 langBox.Size = UDim2.new(0, 0, 0, 0)
 langBox.Position = UDim2.fromScale(0.5, 0.5)
 langBox.AnchorPoint = Vector2.new(0.5, 0.5)
-langBox.BackgroundColor3 = Color3.fromRGB(18, 18, 28)
+langBox.BackgroundColor3 = langTheme.secondary
 langBox.ZIndex = 20001
 langBox.Rotation = -15
 langBox.Parent = langScreen
 Instance.new("UICorner", langBox).CornerRadius = UDim.new(0, 20)
 
 local langBoxStroke = Instance.new("UIStroke")
-langBoxStroke.Color = Color3.fromRGB(100, 100, 180)
+langBoxStroke.Color = langTheme.stroke
 langBoxStroke.Thickness = 2
 langBoxStroke.Parent = langBox
 
 local langStrokeGrad = Instance.new("UIGradient")
 langStrokeGrad.Color = ColorSequence.new{
-	ColorSequenceKeypoint.new(0, Color3.fromRGB(138, 43, 226)),
-	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(75, 0, 130)),
-	ColorSequenceKeypoint.new(1, Color3.fromRGB(138, 43, 226))
+	ColorSequenceKeypoint.new(0, langTheme.accent),
+	ColorSequenceKeypoint.new(0.5, langTheme.stroke),
+	ColorSequenceKeypoint.new(1, langTheme.accent)
 }
 langStrokeGrad.Parent = langBoxStroke
 
@@ -566,17 +568,17 @@ local function MakeLangBtn(txt, index, lang)
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(0.44, 0, 0, 55)
 	btn.Position = UDim2.new(x, 0, 0, y)
-	btn.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+	btn.BackgroundColor3 = langTheme.tertiary
 	btn.Text = txt
-	btn.TextColor3 = Color3.new(1, 1, 1)
+	btn.TextColor3 = langTheme.text
 	btn.Font = Enum.Font.GothamBold
 	btn.TextSize = isMobile and 14 or 16
 	btn.ZIndex = 20003
 	btn.Parent = langBox
 	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
-	
+
 	local btnStroke = Instance.new("UIStroke")
-	btnStroke.Color = Color3.fromRGB(70, 70, 100)
+	btnStroke.Color = langTheme.stroke
 	btnStroke.Transparency = 0.5
 	btnStroke.Parent = btn
 	
@@ -589,13 +591,13 @@ local function MakeLangBtn(txt, index, lang)
 	Instance.new("UICorner", shine).CornerRadius = UDim.new(0, 12)
 	
 	btn.MouseEnter:Connect(function()
-		TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 90)}):Play()
-		TweenService:Create(btnStroke, TweenInfo.new(0.2), {Transparency = 0, Color = Color3.fromRGB(138, 43, 226)}):Play()
+		TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = langTheme.accent}):Play()
+		TweenService:Create(btnStroke, TweenInfo.new(0.2), {Transparency = 0, Color = langTheme.accent}):Play()
 		TweenService:Create(shine, TweenInfo.new(0.3), {Size = UDim2.new(1, 0, 1, 0)}):Play()
 	end)
 	btn.MouseLeave:Connect(function()
-		TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40, 40, 60)}):Play()
-		TweenService:Create(btnStroke, TweenInfo.new(0.2), {Transparency = 0.5, Color = Color3.fromRGB(70, 70, 100)}):Play()
+		TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = langTheme.tertiary}):Play()
+		TweenService:Create(btnStroke, TweenInfo.new(0.2), {Transparency = 0.5, Color = langTheme.stroke}):Play()
 		TweenService:Create(shine, TweenInfo.new(0.3), {Size = UDim2.new(0, 0, 1, 0)}):Play()
 	end)
 	btn.MouseButton1Click:Connect(function()
@@ -603,14 +605,14 @@ local function MakeLangBtn(txt, index, lang)
 		ripple.Size = UDim2.new(0, 0, 0, 0)
 		ripple.Position = UDim2.new(0.5, 0, 0.5, 0)
 		ripple.AnchorPoint = Vector2.new(0.5, 0.5)
-		ripple.BackgroundColor3 = Color3.new(1, 1, 1)
+		ripple.BackgroundColor3 = langTheme.accent
 		ripple.BackgroundTransparency = 0.7
 		ripple.ZIndex = 20005
 		ripple.Parent = btn
 		Instance.new("UICorner", ripple).CornerRadius = UDim.new(1, 0)
-		
+
 		TweenService:Create(ripple, TweenInfo.new(0.4), {Size = UDim2.new(2, 0, 2, 0), BackgroundTransparency = 1}):Play()
-		TweenService:Create(btn, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(138, 43, 226)}):Play()
+		TweenService:Create(btn, TweenInfo.new(0.1), {BackgroundColor3 = langTheme.accent}):Play()
 		task.delay(0.4, function() ripple:Destroy() end)
 		task.wait(0.15)
 		selectedLang = lang
@@ -630,9 +632,9 @@ MakeLangBtn("🇷🇺  Русский",  8, "RU")
 local rememberBtn = Instance.new("TextButton")
 rememberBtn.Size = UDim2.new(0.92, 0, 0, 40)
 rememberBtn.Position = UDim2.new(0.04, 0, 1, -50)
-rememberBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+rememberBtn.BackgroundColor3 = langTheme.tertiary
 rememberBtn.Text = "💾  Remember Language"
-rememberBtn.TextColor3 = Color3.fromRGB(180, 180, 200)
+rememberBtn.TextColor3 = langTheme.textDim
 rememberBtn.Font = Enum.Font.GothamBold
 rememberBtn.TextSize = isMobile and 13 or 15
 rememberBtn.ZIndex = 20003
@@ -640,7 +642,7 @@ rememberBtn.Parent = langBox
 Instance.new("UICorner", rememberBtn).CornerRadius = UDim.new(0, 12)
 
 local rememberStroke = Instance.new("UIStroke")
-rememberStroke.Color = Color3.fromRGB(70, 70, 100)
+rememberStroke.Color = langTheme.stroke
 rememberStroke.Transparency = 0.5
 rememberStroke.Parent = rememberBtn
 
@@ -648,14 +650,14 @@ rememberBtn.MouseButton1Click:Connect(function()
 	rememberLang = not rememberLang
 	if rememberLang then
 		TweenService:Create(rememberBtn, TweenInfo.new(0.2),
-			{BackgroundColor3 = Color3.fromRGB(60, 140, 80)}):Play()
+			{BackgroundColor3 = langTheme.success}):Play()
 		rememberBtn.Text       = "✅  Remember Language"
 		rememberBtn.TextColor3 = Color3.new(1, 1, 1)
 	else
 		TweenService:Create(rememberBtn, TweenInfo.new(0.2),
-			{BackgroundColor3 = Color3.fromRGB(40, 40, 60)}):Play()
+			{BackgroundColor3 = langTheme.tertiary}):Play()
 		rememberBtn.Text       = "💾  Remember Language"
-		rememberBtn.TextColor3 = Color3.fromRGB(180, 180, 200)
+		rememberBtn.TextColor3 = langTheme.textDim
 	end
 end)
 
