@@ -4036,7 +4036,7 @@ UpdateTabData = function()
 		filtered = currentData
 		title.Text = L.favorites
 		titleIcon.Image = ResolveAssetImage(Icons.FavoriteFull)
-		titleIcon.ImageColor3 = currentTheme.accent
+		titleIcon.ImageColor3 = (Settings.theme == "FrostedGlass" or Settings.theme == "DarkGlass") and currentTheme.accent or currentTheme.text
 		titleIcon.Visible = true
 
 	elseif currentTab == "recent" then
@@ -4050,22 +4050,22 @@ UpdateTabData = function()
 		filtered = currentData
 		title.Text = L.recent
 		titleIcon.Image = ResolveAssetImage(Icons.Recent)
-		titleIcon.ImageColor3 = currentTheme.accent
+		titleIcon.ImageColor3 = (Settings.theme == "FrostedGlass" or Settings.theme == "DarkGlass") and currentTheme.accent or currentTheme.text
 		titleIcon.Visible = true
 	elseif currentTab == "settings" then
 		title.Text = L.settings
 		titleIcon.Image = ResolveAssetImage(Icons.Settings)
-		titleIcon.ImageColor3 = currentTheme.accent
+		titleIcon.ImageColor3 = (Settings.theme == "FrostedGlass" or Settings.theme == "DarkGlass") and currentTheme.accent or currentTheme.text
 		titleIcon.Visible = true
 	elseif currentTab == "friends" then
 		title.Text = L.friendTab or "Arkadaşlar"
 		titleIcon.Image = ResolveAssetImage("rbxassetid://115725480722697")
-		titleIcon.ImageColor3 = currentTheme.accent
+		titleIcon.ImageColor3 = (Settings.theme == "FrostedGlass" or Settings.theme == "DarkGlass") and currentTheme.accent or currentTheme.text
 		titleIcon.Visible = true
 	elseif currentTab == "keybinds" then
 		title.Text = L.keybinds
 		titleIcon.Image = ResolveAssetImage("rbxassetid://122679509852670")
-		titleIcon.ImageColor3 = currentTheme.accent
+		titleIcon.ImageColor3 = (Settings.theme == "FrostedGlass" or Settings.theme == "DarkGlass") and currentTheme.accent or currentTheme.text
 		titleIcon.Visible = true
 	end
 	
