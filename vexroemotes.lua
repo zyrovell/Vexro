@@ -1040,10 +1040,12 @@ local function LoadEmotes()
 	
 	if success and result then
 		local data = type(result) == "table" and (result.data or result)
+		local _seenIds = {}
 		for _, emote in ipairs(data) do
 			if emote.id and emote.name then
 				local numId = tonumber(emote.id)
-				if numId then
+				if numId and not _seenIds[numId] then
+					_seenIds[numId] = true
 					Emotes[#Emotes + 1] = {
 						name          = tostring(emote.name),
 						id            = numId,
@@ -1107,7 +1109,7 @@ local currentData, filtered = Emotes, Emotes
 local currentTab = "emotes"
 local page, perPage, pages, cols = 1, 14, 1, 7 -- Default to 7 cols
 local cards = {}
-local sideBarW = math.floor((isMobile and 50 or 60) * BUTTON_SCALE)
+local sideBarW = 0  -- Sekmeler artık üst yatay tabStrip'te; sidebar gizli
 local bottomBarH = isMobile and 26 or 22
 local currentCardSize = 0 -- Dynamic card size
 local _badEmotes = {}     -- [tostring(id)] = true  →  asset failed to load
@@ -1464,53 +1466,46 @@ end
 -- SIDEBAR
 -- ===============================================================
 
+-- Sidebar gizli tutulur (drag referansı için), sekmeler tabStrip'e taşındı
 local sidebar = Instance.new("Frame")
-sidebar.Size = UDim2.new(0, sideBarW, 1, 0)
-sidebar.BackgroundColor3 = currentTheme.sidebar
-sidebar.ClipsDescendants = true
-sidebar.ZIndex = 8
+sidebar.Size = UDim2.new(0, 0, 1, 0)
+sidebar.BackgroundTransparency = 1
+sidebar.ZIndex = 1
 sidebar.Parent = main
-Instance.new("UICorner", sidebar).CornerRadius = UDim.new(0, 14)
-RegisterTheme(sidebar, "BackgroundColor3", "sidebar")
-
-local sideOverlay = Instance.new("Frame")
-sideOverlay.Size = UDim2.new(0, 10, 1, 0)
-sideOverlay.Position = UDim2.new(1, -10, 0, 0)
-sideOverlay.BackgroundColor3 = currentTheme.sidebar
-sideOverlay.BorderSizePixel = 0
-sideOverlay.ZIndex = 7
-sideOverlay.Parent = sidebar
-RegisterTheme(sideOverlay, "BackgroundColor3", "sidebar")
 
 local tabBtns = {}
-local tabBtnS = math.floor((isMobile and 40 or 48) * BUTTON_SCALE)
+local tabBtnS = math.floor((isMobile and 36 or 42) * BUTTON_SCALE)
+local tabStripH = tabBtnS + 10  -- sekmeler şeridi yüksekliği (içerik içinde, titleBar altında)
 
-local function CreateTabBtn(icon, tabName, yPos, customScale, rawImage)
+-- tabStrip content içinde oluşturulacak (content tanımlandıktan sonra)
+local tabStrip  -- forward declaration; content oluşturulduktan hemen sonra atanır
+local _tabStripRef = {}  -- tabStrip'e bağımlı kurulumları saklar
+
+local function CreateTabBtn(icon, tabName, xFrac, rawImage)
 	local isUrl = type(icon) == "string" and (string.find(icon, "rbxassetid://") or string.find(icon, "http") or string.find(icon, "rbxthumb://"))
-	
+
+	-- btn tabStrip'e eklenecek; tabStrip henüz yok, _tabStripRef'e geç
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(0, tabBtnS, 0, tabBtnS)
-	btn.Position = UDim2.new(0.5, -tabBtnS/2, 0, yPos)
-	btn.BackgroundColor3 = currentTheme.sidebar
-	btn.BackgroundTransparency = 0.8
+	btn.Position = UDim2.new(xFrac, -tabBtnS/2, 0.5, -tabBtnS/2)
+	btn.BackgroundTransparency = 1
 	btn.Text = ""
-	btn.TextSize = isMobile and 28 or 34
 	btn.Font = Enum.Font.GothamBold
 	btn.TextColor3 = currentTheme.text
 	btn.ZIndex = 9
-	btn.Parent = sidebar
-	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 10)
-	
+
 	local stroke = Instance.new("UIStroke")
-	stroke.Color = currentTheme.sidebar
-	stroke.Thickness = 2
-	stroke.Transparency = 0.7
+	stroke.Color = currentTheme.stroke
+	stroke.Thickness = 1.5
+	stroke.Transparency = 1
 	stroke.Parent = btn
-	
+
+	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 10)
+
 	local imgElement = nil
 	if isUrl then
 		local img = Instance.new("ImageLabel")
-		local s = (tabName == "emotes") and 0.85 or (0.95 * ICON_SCALE)
+		local s = (tabName == "emotes") and 0.82 or (0.9 * ICON_SCALE)
 		img.Size = UDim2.fromScale(s, s)
 		img.Position = UDim2.fromScale(0.5, 0.5)
 		img.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -1528,22 +1523,19 @@ local function CreateTabBtn(icon, tabName, yPos, customScale, rawImage)
 
 	btn.MouseEnter:Connect(function()
 		if currentTab ~= tabName then
-			TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundTransparency = 0.7, BackgroundColor3 = currentTheme.stroke, Size = UDim2.new(0, tabBtnS + 2, 0, tabBtnS + 2)}):Play()
+			TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundTransparency = 0.75, BackgroundColor3 = currentTheme.stroke}):Play()
 		end
 	end)
 	btn.MouseLeave:Connect(function()
-		TweenService:Create(btn, TweenInfo.new(0.15), {
-			BackgroundTransparency = 1,
-			Size = UDim2.new(0, tabBtnS, 0, tabBtnS)
-		}):Play()
+		TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundTransparency = 1}):Play()
 	end)
-	
-	-- Quatrefoil indicator (MaterialYou theme - asset tabanlı)
+
+	-- Quatrefoil (MaterialYou)
 	local qSize = tabBtnS + 10
 	local quatrefoil = Instance.new("ImageLabel")
 	quatrefoil.Name = "Quatrefoil"
-	quatrefoil.Size = UDim2.new(0, qSize, 0, qSize)
-	quatrefoil.Position = UDim2.new(0.5, -qSize/2, 0, yPos + tabBtnS/2 - qSize/2)
+	quatrefoil.Size = UDim2.new(0, 0, 0, 0)
+	quatrefoil.Position = UDim2.new(xFrac, -qSize/2, 0.5, -qSize/2)
 	quatrefoil.BackgroundTransparency = 1
 	quatrefoil.Image = ResolveAssetImage(Icons.Quatrefoil)
 	quatrefoil.ImageColor3 = currentTheme.accent
@@ -1551,48 +1543,31 @@ local function CreateTabBtn(icon, tabName, yPos, customScale, rawImage)
 	quatrefoil.ScaleType = Enum.ScaleType.Fit
 	quatrefoil.ZIndex = 9
 	quatrefoil.Visible = false
-	quatrefoil.Parent = sidebar
-	
-	tabBtns[tabName] = {btn = btn, stroke = stroke, img = imgElement, quatrefoil = quatrefoil, yPos = yPos}
+
+	tabBtns[tabName] = {btn = btn, stroke = stroke, img = imgElement, quatrefoil = quatrefoil, xFrac = xFrac}
+	_tabStripRef[#_tabStripRef + 1] = {btn = btn, quatrefoil = quatrefoil}
 	return btn
 end
 
-CreateTabBtn(Icons.Emote, "emotes", 8)
-CreateTabBtn(Icons.FavoriteFull, "favorites", 8 + tabBtnS + 6)
-CreateTabBtn(Icons.Recent, "recent", 8 + (tabBtnS + 6) * 2)
-CreateTabBtn("rbxassetid://115725480722697", "friends", 8 + (tabBtnS + 6) * 3)
+-- Sekme sayısı ve yatay konumları
+local _nTabs = isMobile and 5 or 6
+local function _tf(i) return (i - 0.5) / _nTabs end
+
+CreateTabBtn(Icons.Emote, "emotes", _tf(1))
+CreateTabBtn(Icons.FavoriteFull, "favorites", _tf(2))
+CreateTabBtn(Icons.Recent, "recent", _tf(3))
+CreateTabBtn("rbxassetid://115725480722697", "friends", _tf(4))
 if not isMobile then
-	CreateTabBtn(Icons.Keybind, "keybinds", 8 + (tabBtnS + 6) * 4)
+	CreateTabBtn(Icons.Keybind, "keybinds", _tf(5))
 end
-CreateTabBtn(Icons.Settings, "settings", isMobile and 8 + (tabBtnS + 6) * 4 or 8 + (tabBtnS + 6) * 5)
+CreateTabBtn(Icons.Settings, "settings", _tf(_nTabs))
 
--- Sliding active-tab indicator (replaces per-btn gradient; hidden for MaterialYou)
+-- Sliding indicator forward declarations (oluşturma tabStrip sonrası)
 local _indS = tabBtnS + 4
-local _tabIndicator = Instance.new("Frame")
-_tabIndicator.Name = "TabIndicator"
-_tabIndicator.Size = UDim2.new(0, _indS, 0, _indS)
-_tabIndicator.Position = UDim2.new(0.5, -_indS/2, 0, 8 - 2)
-_tabIndicator.BackgroundColor3 = Color3.new(1, 1, 1)
-_tabIndicator.BackgroundTransparency = 0
-_tabIndicator.ZIndex = 8
-_tabIndicator.Parent = sidebar
-Instance.new("UICorner", _tabIndicator).CornerRadius = UDim.new(0, 12)
-
-local _indStroke = Instance.new("UIStroke")
-_indStroke.Color = Color3.new(1, 1, 1)
-_indStroke.Thickness = 1.5
-_indStroke.Transparency = 0.15
-_indStroke.Parent = _tabIndicator
-
-local _indGrad = Instance.new("UIGradient")
-_indGrad.Rotation = 90
-_indGrad.Transparency = NumberSequence.new{
-	NumberSequenceKeypoint.new(0, 0.25),
-	NumberSequenceKeypoint.new(1, 0.72)
-}
-_indGrad.Parent = _tabIndicator
+local _tabIndicator, _indStroke, _indGrad
 
 local function _UpdateIndicatorGrad()
+	if not _indGrad then return end
 	local acc = currentTheme.accent
 	local topC = Color3.new(math.min(1, acc.R + 0.18), math.min(1, acc.G + 0.18), math.min(1, acc.B + 0.18))
 	local botC = Color3.new(acc.R * 0.25, acc.G * 0.25, acc.B * 0.25)
@@ -1601,15 +1576,14 @@ local function _UpdateIndicatorGrad()
 		ColorSequenceKeypoint.new(1, botC)
 	}
 end
-_UpdateIndicatorGrad()
 
 -- ===============================================================
 -- CONTENT
 -- ===============================================================
 
 local content = Instance.new("Frame")
-content.Size = UDim2.new(1, -sideBarW, 1, 0)
-content.Position = UDim2.new(0, sideBarW, 0, 0)
+content.Size = UDim2.new(1, 0, 1, 0)
+content.Position = UDim2.new(0, 0, 0, 0)
 content.BackgroundTransparency = 1
 content.Parent = main
 
@@ -1621,6 +1595,49 @@ titleBar.ZIndex = 5
 titleBar.Parent = content
 Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0, 14)
 RegisterTheme(titleBar, "BackgroundColor3", "secondary")
+
+-- TAB ŞERİDİ (titleBar altında, arama üstünde)
+tabStrip = Instance.new("Frame")
+tabStrip.Name = "TabStrip"
+tabStrip.Size = UDim2.new(1, 0, 0, tabStripH)
+tabStrip.Position = UDim2.new(0, 0, 0, titleH + 4)
+tabStrip.BackgroundColor3 = currentTheme.primary
+tabStrip.ZIndex = 8
+tabStrip.ClipsDescendants = false
+tabStrip.Parent = content
+RegisterTheme(tabStrip, "BackgroundColor3", "primary")
+
+-- Buton ve quatrefoil'leri tabStrip'e bağla
+for _, item in ipairs(_tabStripRef) do
+	item.btn.Parent = tabStrip
+	item.quatrefoil.Parent = tabStrip
+end
+
+-- Sliding indicator
+_tabIndicator = Instance.new("Frame")
+_tabIndicator.Name = "TabIndicator"
+_tabIndicator.Size = UDim2.new(0, _indS, 0, _indS)
+_tabIndicator.Position = UDim2.new(_tf(1), -_indS/2, 0.5, -_indS/2)
+_tabIndicator.BackgroundColor3 = Color3.new(1, 1, 1)
+_tabIndicator.BackgroundTransparency = 0
+_tabIndicator.ZIndex = 7
+_tabIndicator.Parent = tabStrip
+Instance.new("UICorner", _tabIndicator).CornerRadius = UDim.new(0, 10)
+
+_indStroke = Instance.new("UIStroke")
+_indStroke.Color = Color3.new(1, 1, 1)
+_indStroke.Thickness = 1.5
+_indStroke.Transparency = 0.15
+_indStroke.Parent = _tabIndicator
+
+_indGrad = Instance.new("UIGradient")
+_indGrad.Rotation = 90
+_indGrad.Transparency = NumberSequence.new{
+	NumberSequenceKeypoint.new(0, 0.25),
+	NumberSequenceKeypoint.new(1, 0.72)
+}
+_indGrad.Parent = _tabIndicator
+_UpdateIndicatorGrad()
 
 local titleOverlay = Instance.new("Frame")
 titleOverlay.Size = UDim2.new(0, 14, 1, 0)
@@ -1862,7 +1879,7 @@ end)
 local searchH = isMobile and 32 or 38
 local search = Instance.new("TextBox")
 search.Size = UDim2.new(1, -16, 0, searchH)
-search.Position = UDim2.new(0, 8, 0, titleH + 6)
+search.Position = UDim2.new(0, 8, 0, titleH + tabStripH + 8)
 search.BackgroundColor3 = currentTheme.tertiary
 search.PlaceholderText = L.search
 search.PlaceholderColor3 = currentTheme.textDim
@@ -1978,8 +1995,8 @@ RegisterTheme(emptyLbl, "TextColor3", "textDim")
 -- ===============================================================
 
 local settingsPanel = Instance.new("ScrollingFrame")
-settingsPanel.Size = UDim2.new(1, -16, 1, -(titleH + bottomBarH + 20))
-settingsPanel.Position = UDim2.new(0, 8, 0, titleH + 8)
+settingsPanel.Size = UDim2.new(1, -16, 1, -(titleH + tabStripH + bottomBarH + 24))
+settingsPanel.Position = UDim2.new(0, 8, 0, titleH + tabStripH + 10)
 settingsPanel.BackgroundTransparency = 1
 settingsPanel.ScrollBarThickness = isMobile and 6 or 4
 settingsPanel.AutomaticCanvasSize = Enum.AutomaticSize.Y
@@ -1993,8 +2010,8 @@ settingsLayout.Padding = UDim.new(0, 10)
 settingsLayout.Parent = settingsPanel
 
 local friendsPanel = Instance.new("ScrollingFrame")
-friendsPanel.Size = UDim2.new(1, -16, 1, -(titleH + bottomBarH + 20))
-friendsPanel.Position = UDim2.new(0, 8, 0, titleH + 8)
+friendsPanel.Size = UDim2.new(1, -16, 1, -(titleH + tabStripH + bottomBarH + 24))
+friendsPanel.Position = UDim2.new(0, 8, 0, titleH + tabStripH + 10)
 friendsPanel.BackgroundTransparency = 1
 friendsPanel.ScrollBarThickness = isMobile and 6 or 4
 friendsPanel.AutomaticCanvasSize = Enum.AutomaticSize.Y
@@ -2007,8 +2024,8 @@ friendsPanelLayout.Padding = UDim.new(0, 10)
 friendsPanelLayout.Parent = friendsPanel
 
 local keybindsPanel = Instance.new("ScrollingFrame")
-keybindsPanel.Size = UDim2.new(1, -16, 1, -(titleH + bottomBarH + 20))
-keybindsPanel.Position = UDim2.new(0, 8, 0, titleH + 8)
+keybindsPanel.Size = UDim2.new(1, -16, 1, -(titleH + tabStripH + bottomBarH + 24))
+keybindsPanel.Position = UDim2.new(0, 8, 0, titleH + tabStripH + 10)
 keybindsPanel.BackgroundTransparency = 1
 keybindsPanel.ScrollBarThickness = isMobile and 6 or 4
 keybindsPanel.AutomaticCanvasSize = Enum.AutomaticSize.Y
@@ -3162,7 +3179,7 @@ grip.Parent = bottomBar
 Instance.new("UICorner", grip).CornerRadius = UDim.new(1, 0)
 RegisterTheme(grip, "BackgroundColor3", "textDim")
 
-local scrollY = titleH + searchH + 14
+local scrollY = titleH + tabStripH + searchH + 16
 local scroll = Instance.new("ScrollingFrame")
 scroll.Size = UDim2.new(1, -16, 1, -(scrollY + pageH + bottomBarH + 18))
 scroll.Position = UDim2.new(0, 8, 0, scrollY)
@@ -3807,7 +3824,7 @@ local function MakeCard(emote, ci, animate)
 		Instance.new("UICorner", kbBtn).CornerRadius = UDim.new(0, 4)
 
 		local kbIcon = Instance.new("ImageLabel")
-		kbIcon.Size = UDim2.new(0.95, 0, 0.95, 0)
+		kbIcon.Size = UDim2.new(1.1, 0, 1.1, 0)
 		kbIcon.Position = UDim2.fromScale(0.5, 0.5)
 		kbIcon.AnchorPoint = Vector2.new(0.5, 0.5)
 		kbIcon.BackgroundTransparency = 1
@@ -4055,7 +4072,7 @@ UpdateTabStyles = function()
 			end
 		end
 		
-		-- Tüm temalarda butonlar şeffaf; aktif gösterge ayrı frame'de
+		-- Tüm temalarda butonlar şeffaf; aktif gösterge sliding frame'de
 		TweenService:Create(data.btn, TweenInfo.new(0.2), {
 			BackgroundTransparency = 1,
 			Size = UDim2.new(0, tabBtnS, 0, tabBtnS)
@@ -4063,17 +4080,14 @@ UpdateTabStyles = function()
 		data.stroke.Transparency = 1
 
 		if isM3 then
-			-- MaterialYou: quatrefoil göstergesi, sliding indicator gizli
 			if _tabIndicator then _tabIndicator.Visible = false end
 		else
-			-- Diğer temalar: sliding indicator göster, aktif tab'a kaydır
 			if _tabIndicator then
 				_tabIndicator.Visible = true
-				if active then
+				if active and data.xFrac then
 					_UpdateIndicatorGrad()
-					local targetY = data.yPos - 2
 					TweenService:Create(_tabIndicator, TweenInfo.new(0.28, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-						Position = UDim2.new(0.5, -_indS/2, 0, targetY)
+						Position = UDim2.new(data.xFrac, -_indS/2, 0.5, -_indS/2)
 					}):Play()
 				end
 			end
@@ -4366,7 +4380,7 @@ end
 
 titleBar.InputBegan:Connect(StartDrag)
 bottomBar.InputBegan:Connect(StartDrag)
-sidebar.InputBegan:Connect(StartDrag)
+if tabStrip then tabStrip.InputBegan:Connect(StartDrag) end
 
 UserInputService.InputChanged:Connect(function(input)
 	if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
