@@ -2061,7 +2061,7 @@ end
 -- Yardımcı: ayar satırı (ikon + başlık + opsiyonel açıklama)
 -- ---------------------------------------------------------------
 MakeRow = function(imgId, title, subtitle, order, customH)
-	local iconBoxSz = isMobile and 40 or 46
+	local iconBoxSz = isMobile and 46 or 54
 	local hasDesc = subtitle and subtitle ~= ""
 	local h = customH or (hasDesc and 72 or 60)
 
@@ -2087,7 +2087,7 @@ MakeRow = function(imgId, title, subtitle, order, customH)
 		RegisterTheme(iconBox, "BackgroundColor3", "tertiary")
 
 		local icon = Instance.new("ImageLabel")
-		icon.Size = UDim2.fromScale(1, 1)
+		icon.Size = UDim2.new(0.72, 0, 0.72, 0)
 		icon.AnchorPoint = Vector2.new(0.5, 0.5)
 		icon.Position = UDim2.fromScale(0.5, 0.5)
 		icon.BackgroundTransparency = 1
@@ -2248,7 +2248,7 @@ do
 	speedLbl.Parent = speedRow
 	RegisterTheme(speedLbl, "TextColor3", "accent")
 
-	local iconBoxSz = isMobile and 40 or 46
+	local iconBoxSz = isMobile and 46 or 54
 	local sliderLeft = 12 + iconBoxSz + 10
 	local sliderBg = Instance.new("Frame")
 	sliderBg.Size = UDim2.new(1, -(sliderLeft + 12), 0, 6)
