@@ -1994,7 +1994,8 @@ settingsPanel.ZIndex = 5
 settingsPanel.Parent = content
 
 local settingsLayout = Instance.new("UIListLayout")
-settingsLayout.Padding = UDim.new(0, 10)
+settingsLayout.Padding = UDim.new(0, 6)
+settingsLayout.SortOrder = Enum.SortOrder.LayoutOrder
 settingsLayout.Parent = settingsPanel
 
 local friendsPanel = Instance.new("ScrollingFrame")
@@ -2031,28 +2032,35 @@ local RefreshKeybindsPanel  -- forward declaration (defined after ShowKeybindDia
 -- Yardımcı: bölüm başlığı
 -- ---------------------------------------------------------------
 MakeSectionHeader = function(text, order)
+	-- Frame kullanmak zorundayız: TextLabel UIListLayout LayoutOrder'ı görmezden gelebiliyor
+	local container = Instance.new("Frame")
+	container.Size = UDim2.new(1, 0, 0, 26)
+	container.BackgroundTransparency = 1
+	container.LayoutOrder = order
+	container.ZIndex = 6
+	container.Parent = settingsPanel
+
 	local hdr = Instance.new("TextLabel")
-	hdr.Size = UDim2.new(1, -4, 0, 20)
+	hdr.Size = UDim2.new(1, -4, 1, 0)
 	hdr.BackgroundTransparency = 1
 	hdr.Text = text:upper()
 	hdr.TextColor3 = currentTheme.accent
 	hdr.Font = Enum.Font.GothamBold
-	hdr.TextSize = 10
+	hdr.TextSize = 11
 	hdr.TextXAlignment = Enum.TextXAlignment.Left
-	hdr.LayoutOrder = order
-	hdr.ZIndex = 6
-	hdr.Parent = settingsPanel
+	hdr.ZIndex = 7
+	hdr.Parent = container
 	RegisterTheme(hdr, "TextColor3", "accent")
-	return hdr
+	return container
 end
 
 -- ---------------------------------------------------------------
 -- Yardımcı: ayar satırı (ikon + başlık + opsiyonel açıklama)
 -- ---------------------------------------------------------------
 MakeRow = function(imgId, title, subtitle, order, customH)
-	local iconBoxSz = isMobile and 32 or 36
+	local iconBoxSz = isMobile and 40 or 46
 	local hasDesc = subtitle and subtitle ~= ""
-	local h = customH or (hasDesc and 64 or 52)
+	local h = customH or (hasDesc and 68 or 56)
 
 	local row = Instance.new("Frame")
 	row.Size = UDim2.new(1, 0, 0, h)
@@ -2076,7 +2084,7 @@ MakeRow = function(imgId, title, subtitle, order, customH)
 		RegisterTheme(iconBox, "BackgroundColor3", "tertiary")
 
 		local icon = Instance.new("ImageLabel")
-		icon.Size = UDim2.new(0.6, 0, 0.6, 0)
+		icon.Size = UDim2.new(0.68, 0, 0.68, 0)
 		icon.AnchorPoint = Vector2.new(0.5, 0.5)
 		icon.Position = UDim2.fromScale(0.5, 0.5)
 		icon.BackgroundTransparency = 1
@@ -2237,7 +2245,7 @@ do
 	speedLbl.Parent = speedRow
 	RegisterTheme(speedLbl, "TextColor3", "accent")
 
-	local iconBoxSz = isMobile and 32 or 36
+	local iconBoxSz = isMobile and 40 or 46
 	local sliderLeft = 12 + iconBoxSz + 10
 	local sliderBg = Instance.new("Frame")
 	sliderBg.Size = UDim2.new(1, -(sliderLeft + 12), 0, 6)
@@ -3091,22 +3099,11 @@ RefreshFriendList = function()
 end
 RefreshFriendList()
 
--- Ayarlar paneline "Arkadaş istekleri al" satırı
+-- Ayarlar paneline "Arkadaş istekleri al" satırı (Davranış bölümünün altı: order 15)
 do
-	local arRow = MakeRow("", "Arkadaş istekleri al", "", 9, 50)
-	local arBtn = Instance.new("TextButton")
-	arBtn.Size = UDim2.new(0.4,0,0,30); arBtn.Position = UDim2.new(0.56,0,0.5,-15)
-	arBtn.BackgroundColor3 = FriendData.acceptRequests and currentTheme.success or currentTheme.critical
-	arBtn.Text = FriendData.acceptRequests and (L.on or "Açık") or (L.off or "Kapalı")
-	arBtn.TextColor3 = Color3.new(1,1,1); arBtn.Font = Enum.Font.GothamBold
-	arBtn.TextSize = isMobile and 11 or 13; arBtn.ZIndex = 8; arBtn.Parent = arRow
-	Instance.new("UICorner", arBtn).CornerRadius = UDim.new(0,10)
-	arBtn.MouseButton1Click:Connect(function()
-		FriendData.acceptRequests = not FriendData.acceptRequests
-		arBtn.Text = FriendData.acceptRequests and (L.on or "Açık") or (L.off or "Kapalı")
-		TweenService:Create(arBtn, TweenInfo.new(0.2), {
-			BackgroundColor3 = FriendData.acceptRequests and currentTheme.success or currentTheme.critical
-		}):Play()
+	local arRow = MakeRow("", "Arkadaş istekleri al", "", 15)
+	MakePillToggle(arRow, FriendData.acceptRequests, function(v)
+		FriendData.acceptRequests = v
 		_SaveFriend()
 	end)
 end
@@ -5493,7 +5490,7 @@ end
 -- comboQueue_UI forward declared above; reset here
 comboQueue_UI = {}
 
-local comboRow = MakeRow("", L.comboTitle, "", 9, 196)
+local comboRow = MakeRow("", L.comboTitle, "", 25, 196)
 comboRow.Size             = UDim2.new(1, 0, 0, 196)
 comboRow.ClipsDescendants = true
 
