@@ -48,7 +48,7 @@ if old then old:Destroy() end
 -- ===============================================================
 
 local DATA_FILE = "VexroEmotes_Data.json"
-local Settings = {theme = "Dark", speed = 1, notifications = true, loopEmote = true, language = nil, copyEmoteEnabled = false, stopOnWalk = false, showHUD = true}
+local Settings = {theme = "Dark", speed = 1, notifications = true, loopEmote = true, language = nil, copyEmoteEnabled = false, stopOnWalk = true, showHUD = true}
 
 local FriendData = {
 	friends        = {},   -- [userId:string] = {name, syncEnabled}
