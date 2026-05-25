@@ -48,7 +48,7 @@ if old then old:Destroy() end
 -- ===============================================================
 
 local DATA_FILE = "VexroEmotes_Data.json"
-local Settings = {theme = "Dark", speed = 1, notifications = true, loopEmote = true, language = nil, copyEmoteEnabled = false, stopOnWalk = false, showHUD = true}
+local Settings = {theme = "Dark", speed = 1, notifications = true, loopEmote = true, language = nil, copyEmoteEnabled = false, stopOnWalk = true, showHUD = true}
 
 local FriendData = {
 	friends        = {},   -- [userId:string] = {name, syncEnabled}
@@ -2024,146 +2024,239 @@ keybindsPanelLayout.Parent = keybindsPanel
 
 local RefreshKeybindsPanel  -- forward declaration (defined after ShowKeybindDialog)
 
-local function MakeSettingRow(imgId, txt, order, height)
+-- ---------------------------------------------------------------
+-- Yardımcı: bölüm başlığı
+-- ---------------------------------------------------------------
+local function MakeSectionHeader(text, order)
+	local hdr = Instance.new("TextLabel")
+	hdr.Size = UDim2.new(1, -4, 0, 20)
+	hdr.BackgroundTransparency = 1
+	hdr.Text = text:upper()
+	hdr.TextColor3 = currentTheme.accent
+	hdr.Font = Enum.Font.GothamBold
+	hdr.TextSize = 10
+	hdr.TextXAlignment = Enum.TextXAlignment.Left
+	hdr.LayoutOrder = order
+	hdr.ZIndex = 6
+	hdr.Parent = settingsPanel
+	RegisterTheme(hdr, "TextColor3", "accent")
+	return hdr
+end
+
+-- ---------------------------------------------------------------
+-- Yardımcı: ayar satırı (ikon + başlık + opsiyonel açıklama)
+-- ---------------------------------------------------------------
+local function MakeRow(imgId, title, subtitle, order, customH)
+	local iconBoxSz = isMobile and 32 or 36
+	local hasDesc = subtitle and subtitle ~= ""
+	local h = customH or (hasDesc and 64 or 52)
+
 	local row = Instance.new("Frame")
-	row.Size = UDim2.new(1, 0, 0, height or 50)
-	row.BackgroundColor3 = currentTheme.tertiary
+	row.Size = UDim2.new(1, 0, 0, h)
+	row.BackgroundColor3 = currentTheme.secondary
 	row.LayoutOrder = order
 	row.ZIndex = 6
 	row.Parent = settingsPanel
-	Instance.new("UICorner", row).CornerRadius = UDim.new(0, 12)
-	RegisterTheme(row, "BackgroundColor3", "tertiary")
-	
-	local iconSize = 0
+	Instance.new("UICorner", row).CornerRadius = UDim.new(0, 14)
+	RegisterTheme(row, "BackgroundColor3", "secondary")
+
+	local leftPad = 12
 	if imgId and imgId ~= "" then
-		iconSize = math.floor(44 * ICON_SCALE)
-		local rowH = height or 50
-		iconSize = math.min(iconSize, rowH - 6) 
-		
+		local iconBox = Instance.new("Frame")
+		iconBox.Size = UDim2.new(0, iconBoxSz, 0, iconBoxSz)
+		iconBox.AnchorPoint = Vector2.new(0, 0.5)
+		iconBox.Position = UDim2.new(0, leftPad, 0.5, 0)
+		iconBox.BackgroundColor3 = currentTheme.tertiary
+		iconBox.ZIndex = 7
+		iconBox.Parent = row
+		Instance.new("UICorner", iconBox).CornerRadius = UDim.new(0, 9)
+		RegisterTheme(iconBox, "BackgroundColor3", "tertiary")
+
 		local icon = Instance.new("ImageLabel")
-		icon.Size = UDim2.new(0, iconSize, 0, iconSize)
-		icon.AnchorPoint = Vector2.new(0, 0.5)
-		icon.Position = UDim2.new(0, 12, 0.5, 0)
+		icon.Size = UDim2.new(0.6, 0, 0.6, 0)
+		icon.AnchorPoint = Vector2.new(0.5, 0.5)
+		icon.Position = UDim2.fromScale(0.5, 0.5)
 		icon.BackgroundTransparency = 1
 		icon.Image = ResolveAssetImage("rbxassetid://" .. imgId)
-		icon.ImageColor3 = currentTheme.text
-		icon.ZIndex = 7
-		icon.Parent = row
-		RegisterTheme(icon, "ImageColor3", "text")
+		icon.ImageColor3 = currentTheme.accent
+		icon.ZIndex = 8
+		icon.Parent = iconBox
+		RegisterTheme(icon, "ImageColor3", "accent")
 	end
-	
-	local lblOffset = iconSize > 0 and (12 + iconSize + 10) or 12
-	local lbl = Instance.new("TextLabel")
-	lbl.Size = UDim2.new(0.5, -lblOffset, 1, 0)
-	lbl.Position = UDim2.new(0, lblOffset, 0, 0)
-	lbl.BackgroundTransparency = 1
-	lbl.Text = txt
-	lbl.TextColor3 = currentTheme.text
-	lbl.Font = Enum.Font.GothamBold
-	lbl.TextSize = isMobile and 13 or 15
-	lbl.TextXAlignment = Enum.TextXAlignment.Left
-	lbl.ZIndex = 7
-	lbl.Parent = row
-	RegisterTheme(lbl, "TextColor3", "text")
-	_AddTextGrad(lbl)
 
-	return row, lbl
+	local textLeft = (imgId and imgId ~= "") and (leftPad + iconBoxSz + 10) or leftPad
+	local rightGap = 72
+
+	local titleLbl = Instance.new("TextLabel")
+	titleLbl.BackgroundTransparency = 1
+	titleLbl.Text = title
+	titleLbl.TextColor3 = currentTheme.text
+	titleLbl.Font = Enum.Font.GothamBold
+	titleLbl.TextSize = isMobile and 13 or 14
+	titleLbl.TextXAlignment = Enum.TextXAlignment.Left
+	titleLbl.ZIndex = 7
+	titleLbl.Parent = row
+	RegisterTheme(titleLbl, "TextColor3", "text")
+
+	if hasDesc then
+		titleLbl.Size = UDim2.new(1, -(textLeft + rightGap), 0, 20)
+		titleLbl.Position = UDim2.new(0, textLeft, 0, 12)
+
+		local subLbl = Instance.new("TextLabel")
+		subLbl.Size = UDim2.new(1, -(textLeft + rightGap), 0, 18)
+		subLbl.Position = UDim2.new(0, textLeft, 0, 33)
+		subLbl.BackgroundTransparency = 1
+		subLbl.Text = subtitle
+		subLbl.TextColor3 = currentTheme.textDim
+		subLbl.Font = Enum.Font.Gotham
+		subLbl.TextSize = isMobile and 10 or 11
+		subLbl.TextXAlignment = Enum.TextXAlignment.Left
+		subLbl.TextWrapped = true
+		subLbl.ZIndex = 7
+		subLbl.Parent = row
+		RegisterTheme(subLbl, "TextColor3", "textDim")
+	else
+		titleLbl.Size = UDim2.new(1, -(textLeft + rightGap), 1, 0)
+		titleLbl.Position = UDim2.new(0, textLeft, 0, 0)
+	end
+
+	return row
 end
 
-local themeNames = {"Dark", "Purple", "Blue", "Green", "Red", "Light", "MaterialYou", "FrostedGlass", "DarkGlass"}
+-- ---------------------------------------------------------------
+-- Yardımcı: pill toggle anahtarı
+-- ---------------------------------------------------------------
+local function MakePillToggle(parent, value, onChange)
+	local pillW, pillH, pad = 50, 28, 3
+	local knobSz = pillH - pad * 2
+
+	local pill = Instance.new("Frame")
+	pill.Size = UDim2.new(0, pillW, 0, pillH)
+	pill.AnchorPoint = Vector2.new(1, 0.5)
+	pill.Position = UDim2.new(1, -12, 0.5, 0)
+	pill.BackgroundColor3 = value and currentTheme.success or currentTheme.stroke
+	pill.ZIndex = 8
+	pill.Parent = parent
+	Instance.new("UICorner", pill).CornerRadius = UDim.new(1, 0)
+
+	local knob = Instance.new("Frame")
+	knob.Size = UDim2.new(0, knobSz, 0, knobSz)
+	knob.AnchorPoint = Vector2.new(0, 0.5)
+	knob.Position = value
+		and UDim2.new(1, -(knobSz + pad), 0.5, 0)
+		or  UDim2.new(0, pad, 0.5, 0)
+	knob.BackgroundColor3 = Color3.new(1, 1, 1)
+	knob.ZIndex = 9
+	knob.Parent = pill
+	Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
+
+	local state = value
+	local pillBtn = Instance.new("TextButton")
+	pillBtn.Size = UDim2.fromScale(1, 1)
+	pillBtn.BackgroundTransparency = 1
+	pillBtn.Text = ""
+	pillBtn.ZIndex = 10
+	pillBtn.Parent = pill
+
+	local function SetState(v)
+		state = v
+		TweenService:Create(pill, TweenInfo.new(0.22), {
+			BackgroundColor3 = v and currentTheme.success or currentTheme.stroke
+		}):Play()
+		TweenService:Create(knob, TweenInfo.new(0.22, Enum.EasingStyle.Back), {
+			Position = v and UDim2.new(1, -(knobSz + pad), 0.5, 0) or UDim2.new(0, pad, 0.5, 0)
+		}):Play()
+	end
+
+	pillBtn.MouseButton1Click:Connect(function()
+		state = not state
+		SetState(state)
+		onChange(state)
+	end)
+
+	return SetState
+end
+
+-- ===============================================================
+-- GÖRÜNÜM
+-- ===============================================================
+MakeSectionHeader(isTR and "Görünüm" or (isES and "Apariencia" or (isAR and "المظهر" or (isFR and "Apparence" or (isHI and "दिखावट" or (isPT and "Aparência" or (isRU and "Внешний вид" or "Appearance")))))), 1)
+
+-- Tema
 do
-	local themeRow = MakeSettingRow("110192525313214", L.theme, 1)
-	local themeBtn = Instance.new("TextButton")
-	themeBtn.Size = UDim2.new(0.4, 0, 0, 36)
-	themeBtn.Position = UDim2.new(0.56, 0, 0.5, -18)
-	themeBtn.BackgroundColor3 = currentTheme.accent
-	themeBtn.Text = Settings.theme
-	themeBtn.TextColor3 = Color3.new(1, 1, 1)
-	themeBtn.Font = Enum.Font.GothamBold
-	themeBtn.TextSize = isMobile and 12 or 14
-	themeBtn.ZIndex = 8
-	themeBtn.Parent = themeRow
-	Instance.new("UICorner", themeBtn).CornerRadius = UDim.new(0, 10)
-	RegisterTheme(themeBtn, "BackgroundColor3", "accent")
+	local themeRow = MakeRow("110192525313214", L.theme, "", 2)
+	local themeNames = {"Dark", "Purple", "Blue", "Green", "Red", "Light", "MaterialYou", "FrostedGlass", "DarkGlass"}
+
+	local chip = Instance.new("TextButton")
+	chip.Size = UDim2.new(0, 80, 0, 30)
+	chip.AnchorPoint = Vector2.new(1, 0.5)
+	chip.Position = UDim2.new(1, -12, 0.5, 0)
+	chip.BackgroundColor3 = currentTheme.accent
+	chip.Text = Settings.theme
+	chip.TextColor3 = Color3.new(1, 1, 1)
+	chip.Font = Enum.Font.GothamBold
+	chip.TextSize = isMobile and 10 or 11
+	chip.ZIndex = 8
+	chip.Parent = themeRow
+	Instance.new("UICorner", chip).CornerRadius = UDim.new(1, 0)
+	RegisterTheme(chip, "BackgroundColor3", "accent")
 
 	local themeIdx = 1
 	for i, n in ipairs(themeNames) do if n == Settings.theme then themeIdx = i end end
 
-	themeBtn.MouseButton1Click:Connect(function()
+	chip.MouseButton1Click:Connect(function()
 		themeIdx = themeIdx % #themeNames + 1
 		Settings.theme = themeNames[themeIdx]
-		themeBtn.Text = Settings.theme
+		chip.Text = Settings.theme
 		ApplyTheme(Settings.theme)
 		SaveData()
 	end)
-end -- theme row scope
+end
 
--- --- SPEED SLIDER SECTION ---
+-- Hız
 do
-	local speedRow, speedTitle = MakeSettingRow("113837085020684", L.speed, 2, 70)
-	speedTitle.Size = UDim2.new(0.2, 0, 0, 30) -- Shrink title to allow slider space
-	speedTitle.TextYAlignment = Enum.TextYAlignment.Center
-	local speedIcon = speedRow:FindFirstChildOfClass("ImageLabel")
-	if speedIcon then speedIcon.Position = UDim2.new(0, 4, 0.5, 0) end
-
+	local speedRow = MakeRow("113837085020684", L.speed, "", 3, 78)
 	local speeds = {0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3}
 	local speedIdx = 4
 	for i, s in ipairs(speeds) do if s == Settings.speed then speedIdx = i end end
 
-	local speedValueLbl = Instance.new("TextLabel")
-	speedValueLbl.Size = UDim2.new(1, 0, 0, 20)
-	speedValueLbl.Position = UDim2.new(0, 0, 0, 5)
-	speedValueLbl.BackgroundTransparency = 1
-	speedValueLbl.Text = Settings.speed .. "x"
-	speedValueLbl.TextColor3 = currentTheme.accent
-	speedValueLbl.Font = Enum.Font.GothamBlack
-	speedValueLbl.TextSize = 16
-	speedValueLbl.ZIndex = 7
-	speedValueLbl.Parent = speedRow
-	RegisterTheme(speedValueLbl, "TextColor3", "accent")
+	local speedLbl = Instance.new("TextLabel")
+	speedLbl.Size = UDim2.new(0, 48, 0, 28)
+	speedLbl.AnchorPoint = Vector2.new(1, 0)
+	speedLbl.Position = UDim2.new(1, -12, 0, 12)
+	speedLbl.BackgroundTransparency = 1
+	speedLbl.Text = Settings.speed .. "x"
+	speedLbl.TextColor3 = currentTheme.accent
+	speedLbl.Font = Enum.Font.GothamBlack
+	speedLbl.TextSize = isMobile and 14 or 15
+	speedLbl.TextXAlignment = Enum.TextXAlignment.Right
+	speedLbl.ZIndex = 8
+	speedLbl.Parent = speedRow
+	RegisterTheme(speedLbl, "TextColor3", "accent")
 
-	local speedMinus = Instance.new("TextButton")
-	speedMinus.Size = UDim2.new(0, 30, 0, 30)
-	speedMinus.Position = UDim2.new(0.1, 0, 0, 30)
-	speedMinus.BackgroundColor3 = currentTheme.critical
-	speedMinus.Text = "-"
-	speedMinus.TextColor3 = Color3.new(1, 1, 1)
-	speedMinus.Font = Enum.Font.GothamBold
-	speedMinus.TextSize = 20
-	speedMinus.ZIndex = 8
-	speedMinus.Parent = speedRow
-	Instance.new("UICorner", speedMinus).CornerRadius = UDim.new(0, 8)
-	RegisterTheme(speedMinus, "BackgroundColor3", "critical")
-
-	local speedPlus = speedMinus:Clone()
-	speedPlus.Position = UDim2.new(0.9, -30, 0, 30)
-	speedPlus.BackgroundColor3 = currentTheme.success
-	speedPlus.Text = "+"
-	speedPlus.Parent = speedRow
-	RegisterTheme(speedPlus, "BackgroundColor3", "success")
-
-	-- SLIDER UI
+	local iconBoxSz = isMobile and 32 or 36
+	local sliderLeft = 12 + iconBoxSz + 10
 	local sliderBg = Instance.new("Frame")
-	sliderBg.Size = UDim2.new(0.6, 0, 0, 6)
-	sliderBg.Position = UDim2.new(0.5, 0, 0, 42)
-	sliderBg.AnchorPoint = Vector2.new(0.5, 0)
-	sliderBg.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+	sliderBg.Size = UDim2.new(1, -(sliderLeft + 12), 0, 6)
+	sliderBg.Position = UDim2.new(0, sliderLeft, 1, -20)
+	sliderBg.BackgroundColor3 = currentTheme.tertiary
 	sliderBg.ZIndex = 8
 	sliderBg.Parent = speedRow
 	Instance.new("UICorner", sliderBg).CornerRadius = UDim.new(1, 0)
+	RegisterTheme(sliderBg, "BackgroundColor3", "tertiary")
 
 	local sliderFill = Instance.new("Frame")
-	sliderFill.Size = UDim2.new(0.5, 0, 1, 0) -- Starts at half
+	sliderFill.Size = UDim2.new(0, 0, 1, 0)
 	sliderFill.BackgroundColor3 = currentTheme.accent
 	sliderFill.ZIndex = 9
 	sliderFill.Parent = sliderBg
 	Instance.new("UICorner", sliderFill).CornerRadius = UDim.new(1, 0)
 	RegisterTheme(sliderFill, "BackgroundColor3", "accent")
 
-	local sliderKnob = Instance.new("TextButton") -- Button for input
-	sliderKnob.Size = UDim2.new(0, 16, 0, 16)
+	local sliderKnob = Instance.new("TextButton")
+	sliderKnob.Size = UDim2.new(0, 18, 0, 18)
 	sliderKnob.AnchorPoint = Vector2.new(0.5, 0.5)
-	sliderKnob.Position = UDim2.new(0.5, 0, 0.5, 0)
+	sliderKnob.Position = UDim2.new(0, 0, 0.5, 0)
 	sliderKnob.BackgroundColor3 = Color3.new(1, 1, 1)
 	sliderKnob.Text = ""
 	sliderKnob.ZIndex = 10
@@ -2172,221 +2265,114 @@ do
 
 	local function UpdateSpeedUI()
 		Settings.speed = speeds[speedIdx]
-		speedValueLbl.Text = Settings.speed .. "x"
-
+		speedLbl.Text = Settings.speed .. "x"
 		local alpha = (speedIdx - 1) / (#speeds - 1)
 		TweenService:Create(sliderFill, TweenInfo.new(0.2), {Size = UDim2.new(alpha, 0, 1, 0)}):Play()
 		TweenService:Create(sliderKnob, TweenInfo.new(0.2), {Position = UDim2.new(alpha, 0, 0.5, 0)}):Play()
-
 		SaveData()
 		ApplySpeedToAllTracks()
 		if _onSpeedChanged then _onSpeedChanged() end
 	end
 
-	speedMinus.MouseButton1Click:Connect(function()
-		if speedIdx > 1 then speedIdx = speedIdx - 1; UpdateSpeedUI() end
-	end)
-	speedPlus.MouseButton1Click:Connect(function()
-		if speedIdx < #speeds then speedIdx = speedIdx + 1; UpdateSpeedUI() end
-	end)
-
 	local sliderDragging = false
-	sliderKnob.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+	sliderKnob.InputBegan:Connect(function(inp)
+		if inp.UserInputType == Enum.UserInputType.MouseButton1 or inp.UserInputType == Enum.UserInputType.Touch then
 			sliderDragging = true
 		end
 	end)
-
-	UserInputService.InputEnded:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+	UserInputService.InputEnded:Connect(function(inp)
+		if inp.UserInputType == Enum.UserInputType.MouseButton1 or inp.UserInputType == Enum.UserInputType.Touch then
 			sliderDragging = false
 		end
 	end)
-
-	UserInputService.InputChanged:Connect(function(input)
-		if sliderDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-			local mousePos = input.Position.X
-			local startPos = sliderBg.AbsolutePosition.X
-			local width = sliderBg.AbsoluteSize.X
-			local alpha = math.clamp((mousePos - startPos) / width, 0, 1)
-
-			local exactIdx = alpha * (#speeds - 1) + 1
-			local newIdx = math.floor(exactIdx + 0.5)
-
-			if newIdx ~= speedIdx then
-				speedIdx = newIdx
-				UpdateSpeedUI()
-			end
+	UserInputService.InputChanged:Connect(function(inp)
+		if sliderDragging and (inp.UserInputType == Enum.UserInputType.MouseMovement or inp.UserInputType == Enum.UserInputType.Touch) then
+			local ax = math.clamp((inp.Position.X - sliderBg.AbsolutePosition.X) / sliderBg.AbsoluteSize.X, 0, 1)
+			local ni = math.floor(ax * (#speeds - 1) + 1.5)
+			if ni ~= speedIdx then speedIdx = ni; UpdateSpeedUI() end
 		end
 	end)
 
-	UpdateSpeedUI() -- Init slider pos
-end -- speed slider scope
+	UpdateSpeedUI()
+end
 
+-- ===============================================================
+-- DAVRANIŞ
+-- ===============================================================
+MakeSectionHeader(isTR and "Davranış" or (isES and "Comportamiento" or (isAR and "السلوك" or (isFR and "Comportement" or (isHI and "व्यवहार" or (isPT and "Comportamento" or (isRU and "Поведение" or "Behaviour")))))), 9)
+
+-- Bildirimler
 do
-	local notifRow = MakeSettingRow("99427666057293", L.notif, 3)
-	local notifBtn = Instance.new("TextButton")
-	notifBtn.Size = UDim2.new(0.4, 0, 0, 36)
-	notifBtn.Position = UDim2.new(0.56, 0, 0.5, -18)
-	notifBtn.BackgroundColor3 = Settings.notifications and currentTheme.success or currentTheme.critical
-	notifBtn.Text = Settings.notifications and L.on or L.off
-	notifBtn.TextColor3 = Color3.new(1, 1, 1)
-	notifBtn.Font = Enum.Font.GothamBold
-	notifBtn.TextSize = isMobile and 12 or 14
-	notifBtn.ZIndex = 8
-	notifBtn.Parent = notifRow
-	Instance.new("UICorner", notifBtn).CornerRadius = UDim.new(0, 10)
-
-	notifBtn.MouseButton1Click:Connect(function()
-		Settings.notifications = not Settings.notifications
-		notifBtn.Text = Settings.notifications and L.on or L.off
-		TweenService:Create(notifBtn, TweenInfo.new(0.2), {
-			BackgroundColor3 = Settings.notifications and currentTheme.success or currentTheme.critical
-		}):Play()
-		SaveData()
-	end)
-end -- notif row scope
-
-do
-	local contRow = MakeSettingRow("103179694587186", L.loopText or "Loop", 4)
-	local contBtn = Instance.new("TextButton")
-	contBtn.Size = UDim2.new(0.4, 0, 0, 36)
-	contBtn.Position = UDim2.new(0.56, 0, 0.5, -18)
-	contBtn.BackgroundColor3 = Settings.loopEmote and currentTheme.success or currentTheme.critical
-	contBtn.Text = Settings.loopEmote and L.on or L.off
-	contBtn.TextColor3 = Color3.new(1, 1, 1)
-	contBtn.Font = Enum.Font.GothamBold
-	contBtn.TextSize = isMobile and 12 or 14
-	contBtn.ZIndex = 8
-	contBtn.Parent = contRow
-	Instance.new("UICorner", contBtn).CornerRadius = UDim.new(0, 10)
-
-	contBtn.MouseButton1Click:Connect(function()
-		Settings.loopEmote = not Settings.loopEmote
-		_genv().autoReloadEnabled_Vexro = Settings.loopEmote
-		contBtn.Text = Settings.loopEmote and L.on or L.off
-		TweenService:Create(contBtn, TweenInfo.new(0.2), {
-			BackgroundColor3 = Settings.loopEmote and currentTheme.success or currentTheme.critical
-		}):Play()
-		SaveData()
-	end)
-end -- cont row scope
-
--- Yuruyunce Emote Dur ayari (do...end ile lokal sayisini sinirla)
-do
-	local stopOnWalkRow, stopOnWalkTitleLbl = MakeSettingRow("", L.stopOnWalk, 5, 68)
-	stopOnWalkTitleLbl.Size     = UDim2.new(0.52, -12, 0, 24)
-	stopOnWalkTitleLbl.Position = UDim2.new(0, 12, 0, 6)
-
-	local stopOnWalkDescLbl = Instance.new("TextLabel")
-	stopOnWalkDescLbl.Size                   = UDim2.new(0.52, -12, 0, 34)
-	stopOnWalkDescLbl.Position               = UDim2.new(0, 12, 0, 28)
-	stopOnWalkDescLbl.BackgroundTransparency = 1
-	stopOnWalkDescLbl.Text                   = L.stopOnWalkDesc
-	stopOnWalkDescLbl.TextColor3             = Color3.fromRGB(110, 110, 135)
-	stopOnWalkDescLbl.Font                   = Enum.Font.Gotham
-	stopOnWalkDescLbl.TextSize               = isMobile and 10 or 11
-	stopOnWalkDescLbl.TextXAlignment         = Enum.TextXAlignment.Left
-	stopOnWalkDescLbl.TextYAlignment         = Enum.TextYAlignment.Top
-	stopOnWalkDescLbl.TextWrapped            = true
-	stopOnWalkDescLbl.ZIndex                 = 7
-	stopOnWalkDescLbl.Parent                 = stopOnWalkRow
-	RegisterTheme(stopOnWalkDescLbl, "TextColor3", "textDim")
-
-	local stopOnWalkBtn = Instance.new("TextButton")
-	stopOnWalkBtn.Size             = UDim2.new(0.4, 0, 0, 36)
-	stopOnWalkBtn.Position         = UDim2.new(0.56, 0, 0.5, -18)
-	stopOnWalkBtn.BackgroundColor3 = Settings.stopOnWalk and currentTheme.success or currentTheme.critical
-	stopOnWalkBtn.Text             = Settings.stopOnWalk and L.on or L.off
-	stopOnWalkBtn.TextColor3       = Color3.new(1, 1, 1)
-	stopOnWalkBtn.Font             = Enum.Font.GothamBold
-	stopOnWalkBtn.TextSize         = isMobile and 12 or 14
-	stopOnWalkBtn.ZIndex           = 8
-	stopOnWalkBtn.Parent           = stopOnWalkRow
-	Instance.new("UICorner", stopOnWalkBtn).CornerRadius = UDim.new(0, 10)
-
-	stopOnWalkBtn.MouseButton1Click:Connect(function()
-		Settings.stopOnWalk = not Settings.stopOnWalk
-		stopOnWalkBtn.Text = Settings.stopOnWalk and L.on or L.off
-		TweenService:Create(stopOnWalkBtn, TweenInfo.new(0.2), {
-			BackgroundColor3 = Settings.stopOnWalk and currentTheme.success or currentTheme.critical
-		}):Play()
+	local row = MakeRow("99427666057293", L.notif, "", 10)
+	MakePillToggle(row, Settings.notifications, function(v)
+		Settings.notifications = v
 		SaveData()
 	end)
 end
 
--- Oynatma Bari Goster ayari
+-- Döngü
 do
-	local showHUDRow, showHUDTitleLbl = MakeSettingRow("", L.showHUD, 6, 68)
-	showHUDTitleLbl.Size     = UDim2.new(0.52, -12, 0, 24)
-	showHUDTitleLbl.Position = UDim2.new(0, 12, 0, 6)
-
-	local showHUDDescLbl = Instance.new("TextLabel")
-	showHUDDescLbl.Size                   = UDim2.new(0.52, -12, 0, 34)
-	showHUDDescLbl.Position               = UDim2.new(0, 12, 0, 28)
-	showHUDDescLbl.BackgroundTransparency = 1
-	showHUDDescLbl.Text                   = L.showHUDDesc
-	showHUDDescLbl.TextColor3             = Color3.fromRGB(110, 110, 135)
-	showHUDDescLbl.Font                   = Enum.Font.Gotham
-	showHUDDescLbl.TextSize               = isMobile and 10 or 11
-	showHUDDescLbl.TextXAlignment         = Enum.TextXAlignment.Left
-	showHUDDescLbl.TextYAlignment         = Enum.TextYAlignment.Top
-	showHUDDescLbl.TextWrapped            = true
-	showHUDDescLbl.ZIndex                 = 7
-	showHUDDescLbl.Parent                 = showHUDRow
-	RegisterTheme(showHUDDescLbl, "TextColor3", "textDim")
-
-	local showHUDBtn = Instance.new("TextButton")
-	showHUDBtn.Size             = UDim2.new(0.4, 0, 0, 36)
-	showHUDBtn.Position         = UDim2.new(0.56, 0, 0.5, -18)
-	showHUDBtn.BackgroundColor3 = Settings.showHUD and currentTheme.success or currentTheme.critical
-	showHUDBtn.Text             = Settings.showHUD and L.on or L.off
-	showHUDBtn.TextColor3       = Color3.new(1, 1, 1)
-	showHUDBtn.Font             = Enum.Font.GothamBold
-	showHUDBtn.TextSize         = isMobile and 12 or 14
-	showHUDBtn.ZIndex           = 8
-	showHUDBtn.Parent           = showHUDRow
-	Instance.new("UICorner", showHUDBtn).CornerRadius = UDim.new(0, 10)
-
-	showHUDBtn.MouseButton1Click:Connect(function()
-		Settings.showHUD = not Settings.showHUD
-		showHUDBtn.Text = Settings.showHUD and L.on or L.off
-		TweenService:Create(showHUDBtn, TweenInfo.new(0.2), {
-			BackgroundColor3 = Settings.showHUD and currentTheme.success or currentTheme.critical
-		}):Play()
-		if not Settings.showHUD then HideEmoteHUD() end
+	local row = MakeRow("103179694587186", L.loopText or "Loop", "", 11)
+	MakePillToggle(row, Settings.loopEmote, function(v)
+		Settings.loopEmote = v
+		_genv().autoReloadEnabled_Vexro = v
 		SaveData()
 	end)
 end
 
--- Reset Language butonu
+-- Yürüyünce Durdur
 do
-	local langResetRow = MakeSettingRow("76975628127992", "Reset Language", 7)
-	local langResetBtn = Instance.new("TextButton")
-	langResetBtn.Size = UDim2.new(0.4, 0, 0, 36)
-	langResetBtn.Position = UDim2.new(0.56, 0, 0.5, -18)
-	langResetBtn.BackgroundColor3 = currentTheme.critical
-	langResetBtn.Text = "Reset"
-	langResetBtn.TextColor3 = Color3.new(1, 1, 1)
-	langResetBtn.Font = Enum.Font.GothamBold
-	langResetBtn.TextSize = isMobile and 12 or 14
-	langResetBtn.ZIndex = 8
-	langResetBtn.Parent = langResetRow
-	Instance.new("UICorner", langResetBtn).CornerRadius = UDim.new(0, 10)
-	RegisterTheme(langResetBtn, "BackgroundColor3", "critical")
+	local row = MakeRow("", L.stopOnWalk, L.stopOnWalkDesc, 12)
+	MakePillToggle(row, Settings.stopOnWalk, function(v)
+		Settings.stopOnWalk = v
+		SaveData()
+	end)
+end
 
-	langResetBtn.MouseButton1Click:Connect(function()
+-- Oynatma Barı
+do
+	local row = MakeRow("", L.showHUD, L.showHUDDesc, 13)
+	MakePillToggle(row, Settings.showHUD, function(v)
+		Settings.showHUD = v
+		if not v then HideEmoteHUD() end
+		SaveData()
+	end)
+end
+
+-- ===============================================================
+-- GENEL
+-- ===============================================================
+MakeSectionHeader(isTR and "Genel" or (isES and "General" or (isAR and "عام" or (isFR and "Général" or (isHI and "सामान्य" or (isPT and "Geral" or (isRU and "Общее" or "General")))))), 19)
+
+-- Dil Sıfırla
+do
+	local row = MakeRow("76975628127992", "Reset Language",
+		isTR and "Dili sıfırla ve yeniden seç" or "Reset and reselect language", 20)
+
+	local resetBtn = Instance.new("TextButton")
+	resetBtn.Size = UDim2.new(0, 62, 0, 30)
+	resetBtn.AnchorPoint = Vector2.new(1, 0.5)
+	resetBtn.Position = UDim2.new(1, -12, 0.5, 0)
+	resetBtn.BackgroundColor3 = currentTheme.critical
+	resetBtn.Text = "Reset"
+	resetBtn.TextColor3 = Color3.new(1, 1, 1)
+	resetBtn.Font = Enum.Font.GothamBold
+	resetBtn.TextSize = isMobile and 11 or 12
+	resetBtn.ZIndex = 8
+	resetBtn.Parent = row
+	Instance.new("UICorner", resetBtn).CornerRadius = UDim.new(0, 10)
+	RegisterTheme(resetBtn, "BackgroundColor3", "critical")
+
+	resetBtn.MouseButton1Click:Connect(function()
 		Settings.language = nil
 		SaveData()
 		gui:Destroy()
 		pcall(function()
-			if _genv().lastVexroEmote then
-				_genv().lastVexroEmote = nil
-			end
+			if _genv().lastVexroEmote then _genv().lastVexroEmote = nil end
 		end)
 		loadstring(game:HttpGet("https://raw.githubusercontent.com/zyrovell/Vexro/main/vexroemotes.lua"))()
 	end)
-end -- langReset row scope
+end
 
 
 local PROMPT_TAG = "VexroCopyEmotePrompt"
