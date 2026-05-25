@@ -1093,6 +1093,9 @@ pcall(function() splashBlur:Destroy() end)
 splash:Destroy()
 end -- SPLASH SCREEN scope
 
+-- Forward declarations (dosya genelinde erişilebilir olması için)
+local MakeRow, MakeSectionHeader, MakePillToggle
+
 -- ===============================================================
 -- UI SIZE SETTINGS
 -- ===============================================================
@@ -2027,7 +2030,7 @@ local RefreshKeybindsPanel  -- forward declaration (defined after ShowKeybindDia
 -- ---------------------------------------------------------------
 -- Yardımcı: bölüm başlığı
 -- ---------------------------------------------------------------
-local function MakeSectionHeader(text, order)
+MakeSectionHeader = function(text, order)
 	local hdr = Instance.new("TextLabel")
 	hdr.Size = UDim2.new(1, -4, 0, 20)
 	hdr.BackgroundTransparency = 1
@@ -2046,7 +2049,7 @@ end
 -- ---------------------------------------------------------------
 -- Yardımcı: ayar satırı (ikon + başlık + opsiyonel açıklama)
 -- ---------------------------------------------------------------
-local function MakeRow(imgId, title, subtitle, order, customH)
+MakeRow = function(imgId, title, subtitle, order, customH)
 	local iconBoxSz = isMobile and 32 or 36
 	local hasDesc = subtitle and subtitle ~= ""
 	local h = customH or (hasDesc and 64 or 52)
@@ -2126,7 +2129,7 @@ end
 -- ---------------------------------------------------------------
 -- Yardımcı: pill toggle anahtarı
 -- ---------------------------------------------------------------
-local function MakePillToggle(parent, value, onChange)
+MakePillToggle = function(parent, value, onChange)
 	local pillW, pillH, pad = 50, 28, 3
 	local knobSz = pillH - pad * 2
 
