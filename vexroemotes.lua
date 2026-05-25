@@ -773,6 +773,9 @@ local L = {
 	friendReqSent    = isTR and "%s adlı oyuncuya arkadaşlık isteği gönderildi!" or (isES and "¡Solicitud enviada a %s!"         or (isAR and "تم إرسال طلب صداقة إلى %s!"              or (isFR and "Demande envoyée à %s!"                    or (isHI and "%s को मित्र अनुरोध भेजा!"                    or (isPT and "Pedido enviado para %s!"                or (isRU and "Запрос отправлен %s!"                  or "Friend request sent to %s!")))))),
 	friendReqAcceptedYou = isTR and "%s arkadaşlık isteğini kabul ettin!"   or (isES and "¡Aceptaste la solicitud de %s!"        or (isAR and "قبلت طلب %s!"                            or (isFR and "Vous avez accepté la demande de %s!"      or (isHI and "आपने %s का अनुरोध स्वीकार किया!"              or (isPT and "Você aceitou o pedido de %s!"           or (isRU and "Вы приняли запрос %s!"                 or "You accepted %s's request!")))))),
 	friendReqAcceptedThem = isTR and "%s arkadaşlık isteğini kabul etti!"   or (isES and "¡%s aceptó tu solicitud!"              or (isAR and "قبل %s طلبك!"                            or (isFR and "%s a accepté votre demande!"               or (isHI and "%s ने आपका अनुरोध स्वीकार किया!"              or (isPT and "%s aceitou seu pedido!"                 or (isRU and "%s принял ваш запрос!"                 or "%s accepted your request!")))))),
+	acceptRequestsLbl  = isTR and "Arkadaş istekleri al"           or (isES and "Aceptar solicitudes"          or (isAR and "قبول طلبات الصداقة"       or (isFR and "Accepter les demandes"       or (isHI and "मित्र अनुरोध स्वीकार करें"    or (isPT and "Aceitar pedidos"              or (isRU and "Принимать запросы"            or "Accept friend requests")))))),
+	resetLangLbl       = isTR and "Dil Sıfırla"                    or (isES and "Restablecer idioma"           or (isAR and "إعادة تعيين اللغة"        or (isFR and "Réinitialiser la langue"     or (isHI and "भाषा रीसेट करें"               or (isPT and "Redefinir idioma"             or (isRU and "Сбросить язык"                or "Reset Language")))))),
+	resetLangDesc      = isTR and "Dili sıfırla ve yeniden seç"    or (isES and "Restablecer y reseleccionar"  or (isAR and "إعادة التعيين وإعادة الاختيار" or (isFR and "Réinitialiser et resélectionner" or (isHI and "रीसेट करें और पुनः चुनें"      or (isPT and "Redefinir e selecionar novamente" or (isRU and "Сбросить и выбрать снова"     or "Reset and reselect language")))))),
 }
 
 local Icons = {
@@ -2058,9 +2061,9 @@ end
 -- Yardımcı: ayar satırı (ikon + başlık + opsiyonel açıklama)
 -- ---------------------------------------------------------------
 MakeRow = function(imgId, title, subtitle, order, customH)
-	local iconBoxSz = isMobile and 40 or 46
+	local iconBoxSz = isMobile and 46 or 54
 	local hasDesc = subtitle and subtitle ~= ""
-	local h = customH or (hasDesc and 68 or 56)
+	local h = customH or (hasDesc and 72 or 60)
 
 	local row = Instance.new("Frame")
 	row.Size = UDim2.new(1, 0, 0, h)
@@ -2084,7 +2087,7 @@ MakeRow = function(imgId, title, subtitle, order, customH)
 		RegisterTheme(iconBox, "BackgroundColor3", "tertiary")
 
 		local icon = Instance.new("ImageLabel")
-		icon.Size = UDim2.new(0.68, 0, 0.68, 0)
+		icon.Size = UDim2.new(0.72, 0, 0.72, 0)
 		icon.AnchorPoint = Vector2.new(0.5, 0.5)
 		icon.Position = UDim2.fromScale(0.5, 0.5)
 		icon.BackgroundTransparency = 1
@@ -2245,7 +2248,7 @@ do
 	speedLbl.Parent = speedRow
 	RegisterTheme(speedLbl, "TextColor3", "accent")
 
-	local iconBoxSz = isMobile and 40 or 46
+	local iconBoxSz = isMobile and 46 or 54
 	local sliderLeft = 12 + iconBoxSz + 10
 	local sliderBg = Instance.new("Frame")
 	sliderBg.Size = UDim2.new(1, -(sliderLeft + 12), 0, 6)
@@ -2357,8 +2360,7 @@ MakeSectionHeader(isTR and "Genel" or (isES and "General" or (isAR and "عام" 
 
 -- Dil Sıfırla
 do
-	local row = MakeRow("76975628127992", "Reset Language",
-		isTR and "Dili sıfırla ve yeniden seç" or "Reset and reselect language", 20)
+	local row = MakeRow("76975628127992", L.resetLangLbl, L.resetLangDesc, 20)
 
 	local resetBtn = Instance.new("TextButton")
 	resetBtn.Size = UDim2.new(0, 62, 0, 30)
@@ -3101,7 +3103,7 @@ RefreshFriendList()
 
 -- Ayarlar paneline "Arkadaş istekleri al" satırı (Davranış bölümünün altı: order 15)
 do
-	local arRow = MakeRow("", "Arkadaş istekleri al", "", 15)
+	local arRow = MakeRow("", L.acceptRequestsLbl, "", 15)
 	MakePillToggle(arRow, FriendData.acceptRequests, function(v)
 		FriendData.acceptRequests = v
 		_SaveFriend()
