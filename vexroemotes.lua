@@ -3090,7 +3090,7 @@ RefreshFriendList()
 
 -- Ayarlar paneline "Arkadaş istekleri al" satırı
 do
-	local arRow = MakeSettingRow("", "Arkadaş istekleri al", 9, 50)
+	local arRow = MakeRow("", "Arkadaş istekleri al", "", 9, 50)
 	local arBtn = Instance.new("TextButton")
 	arBtn.Size = UDim2.new(0.4,0,0,30); arBtn.Position = UDim2.new(0.56,0,0.5,-15)
 	arBtn.BackgroundColor3 = FriendData.acceptRequests and currentTheme.success or currentTheme.critical
@@ -5490,7 +5490,7 @@ end
 -- comboQueue_UI forward declared above; reset here
 comboQueue_UI = {}
 
-local comboRow = MakeSettingRow("", L.comboTitle, 9, 196)
+local comboRow = MakeRow("", L.comboTitle, "", 9, 196)
 comboRow.Size             = UDim2.new(1, 0, 0, 196)
 comboRow.ClipsDescendants = true
 
