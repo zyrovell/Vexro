@@ -5706,3 +5706,357 @@ end
 
 end -- _VexroExtend kapatiliyor
 _VexroExtend()
+
+-- ===============================================================
+-- EMOTE WHEEL
+-- Roblox'un varsayılan emote menüsünün yerine özel radyal çark
+-- ===============================================================
+
+local _wheelGui, _wheelContainer
+local _HideEmoteWheel   -- forward declaration; assigned below
+local _wheelSlots = {}
+local _wheelEmotes = {}
+local _wheelVisible = false
+
+local function _WheelFilterAndUpdate(query)
+	local q = (query or ""):lower():gsub("^%s+", ""):gsub("%s+$", "")
+	local out = {}
+	if q == "" then
+		for i = 1, math.min(8, #Emotes) do out[#out + 1] = Emotes[i] end
+	else
+		for _, e in ipairs(Emotes) do
+			if e._lname:find(q, 1, true) then
+				out[#out + 1] = e
+				if #out >= 8 then break end
+			end
+		end
+	end
+	_wheelEmotes = out
+	for i = 1, 8 do
+		local slot = _wheelSlots[i]
+		if not slot then break end
+		local emote = out[i]
+		if emote then
+			slot.frame.Visible = true
+			slot.img.Image = "rbxthumb://type=Asset&id=" .. emote.id .. "&w=420&h=420"
+			local isFav = IsFavorite(emote.id)
+			slot.favBtn.Image = isFav and Icons.FavoriteFull or Icons.FavoriteEmpty
+			slot.favBtn.ImageColor3 = isFav and Color3.fromRGB(255, 210, 60) or Color3.fromRGB(160, 160, 160)
+			local kb = GetKeybind(emote.id)
+			slot.kbBtn.Image = kb and Icons.KeybindActive or Icons.Keybind
+			slot.kbBtn.ImageColor3 = kb and currentTheme.accent or Color3.fromRGB(160, 160, 160)
+			slot.nameLbl.Text = emote.name
+		else
+			slot.frame.Visible = false
+		end
+	end
+end
+
+local function _ShowEmoteWheel()
+	if _wheelVisible then return end
+	_wheelVisible = true
+
+	pcall(function()
+		local ex = playerGui:FindFirstChild("VexroEmoteWheelGui")
+		if ex then ex:Destroy() end
+	end)
+
+	local WS      = isMobile and 360 or 480
+	local WR      = isMobile and 115 or 155
+	local SS      = isMobile and 72  or 90
+	local IR      = isMobile and 68  or 88
+	local searchH = isMobile and 38  or 42
+
+	_wheelGui = Instance.new("ScreenGui")
+	_wheelGui.Name            = "VexroEmoteWheelGui"
+	_wheelGui.ResetOnSpawn    = false
+	_wheelGui.DisplayOrder    = 50
+	_wheelGui.ZIndexBehavior  = Enum.ZIndexBehavior.Sibling
+	_wheelGui.Parent          = playerGui
+
+	-- Dark overlay (also acts as close button)
+	local overlay = Instance.new("TextButton")
+	overlay.Size                  = UDim2.fromScale(1, 1)
+	overlay.BackgroundColor3      = Color3.fromRGB(0, 0, 0)
+	overlay.BackgroundTransparency = 0.45
+	overlay.BorderSizePixel       = 0
+	overlay.Text                  = ""
+	overlay.ZIndex                = 1
+	overlay.Parent                = _wheelGui
+	overlay.MouseButton1Click:Connect(function() _HideEmoteWheel() end)
+
+	local totalH = WS + searchH + 12
+
+	-- Centered container (holds search + wheel)
+	local container = Instance.new("Frame")
+	container.Size              = UDim2.new(0, WS * 0.85, 0, totalH * 0.85)
+	container.AnchorPoint       = Vector2.new(0.5, 0.5)
+	container.Position          = UDim2.fromScale(0.5, 0.5)
+	container.BackgroundTransparency = 1
+	container.ZIndex            = 3
+	container.Parent            = _wheelGui
+	_wheelContainer             = container
+
+	-- Search bar
+	local searchFrame = Instance.new("Frame")
+	searchFrame.Size             = UDim2.new(1, 0, 0, searchH)
+	searchFrame.BackgroundColor3 = currentTheme.secondary
+	searchFrame.BorderSizePixel  = 0
+	searchFrame.ZIndex           = 10
+	searchFrame.Parent           = container
+	Instance.new("UICorner", searchFrame).CornerRadius = UDim.new(0, 12)
+	local sStroke = Instance.new("UIStroke", searchFrame)
+	sStroke.Color       = currentTheme.stroke
+	sStroke.Thickness   = 1.5
+	sStroke.Transparency = 0.3
+
+	local searchIcon = Instance.new("ImageLabel")
+	searchIcon.Size                  = UDim2.new(0, 18, 0, 18)
+	searchIcon.Position              = UDim2.new(0, 10, 0.5, -9)
+	searchIcon.BackgroundTransparency = 1
+	searchIcon.Image                 = Icons.Search
+	searchIcon.ImageColor3           = currentTheme.textDim
+	searchIcon.ZIndex                = 11
+	searchIcon.Parent                = searchFrame
+
+	local searchBox = Instance.new("TextBox")
+	searchBox.Size              = UDim2.new(1, -38, 1, 0)
+	searchBox.Position          = UDim2.new(0, 34, 0, 0)
+	searchBox.BackgroundTransparency = 1
+	searchBox.Text              = ""
+	searchBox.PlaceholderText   = isTR and "Emote ara..." or (isES and "Buscar emote..." or (isAR and "ابحث عن حركة..." or (isFR and "Chercher emote..." or (isHI and "इमोट खोजें..." or (isPT and "Pesquisar emote..." or (isRU and "Поиск эмоции..." or "Search emotes..."))))))
+	searchBox.TextColor3        = currentTheme.text
+	searchBox.PlaceholderColor3 = currentTheme.textDim
+	searchBox.Font              = Enum.Font.Gotham
+	searchBox.TextSize          = isMobile and 13 or 15
+	searchBox.TextXAlignment    = Enum.TextXAlignment.Left
+	searchBox.ClearTextOnFocus  = false
+	searchBox.ZIndex            = 11
+	searchBox.Parent            = searchFrame
+	searchBox:GetPropertyChangedSignal("Text"):Connect(function()
+		_WheelFilterAndUpdate(searchBox.Text)
+	end)
+
+	-- Wheel frame
+	local wheelFrame = Instance.new("Frame")
+	wheelFrame.Size                  = UDim2.new(0, WS, 0, WS)
+	wheelFrame.Position              = UDim2.new(0, 0, 0, searchH + 12)
+	wheelFrame.BackgroundTransparency = 1
+	wheelFrame.ZIndex                = 3
+	wheelFrame.Parent                = container
+
+	-- Inner circle
+	local innerCircle = Instance.new("Frame")
+	innerCircle.Size             = UDim2.new(0, IR * 2, 0, IR * 2)
+	innerCircle.AnchorPoint      = Vector2.new(0.5, 0.5)
+	innerCircle.Position         = UDim2.fromScale(0.5, 0.5)
+	innerCircle.BackgroundColor3 = currentTheme.secondary
+	innerCircle.BorderSizePixel  = 0
+	innerCircle.ZIndex           = 4
+	innerCircle.Parent           = wheelFrame
+	Instance.new("UICorner", innerCircle).CornerRadius = UDim.new(0.5, 0)
+	local iStroke = Instance.new("UIStroke", innerCircle)
+	iStroke.Color       = currentTheme.accent
+	iStroke.Thickness   = 2
+	iStroke.Transparency = 0.5
+
+	local innerName = Instance.new("TextLabel")
+	innerName.Size               = UDim2.new(1, -8, 1, 0)
+	innerName.AnchorPoint        = Vector2.new(0.5, 0.5)
+	innerName.Position           = UDim2.fromScale(0.5, 0.5)
+	innerName.BackgroundTransparency = 1
+	innerName.Text               = "Vexro\nEmotes"
+	innerName.TextColor3         = currentTheme.accent
+	innerName.Font               = Enum.Font.GothamBold
+	innerName.TextSize           = isMobile and 11 or 13
+	innerName.TextWrapped        = true
+	innerName.TextXAlignment     = Enum.TextXAlignment.Center
+	innerName.ZIndex             = 5
+	innerName.Parent             = innerCircle
+
+	-- 8 radial slots
+	_wheelSlots  = {}
+	_wheelEmotes = {}
+
+	for i = 1, 8 do
+		local ang = (i - 1) * math.pi / 4 - math.pi / 2
+		local cx  = 0.5 + (WR / WS) * math.cos(ang)
+		local cy  = 0.5 + (WR / WS) * math.sin(ang)
+
+		local slotFrame = Instance.new("Frame")
+		slotFrame.Size             = UDim2.new(0, SS, 0, SS)
+		slotFrame.AnchorPoint      = Vector2.new(0.5, 0.5)
+		slotFrame.Position         = UDim2.new(cx, 0, cy, 0)
+		slotFrame.BackgroundColor3 = currentTheme.secondary
+		slotFrame.BorderSizePixel  = 0
+		slotFrame.ZIndex           = 6
+		slotFrame.Visible          = false
+		slotFrame.Parent           = wheelFrame
+		Instance.new("UICorner", slotFrame).CornerRadius = UDim.new(0, 16)
+		local slotStroke = Instance.new("UIStroke", slotFrame)
+		slotStroke.Color       = currentTheme.stroke
+		slotStroke.Thickness   = 1.5
+		slotStroke.Transparency = 0.5
+
+		local img = Instance.new("ImageLabel")
+		img.Size                  = UDim2.new(1, -10, 1, -10)
+		img.AnchorPoint           = Vector2.new(0.5, 0.5)
+		img.Position              = UDim2.fromScale(0.5, 0.5)
+		img.BackgroundTransparency = 1
+		img.ScaleType             = Enum.ScaleType.Fit
+		img.Image                 = ""
+		img.ZIndex                = 7
+		img.Parent                = slotFrame
+
+		local nameLbl = Instance.new("TextLabel")
+		nameLbl.Size                  = UDim2.new(1, 8, 0, 16)
+		nameLbl.AnchorPoint           = Vector2.new(0.5, 0)
+		nameLbl.Position              = UDim2.new(0.5, 0, 1, 4)
+		nameLbl.BackgroundTransparency = 1
+		nameLbl.Text                  = ""
+		nameLbl.TextColor3            = Color3.fromRGB(255, 255, 255)
+		nameLbl.Font                  = Enum.Font.GothamBold
+		nameLbl.TextSize              = 10
+		nameLbl.TextWrapped           = false
+		nameLbl.TextTruncate          = Enum.TextTruncate.AtEnd
+		nameLbl.TextStrokeTransparency = 0.5
+		nameLbl.ZIndex                = 7
+		nameLbl.Visible               = false
+		nameLbl.Parent                = slotFrame
+
+		-- Favorite star (top-right corner)
+		local favBtn = Instance.new("ImageButton")
+		favBtn.Size                  = UDim2.new(0, 18, 0, 18)
+		favBtn.AnchorPoint           = Vector2.new(1, 0)
+		favBtn.Position              = UDim2.new(1, -2, 0, 2)
+		favBtn.BackgroundTransparency = 1
+		favBtn.Image                 = Icons.FavoriteEmpty
+		favBtn.ImageColor3           = Color3.fromRGB(160, 160, 160)
+		favBtn.ZIndex                = 9
+		favBtn.Parent                = slotFrame
+
+		-- Keyboard shortcut icon (bottom-left corner)
+		local kbBtn = Instance.new("ImageButton")
+		kbBtn.Size                  = UDim2.new(0, 16, 0, 16)
+		kbBtn.AnchorPoint           = Vector2.new(0, 1)
+		kbBtn.Position              = UDim2.new(0, 2, 1, -2)
+		kbBtn.BackgroundTransparency = 1
+		kbBtn.Image                 = Icons.Keybind
+		kbBtn.ImageColor3           = Color3.fromRGB(160, 160, 160)
+		kbBtn.ZIndex                = 9
+		kbBtn.Parent                = slotFrame
+
+		-- Transparent click button covering the slot
+		local slotBtn = Instance.new("TextButton")
+		slotBtn.Size                  = UDim2.fromScale(1, 1)
+		slotBtn.BackgroundTransparency = 1
+		slotBtn.Text                  = ""
+		slotBtn.ZIndex                = 8
+		slotBtn.Parent                = slotFrame
+
+		local si = i
+		slotBtn.MouseEnter:Connect(function()
+			local e = _wheelEmotes[si]
+			if not e then return end
+			innerName.Text = e.name
+			TweenService:Create(slotFrame, TweenInfo.new(0.12), {BackgroundColor3 = currentTheme.tertiary}):Play()
+			TweenService:Create(slotStroke, TweenInfo.new(0.12), {Color = currentTheme.accent, Transparency = 0}):Play()
+			nameLbl.Visible = true
+		end)
+		slotBtn.MouseLeave:Connect(function()
+			innerName.Text = "Vexro\nEmotes"
+			TweenService:Create(slotFrame, TweenInfo.new(0.12), {BackgroundColor3 = currentTheme.secondary}):Play()
+			TweenService:Create(slotStroke, TweenInfo.new(0.12), {Color = currentTheme.stroke, Transparency = 0.5}):Play()
+			nameLbl.Visible = false
+		end)
+		slotBtn.MouseButton1Click:Connect(function()
+			local e = _wheelEmotes[si]
+			if not e then return end
+			_HideEmoteWheel()
+			PlayEmote(e.id, e.name)
+		end)
+
+		favBtn.MouseButton1Click:Connect(function()
+			local e = _wheelEmotes[si]
+			if not e then return end
+			local nowFav = ToggleFavorite(e.id)
+			favBtn.Image      = nowFav and Icons.FavoriteFull or Icons.FavoriteEmpty
+			favBtn.ImageColor3 = nowFav and Color3.fromRGB(255, 210, 60) or Color3.fromRGB(160, 160, 160)
+		end)
+
+		kbBtn.MouseButton1Click:Connect(function()
+			local e = _wheelEmotes[si]
+			if not e then return end
+			local hasKb = GetKeybind(e.id) ~= nil
+			_HideEmoteWheel()
+			task.delay(0.2, function()
+				ShowKeybindDialog(e.id, e, hasKb)
+			end)
+		end)
+
+		_wheelSlots[i] = {
+			frame   = slotFrame,
+			img     = img,
+			nameLbl = nameLbl,
+			favBtn  = favBtn,
+			kbBtn   = kbBtn,
+			stroke  = slotStroke,
+		}
+	end
+
+	-- Fill slots with initial data
+	_WheelFilterAndUpdate("")
+
+	-- Animate container in
+	TweenService:Create(container, TweenInfo.new(0.22, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+		Size = UDim2.new(0, WS, 0, totalH)
+	}):Play()
+end
+
+_HideEmoteWheel = function()
+	if not _wheelVisible then return end
+	_wheelVisible = false
+	local g = _wheelGui
+	local c = _wheelContainer
+	if c and c.Parent then
+		local WS      = isMobile and 360 or 480
+		local searchH = isMobile and 38 or 42
+		local totalH  = WS + searchH + 12
+		TweenService:Create(c, TweenInfo.new(0.15, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+			Size = UDim2.new(0, WS * 0.82, 0, totalH * 0.82)
+		}):Play()
+	end
+	task.delay(0.15, function()
+		if g and g.Parent then g:Destroy() end
+		if _wheelGui == g then _wheelGui = nil end
+		if _wheelContainer == c then _wheelContainer = nil end
+	end)
+end
+
+-- Intercept Roblox's built-in EmoteMenu
+task.spawn(function()
+	local ok, CoreGui = pcall(function() return game:GetService("CoreGui") end)
+	if not ok or not CoreGui then return end
+
+	local function handleObj(obj)
+		if obj.Name ~= "EmoteMenu" then return end
+		pcall(function() obj.Enabled = false end)
+		if not _wheelVisible then _ShowEmoteWheel() end
+	end
+
+	pcall(function()
+		for _, obj in ipairs(CoreGui:GetChildren()) do handleObj(obj) end
+	end)
+
+	CoreGui.ChildAdded:Connect(function(obj)
+		pcall(function() handleObj(obj) end)
+	end)
+end)
+
+-- Escape key closes the wheel
+UserInputService.InputBegan:Connect(function(input, processed)
+	if processed then return end
+	if input.KeyCode == Enum.KeyCode.Escape and _wheelVisible then
+		_HideEmoteWheel()
+	end
+end)
