@@ -30,21 +30,17 @@ if ok and type(convCfg) == "table" then
     maxDeposits = convCfg.maxDeposits or maxDeposits
 end
 
-local function getCount(part)
-    -- Only match X/Y where Y == maxDeposits to avoid reading the 8/8 collection billboard
-    local function scan(o)
-        if not o then return nil end
-        for _, v in ipairs(o:GetDescendants()) do
-            if v:IsA("TextLabel") or v:IsA("TextButton") then
-                local c, m = v.Text:match("^(%d+)/(%d+)$")
-                if c and tonumber(m) == maxDeposits then
-                    return tonumber(c)
-                end
+local function getCount(o)
+    if not o then return nil end
+    for _, v in ipairs(o:GetDescendants()) do
+        if v:IsA("TextLabel") or v:IsA("TextButton") then
+            local c, m = v.Text:match("(%d+)%s*/%s*(%d+)")
+            if c and tonumber(m) == maxDeposits then
+                return tonumber(c)
             end
         end
-        return nil
     end
-    return scan(part) or scan(part.Parent) or scan(part.Parent and part.Parent.Parent)
+    return nil
 end
 
 local function getDelivery()
@@ -60,14 +56,25 @@ local function getDelivery()
             local cv = meal:FindFirstChild("Conveyer")
             if not cv then continue end
             for _, conv in ipairs(cv:GetChildren()) do
-                local ctr = conv:FindFirstChild("Counter")
-                if not ctr then continue end
-                local part = ctr:FindFirstChild("Part")
-                if not part or not part:IsA("BasePart") then continue end
+                -- find ProximityPrompt anywhere in this conveyor
+                local pp = nil
+                local part = nil
+                for _, v in ipairs(conv:GetDescendants()) do
+                    if v:IsA("ProximityPrompt") and v.Enabled then
+                        local n = (v.ActionText .. v.ObjectText .. v.Name):lower()
+                        if n:find("deliver") or n:find("tray") then
+                            if v.Parent:IsA("BasePart") then
+                                pp = v
+                                part = v.Parent
+                                break
+                            end
+                        end
+                    end
+                end
+                if not pp or not part then continue end
                 if (hrp.Position - part.Position).Magnitude > RANGE then continue end
-                local pp = part:FindFirstChildWhichIsA("ProximityPrompt")
-                if not pp or not pp.Enabled then continue end
-                local cur = getCount(part) or 0
+                -- search whole conveyor model for X/maxDeposits counter
+                local cur = getCount(conv) or 0
                 if cur < maxDeposits then
                     table.insert(avail, {item = {part = part, prompt = pp}, cur = cur})
                 end
