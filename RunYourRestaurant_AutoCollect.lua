@@ -23,11 +23,19 @@ local function getTycoon()
     for _,ty in ipairs(tycoons:GetChildren()) do
         local ow=ty:FindFirstChild("Owner") or ty:FindFirstChild("owner")
         if ow then
-            if ow.Value==lp or ow.Value==lp.Name then return ty end
+            if ow:IsA("ObjectValue") and ow.Value==lp then return ty end
+            if ow:IsA("StringValue") and ow.Value==lp.Name then return ty end
         end
-        if ty.Name==lp.Name or ty.Name==lp.DisplayName then return ty end
+        if ty.Name==lp.Name or ty.Name==lp.UserId then return ty end
     end
     return nil
+end
+local function isVisible(obj)
+    if obj:IsA("BasePart") then return obj.Transparency<1 end
+    for _,p in ipairs(obj:GetDescendants()) do
+        if p:IsA("BasePart") and p.Transparency<1 then return true end
+    end
+    return false
 end
 local function getCash()
     local out={}
@@ -44,7 +52,7 @@ local function getCash()
             if set then
                 for _,cashFolder in ipairs(set:GetChildren()) do
                     local cash=cashFolder:FindFirstChild("Cash")
-                    if cash then
+                    if cash and isVisible(cash) then
                         local pp=cash:FindFirstChildWhichIsA("ProximityPrompt")
                         if pp and pp.Enabled then
                             local part=cash:IsA("BasePart") and cash or cash:FindFirstChildWhichIsA("BasePart")
