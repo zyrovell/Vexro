@@ -12,7 +12,7 @@ local Window = Rayfield:CreateWindow({
 local Tab = Window:CreateTab("Main", 4483362458)
 local SetTab = Window:CreateTab("Settings", 4483362458)
 
-local cfg = { on = false, walk = true, delay = 0.3, speed = 16 }
+local cfg = { on = false, walk = true, delay = 0.2, speed = 16 }
 
 local lp = game:GetService("Players").LocalPlayer
 local char = lp.Character or lp.CharacterAdded:Wait()
@@ -34,14 +34,26 @@ end
 local function walkTo(pos, timeout)
     hum:MoveTo(pos)
     local t = tick()
-    repeat task.wait(0.05) until (hrp.Position - pos).Magnitude < 5 or tick() - t > (timeout or 5)
+    repeat task.wait(0.05) until (hrp.Position - pos).Magnitude < 5 or tick() - t > (timeout or 6)
 end
 
-local function getPos(btn)
-    local bg = btn:FindFirstAncestorWhichIsA("BillboardGui") or btn:FindFirstAncestorWhichIsA("SurfaceGui")
-    if not bg then return nil end
-    if bg.Adornee and bg.Adornee:IsA("BasePart") then return bg.Adornee.Position end
-    local p = bg.Parent
+-- Find all ProximityPrompts related to collecting payment
+local function getPrompts()
+    local out = {}
+    for _, v in ipairs(game.Workspace:GetDescendants()) do
+        if v:IsA("ProximityPrompt") then
+            local n = v.ActionText:lower() .. v.ObjectText:lower() .. v.Name:lower()
+            if n:find("collect") or n:find("payment") or n:find("pay") then
+                table.insert(out, v)
+            end
+        end
+    end
+    return out
+end
+
+-- Get the world position of a ProximityPrompt's parent part
+local function getPromptPos(prompt)
+    local p = prompt.Parent
     while p do
         if p:IsA("BasePart") then return p.Position end
         p = p.Parent
@@ -49,33 +61,25 @@ local function getPos(btn)
     return nil
 end
 
-local function getButtons()
-    local out = {}
-    local function check(obj)
-        if (obj:IsA("TextButton") or obj:IsA("ImageButton")) and obj.Visible and obj.Active then
-            local n = obj.Name:lower()
-            local tx = (obj:IsA("TextButton") and obj.Text:lower()) or ""
-            if n:find("collect") or n:find("payment") or n:find("pay")
-                or tx:find("collect") or tx:find("payment") or tx:find("pay") then
-                table.insert(out, obj)
-            end
-        end
-    end
-    local pg = lp:FindFirstChild("PlayerGui")
-    if pg then for _, v in ipairs(pg:GetDescendants()) do check(v) end end
-    for _, v in ipairs(game.Workspace:GetDescendants()) do check(v) end
-    return out
-end
-
-local function doCollect(btn)
-    if not btn or not btn.Visible or not btn.Active then return end
-    local pos = getPos(btn)
+local function doCollect(prompt)
+    if not prompt or not prompt.Enabled then return end
+    local pos = getPromptPos(prompt)
     if cfg.walk and pos then
         setStatus("Walking to customer...")
         walkTo(pos, 6)
     end
     task.wait(cfg.delay)
-    pcall(function() btn.MouseButton1Click:Fire() end)
+    -- Fire the proximity prompt (executor built-in function)
+    if fireproximityprompt then
+        fireproximityprompt(prompt)
+    else
+        -- Fallback: trigger via internal hold events
+        prompt.TriggerEnded:Fire(lp)
+        task.wait(0.05)
+        prompt:InputHoldBegin()
+        task.wait(0.1)
+        prompt:InputHoldEnd()
+    end
     setStatus("Collected!")
 end
 
@@ -86,16 +90,16 @@ local function startLoop()
     setStatus("Running...")
     loop = task.spawn(function()
         while cfg.on do
-            local btns = getButtons()
-            if #btns > 0 then
-                setStatus(#btns .. " found!")
-                for _, b in ipairs(btns) do
+            local prompts = getPrompts()
+            if #prompts > 0 then
+                setStatus(#prompts .. " customer(s) found!")
+                for _, p in ipairs(prompts) do
                     if not cfg.on then break end
-                    doCollect(b)
-                    task.wait(0.2)
+                    doCollect(p)
+                    task.wait(0.3)
                 end
             else
-                setStatus("Waiting...")
+                setStatus("Waiting for customers...")
             end
             task.wait(0.5)
         end
@@ -112,7 +116,12 @@ Tab:CreateToggle({
     Flag = "ac",
     Callback = function(v)
         cfg.on = v
-        if v then startLoop() else cfg.on = false setStatus("Stopped") end
+        if v then
+            startLoop()
+        else
+            cfg.on = false
+            setStatus("Stopped")
+        end
     end,
 })
 
@@ -129,11 +138,14 @@ lbl = Tab:CreateLabel("Status: Idle")
 Tab:CreateButton({
     Name = "Collect Once",
     Callback = function()
-        local btns = getButtons()
-        if #btns == 0 then
-            setStatus("No button found!")
+        local prompts = getPrompts()
+        if #prompts == 0 then
+            setStatus("No customer found!")
         else
-            for _, b in ipairs(btns) do doCollect(b) task.wait(0.2) end
+            for _, p in ipairs(prompts) do
+                doCollect(p)
+                task.wait(0.3)
+            end
         end
     end,
 })
@@ -145,7 +157,7 @@ SetTab:CreateSlider({
     Range = {0, 2},
     Increment = 0.1,
     Suffix = "s",
-    CurrentValue = 0.3,
+    CurrentValue = 0.2,
     Flag = "cd",
     Callback = function(v) cfg.delay = v end,
 })
