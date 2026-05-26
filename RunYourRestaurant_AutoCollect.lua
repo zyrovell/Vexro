@@ -16,35 +16,16 @@ local function walk(pos)
     local t=tick()
     repeat task.wait(0.05) until (hrp.Position-pos).Magnitude<4 or tick()-t>6
 end
-local function getTycoon()
-    local tycoons=ws:FindFirstChild("Tycoons")
-    if not tycoons then return nil end
-    for _,ty in ipairs(tycoons:GetChildren()) do
-        local owner=ty:FindFirstChild("Owner") or ty:FindFirstChild("owner")
-        if owner and owner.Value==lp then return ty end
-        if ty.Name==lp.Name then return ty end
-    end
-    return nil
-end
 local function getCash()
     local out={}
-    local ty=getTycoon()
-    if not ty then return out end
-    local main=ty:FindFirstChild("TycoonMain")
-    if not main then return out end
-    local tables=main:FindFirstChild("Tables")
-    if not tables then return out end
-    for _,tbl in ipairs(tables:GetChildren()) do
-        local opt=tbl:FindFirstChild("TableOption")
-        if opt then
-            local set=opt:FindFirstChild("TableSet")
-            if set then
-                for _,cash in ipairs(set:GetChildren()) do
-                    local c=cash:FindFirstChild("Cash")
-                    if c then
-                        local pp=c:FindFirstChildWhichIsA("ProximityPrompt")
-                        if pp and pp.Enabled then table.insert(out,{part=c,prompt=pp}) end
-                    end
+    local root=ws:FindFirstChild("Tycoons") or ws
+    for _,v in ipairs(root:GetDescendants()) do
+        if v:IsA("ProximityPrompt") and v.Enabled then
+            local n=(v.ActionText..v.ObjectText..v.Name):lower()
+            if n:find("collect") or n:find("payment") or n:find("cash") then
+                local part=v.Parent
+                if part and part:IsA("BasePart") then
+                    table.insert(out,{part=part,prompt=v})
                 end
             end
         end
