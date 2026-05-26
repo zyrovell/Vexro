@@ -47,36 +47,25 @@ local function getDelivery()
     local avail = {}
     local tycoons = ws:FindFirstChild("Tycoons")
     if not tycoons then return avail end
-    for _, ty in ipairs(tycoons:GetChildren()) do
-        local main = ty:FindFirstChild("TycoonMain")
-        if not main then continue end
-        local cf = main:FindFirstChild("Conveyers")
-        if not cf then continue end
-        for _, meal in ipairs(cf:GetChildren()) do
-            local cv = meal:FindFirstChild("Conveyer")
-            if not cv then continue end
-            for _, conv in ipairs(cv:GetChildren()) do
-                -- find ProximityPrompt anywhere in this conveyor
-                local pp = nil
-                local part = nil
-                for _, v in ipairs(conv:GetDescendants()) do
-                    if v:IsA("ProximityPrompt") and v.Enabled then
-                        local n = (v.ActionText .. v.ObjectText .. v.Name):lower()
-                        if n:find("deliver") or n:find("tray") then
-                            if v.Parent:IsA("BasePart") then
-                                pp = v
-                                part = v.Parent
-                                break
-                            end
-                        end
-                    end
-                end
-                if not pp or not part then continue end
+    for _, v in ipairs(tycoons:GetDescendants()) do
+        if v:IsA("ProximityPrompt") and v.Enabled then
+            local n = (v.ActionText .. v.ObjectText .. v.Name):lower()
+            if n:find("deliver") then
+                local part = v.Parent
+                if not part or not part:IsA("BasePart") then continue end
                 if (hrp.Position - part.Position).Magnitude > RANGE then continue end
-                -- search whole conveyor model for X/maxDeposits counter
-                local cur = getCount(conv) or 0
+                -- walk up hierarchy to find conveyor model, search for X/maxDeposits counter
+                local cur = nil
+                local obj = part.Parent
+                for _ = 1, 5 do
+                    if not obj then break end
+                    cur = getCount(obj)
+                    if cur then break end
+                    obj = obj.Parent
+                end
+                cur = cur or 0
                 if cur < maxDeposits then
-                    table.insert(avail, {item = {part = part, prompt = pp}, cur = cur})
+                    table.insert(avail, {item = {part = part, prompt = v}, cur = cur})
                 end
             end
         end
