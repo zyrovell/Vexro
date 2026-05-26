@@ -1,3 +1,6 @@
+if shared.RYR then shared.RYR.dead=true task.wait(0.2) end
+shared.RYR={dead=false}
+local _env=shared.RYR
 local Rayfield=loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local W=Rayfield:CreateWindow({Name="Vexro | RYR",LoadingTitle="Vexro",LoadingSubtitle="Auto Collect",Theme="Default",ConfigurationSaving={Enabled=true,FolderName="VX",FileName="RYR"},KeySystem=false})
 local T=W:CreateTab("Main",4483362458)
@@ -13,18 +16,6 @@ local lbl
 local function st(t) if lbl then lbl:Set("Status: "..t) end end
 local function teleport(pos)
     hrp.CFrame=CFrame.new(pos+Vector3.new(0,3,0))
-end
-local function getTycoon()
-    local tycoons=ws:FindFirstChild("Tycoons")
-    if not tycoons then return nil end
-    for _,ty in ipairs(tycoons:GetChildren()) do
-        local ow=ty:FindFirstChild("Owner") or ty:FindFirstChild("owner")
-        if ow then
-            if ow.Value==lp or ow.Value==lp.Name then return ty end
-        end
-        if ty.Name==lp.Name or ty.Name==lp.DisplayName then return ty end
-    end
-    return nil
 end
 local function getTycoon()
     local tycoons=ws:FindFirstChild("Tycoons")
@@ -83,12 +74,12 @@ local function startLoop()
     if loop then return end
     st("Running...")
     loop=task.spawn(function()
-        while cfg.on do
+        while cfg.on and not _env.dead do
             local items=getCash()
             if #items>0 then
                 st(#items.." cash found!")
                 for _,i in ipairs(items) do
-                    if not cfg.on then break end
+                    if not cfg.on or _env.dead then break end
                     collect(i)
                     task.wait(0.3)
                 end
