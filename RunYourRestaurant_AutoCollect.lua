@@ -15,124 +15,70 @@ lp.CharacterAdded:Connect(function(c) char=c hrp=c:WaitForChild("HumanoidRootPar
 local lbl
 local function st(t) if lbl then lbl:Set("Status: "..t) end end
 local function tp(pos) hrp.CFrame=CFrame.new(pos+Vector3.new(0,3,0)) end
-local RANGE=300
-local function isVisible(obj)
-    if obj:IsA("BasePart") then return obj.Transparency<1 end
-    for _,p in ipairs(obj:GetDescendants()) do
-        if p:IsA("BasePart") and p.Transparency<1 then return true end
-    end
-    return false
-end
 local function fire(pp) if fireproximityprompt then fireproximityprompt(pp) else pp:InputHoldBegin() task.wait(0.1) pp:InputHoldEnd() end end
-local function findPrompts(filter)
-    local out={}
-    local tycoons=ws:FindFirstChild("Tycoons")
-    if not tycoons then return out end
-    for _,v in ipairs(tycoons:GetDescendants()) do
-        if v:IsA("ProximityPrompt") and v.Enabled then
-            local part=v.Parent
-            if part and part:IsA("BasePart") and (hrp.Position-part.Position).Magnitude<RANGE then
-                local n=(v.ActionText..v.ObjectText..v.Name):lower()
-                if filter(n,part) then table.insert(out,{part=part,prompt=v}) end
-            end
-        end
-    end
-    return out
-end
-local function getCash() return findPrompts(function(n,p) return (n:find("collect") or n:find("payment")) and isVisible(p) end) end
-local function getDirtyTrays() return findPrompts(function(n) return n:find("grab") and n:find("tray") end) end
-local function getSlotCount(part)
-    local searched={}
-    local function searchIn(obj)
-        if not obj or searched[obj] then return nil,nil end
-        searched[obj]=true
-        for _,v in ipairs(obj:GetDescendants()) do
-            if v:IsA("TextLabel") or v:IsA("TextButton") then
-                local c,m=v.Text:match("(%d+)/(%d+)")
-                if c then return tonumber(c),tonumber(m) end
-            end
-        end
-        return nil,nil
-    end
-    -- search part itself, its parent model, and grandparent
-    local c,m=searchIn(part)
-    if c then return c,m end
-    c,m=searchIn(part.Parent)
-    if c then return c,m end
-    if part.Parent then c,m=searchIn(part.Parent.Parent) end
-    return c,m
+local RANGE=300
+local function isVisible(o) for _,p in ipairs(o:GetDescendants()) do if p:IsA("BasePart") and p.Transparency<1 then return true end end return o:IsA("BasePart") and o.Transparency<1 end
+local function findP(filter) local out={} local ty=ws:FindFirstChild("Tycoons") if not ty then return out end for _,v in ipairs(ty:GetDescendants()) do if v:IsA("ProximityPrompt") and v.Enabled then local p=v.Parent if p and p:IsA("BasePart") and (hrp.Position-p.Position).Magnitude<RANGE then local n=(v.ActionText..v.ObjectText..v.Name):lower() if filter(n,p) then table.insert(out,{part=p,prompt=v}) end end end end return out end
+local function getCash() return findP(function(n,p) return (n:find("collect") or n:find("payment")) and isVisible(p) end) end
+local function getDirtyTrays() return findP(function(n) return n:find("grab") and n:find("tray") end) end
+local function getCount(part)
+    local function scan(o) if not o then return nil,nil end for _,v in ipairs(o:GetDescendants()) do if v:IsA("TextLabel") or v:IsA("TextButton") then local c,m=v.Text:match("(%d+)/(%d+)") if c then return tonumber(c),tonumber(m) end end end return nil,nil end
+    local c,m=scan(part) if c then return c,m end
+    c,m=scan(part.Parent) if c then return c,m end
+    return scan(part.Parent and part.Parent.Parent)
 end
 local function getDelivery()
-    local all=findPrompts(function(n) return n:find("deliver") end)
-    local avail={}
-    for _,item in ipairs(all) do
-        local c,m=getSlotCount(item.part)
-        local full=(c and m and c>=m)
-        if not full then table.insert(avail,{item=item,cur=c or 0,max=m or 99}) end
+    local avail={} local tycoons=ws:FindFirstChild("Tycoons") if not tycoons then return avail end
+    for _,ty in ipairs(tycoons:GetChildren()) do
+        local main=ty:FindFirstChild("TycoonMain") if not main then continue end
+        local cf=main:FindFirstChild("Conveyers") if not cf then continue end
+        for _,meal in ipairs(cf:GetChildren()) do
+            local cv=meal:FindFirstChild("Conveyer") if not cv then continue end
+            for _,conv in ipairs(cv:GetChildren()) do
+                local ctr=conv:FindFirstChild("Counter") if not ctr then continue end
+                local part=ctr:FindFirstChild("Part") if not part or not part:IsA("BasePart") then continue end
+                if (hrp.Position-part.Position).Magnitude>RANGE then continue end
+                local pp=part:FindFirstChildWhichIsA("ProximityPrompt") if not pp or not pp.Enabled then continue end
+                local c,m=getCount(part)
+                if not(c and m and c>=m) then table.insert(avail,{item={part=part,prompt=pp},cur=c or 0}) end
+            end
+        end
     end
     table.sort(avail,function(a,b) return a.cur<b.cur end)
-    local out={}
-    for _,v in ipairs(avail) do table.insert(out,v.item) end
-    return out
+    local out={} for _,v in ipairs(avail) do table.insert(out,v.item) end return out
 end
 local function hasTray()
-    for _,v in ipairs(char:GetChildren()) do
-        if v.Name:lower():find("dirty") or v.Name:lower():find("tray") then return true end
-    end
-    local bp=lp:FindFirstChild("Backpack")
-    if bp then for _,v in ipairs(bp:GetChildren()) do if v.Name:lower():find("dirty") or v.Name:lower():find("tray") then return true end end end
+    for _,v in ipairs(char:GetChildren()) do if v.Name:lower():find("dirty") or v.Name:lower():find("tray") then return true end end
+    local bp=lp:FindFirstChild("Backpack") if bp then for _,v in ipairs(bp:GetChildren()) do if v.Name:lower():find("dirty") or v.Name:lower():find("tray") then return true end end end
     return false
 end
--- Collect Payment loop
 local collectLoop=nil
 local function startCollect()
-    if collectLoop then return end
-    st("Collect: Running...")
+    if collectLoop then return end st("Collect: Running...")
     collectLoop=task.spawn(function()
         while cfg.collect and not _env.dead do
             local items=getCash()
-            if #items>0 then
-                st(#items.." cash found!")
-                for _,i in ipairs(items) do
-                    if not cfg.collect or _env.dead then break end
-                    tp(i.part.Position) task.wait(cfg.delay) fire(i.prompt) st("Collected!") task.wait(0.3)
-                end
-            end
+            if #items>0 then st(#items.." cash found!") for _,i in ipairs(items) do if not cfg.collect or _env.dead then break end tp(i.part.Position) task.wait(cfg.delay) fire(i.prompt) st("Collected!") task.wait(0.3) end end
             task.wait(0.5)
-        end
-        collectLoop=nil
+        end collectLoop=nil
     end)
 end
--- Dirty Tray loop
 local trayLoop=nil
 local function startTray()
-    if trayLoop then return end
-    st("Tray: Running...")
+    if trayLoop then return end st("Tray: Running...")
     trayLoop=task.spawn(function()
         while cfg.tray and not _env.dead do
             if not hasTray() then
-                local trays=getDirtyTrays()
-                if #trays>0 then
-                    local t=trays[1]
-                    st("Going to dirty tray...")
-                    tp(t.part.Position) task.wait(cfg.delay) fire(t.prompt)
-                    task.wait(0.5)
-                end
+                local t=getDirtyTrays() if #t>0 then st("Grabbing tray...") tp(t[1].part.Position) task.wait(cfg.delay) fire(t[1].prompt) task.wait(0.5) end
             else
-                local deliveries=getDelivery()
-                if #deliveries>0 then
-                    local d=deliveries[1]
-                    st("Delivering tray...")
-                    tp(d.part.Position) task.wait(cfg.delay) fire(d.prompt)
-                    task.wait(0.5)
-                else st("No delivery point!") end
+                local d=getDelivery()
+                if #d>0 then st("Delivering...") tp(d[1].part.Position) task.wait(cfg.delay) fire(d[1].prompt) task.wait(0.5)
+                else st("All slots full!") end
             end
             task.wait(0.4)
-        end
-        trayLoop=nil
+        end trayLoop=nil
     end)
 end
--- UI
 T:CreateSection("Collect Payment")
 T:CreateToggle({Name="Auto Collect Payment",CurrentValue=false,Flag="ac",Callback=function(v) cfg.collect=v if v then startCollect() end end})
 T:CreateSection("Dirty Tray")
