@@ -31,13 +31,15 @@ if ok and type(convCfg) == "table" then
 end
 
 local function getCount(part)
-    -- Read current deposit count from InputBillboard TextLabel (e.g. "2/3")
+    -- Only match X/Y where Y == maxDeposits to avoid reading the 8/8 collection billboard
     local function scan(o)
         if not o then return nil end
         for _, v in ipairs(o:GetDescendants()) do
             if v:IsA("TextLabel") or v:IsA("TextButton") then
-                local c = v.Text:match("^(%d+)/")
-                if c then return tonumber(c) end
+                local c, m = v.Text:match("^(%d+)/(%d+)$")
+                if c and tonumber(m) == maxDeposits then
+                    return tonumber(c)
+                end
             end
         end
         return nil
