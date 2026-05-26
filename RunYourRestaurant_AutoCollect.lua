@@ -20,15 +20,18 @@ end
 local function getTycoon()
     local tycoons=ws:FindFirstChild("Tycoons")
     if not tycoons then return nil end
+    local best,bestDist=nil,math.huge
     for _,ty in ipairs(tycoons:GetChildren()) do
-        local ow=ty:FindFirstChild("Owner") or ty:FindFirstChild("owner")
-        if ow then
-            if ow:IsA("ObjectValue") and ow.Value==lp then return ty end
-            if ow:IsA("StringValue") and ow.Value==lp.Name then return ty end
+        local main=ty:FindFirstChild("TycoonMain")
+        if main then
+            local ref=main:FindFirstChildWhichIsA("BasePart",true)
+            if ref then
+                local d=(hrp.Position-ref.Position).Magnitude
+                if d<bestDist then bestDist=d best=ty end
+            end
         end
-        if ty.Name==lp.Name or ty.Name==lp.UserId then return ty end
     end
-    return nil
+    return best
 end
 local function isVisible(obj)
     if obj:IsA("BasePart") then return obj.Transparency<1 end
