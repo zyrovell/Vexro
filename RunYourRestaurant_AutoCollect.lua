@@ -72,7 +72,7 @@ local function getDelivery()
             end
         end
     end
-    table.sort(avail, function(a, b) return a.cur < b.cur end)
+    table.sort(avail, function(a, b) return a.cur > b.cur end)
     local out = {}
     for _, v in ipairs(avail) do table.insert(out, v.item) end
     return out
