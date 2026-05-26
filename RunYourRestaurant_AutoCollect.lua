@@ -1,3 +1,6 @@
+if shared.RYR then shared.RYR.dead=true task.wait(0.2) end
+shared.RYR={dead=false}
+local _env=shared.RYR
 local Rayfield=loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local W=Rayfield:CreateWindow({Name="Vexro | RYR",LoadingTitle="Vexro",LoadingSubtitle="Auto Collect",Theme="Default",ConfigurationSaving={Enabled=true,FolderName="VX",FileName="RYR"},KeySystem=false})
 local T=W:CreateTab("Main",4483362458)
@@ -71,12 +74,12 @@ local function startLoop()
     if loop then return end
     st("Running...")
     loop=task.spawn(function()
-        while cfg.on do
+        while cfg.on and not _env.dead do
             local items=getCash()
             if #items>0 then
                 st(#items.." cash found!")
                 for _,i in ipairs(items) do
-                    if not cfg.on then break end
+                    if not cfg.on or _env.dead then break end
                     collect(i)
                     task.wait(0.3)
                 end
