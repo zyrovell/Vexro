@@ -41,7 +41,35 @@ local function findPrompts(filter)
 end
 local function getCash() return findPrompts(function(n,p) return (n:find("collect") or n:find("payment")) and isVisible(p) end) end
 local function getDirtyTrays() return findPrompts(function(n) return n:find("grab") and n:find("tray") end) end
-local function getDelivery() return findPrompts(function(n) return n:find("deliver") end) end
+local function getSlotCount(part)
+    local function searchIn(obj)
+        for _,v in ipairs(obj:GetDescendants()) do
+            if v:IsA("TextLabel") then
+                local c,m=v.Text:match("(%d+)/(%d+)")
+                if c then return tonumber(c),tonumber(m) end
+            end
+        end
+        return nil,nil
+    end
+    local c,m=searchIn(part)
+    if c then return c,m end
+    if part.Parent then c,m=searchIn(part.Parent) end
+    return c,m
+end
+local function getDelivery()
+    local all=findPrompts(function(n) return n:find("deliver") end)
+    -- prefer slots that are not full (cur < max)
+    local avail={}
+    for _,item in ipairs(all) do
+        local c,m=getSlotCount(item.part)
+        if c==nil or c<m then table.insert(avail,{item=item,cur=c or 0,max=m or 99}) end
+    end
+    -- sort by lowest fill
+    table.sort(avail,function(a,b) return (a.cur/(a.max+0.001))<(b.cur/(b.max+0.001)) end)
+    local out={}
+    for _,v in ipairs(avail) do table.insert(out,v.item) end
+    return out
+end
 local function hasTray()
     for _,v in ipairs(char:GetChildren()) do
         if v.Name:lower():find("dirty") or v.Name:lower():find("tray") then return true end
