@@ -40,13 +40,6 @@ local function isVisible(obj)
     end
     return false
 end
-local function isVisible(obj)
-    if obj:IsA("BasePart") then return obj.Transparency<1 end
-    for _,p in ipairs(obj:GetDescendants()) do
-        if p:IsA("BasePart") and p.Transparency<1 then return true end
-    end
-    return false
-end
 local function getCash()
     local out={}
     local ty=getTycoon()
