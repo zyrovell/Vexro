@@ -19,11 +19,25 @@ local function fire(pp) if fireproximityprompt then fireproximityprompt(pp) else
 local RANGE=300
 local function isVisible(o) for _,p in ipairs(o:GetDescendants()) do if p:IsA("BasePart") and p.Transparency<1 then return true end end return o:IsA("BasePart") and o.Transparency<1 end
 
+local function getMyTycoon()
+    local tycoons = ws:FindFirstChild("Tycoons")
+    if not tycoons then return nil end
+    local name = lp.Name:lower()
+    for _, t in ipairs(tycoons:GetChildren()) do
+        for _, d in ipairs(t:GetDescendants()) do
+            if d:IsA("ObjectValue") and d.Value == lp then return t end
+            if (d:IsA("StringValue") or d:IsA("ObjectValue")) and tostring(d.Value):lower():find(name, 1, true) then return t end
+        end
+        if t.Name:lower():find(name, 1, true) then return t end
+    end
+    return nil
+end
+
 local function findP(filter)
     local out = {}
-    local tycoons = ws:FindFirstChild("Tycoons")
-    if not tycoons then return out end
-    for _, v in ipairs(tycoons:GetDescendants()) do
+    local scope = getMyTycoon() or ws:FindFirstChild("Tycoons")
+    if not scope then return out end
+    for _, v in ipairs(scope:GetDescendants()) do
         if v:IsA("ProximityPrompt") and v.Enabled then
             local p = v.Parent
             if p and p:IsA("BasePart") and (hrp.Position - p.Position).Magnitude < RANGE then
