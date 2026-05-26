@@ -18,7 +18,41 @@ local function tp(pos) hrp.CFrame=CFrame.new(pos+Vector3.new(0,3,0)) end
 local function fire(pp) if fireproximityprompt then fireproximityprompt(pp) else pp:InputHoldBegin() task.wait(0.1) pp:InputHoldEnd() end end
 local RANGE=300
 local function isVisible(o) for _,p in ipairs(o:GetDescendants()) do if p:IsA("BasePart") and p.Transparency<1 then return true end end return o:IsA("BasePart") and o.Transparency<1 end
-local function findP(filter) local out={} local ty=ws:FindFirstChild("Tycoons") if not ty then return out end for _,v in ipairs(ty:GetDescendants()) do if v:IsA("ProximityPrompt") and v.Enabled then local p=v.Parent if p and p:IsA("BasePart") and (hrp.Position-p.Position).Magnitude<RANGE then local n=(v.ActionText..v.ObjectText..v.Name):lower() if filter(n,p) then table.insert(out,{part=p,prompt=v}) end end end end return out end
+
+-- Find the TycoonTemplate closest to the player
+local function getMyTycoon()
+    local tycoons = ws:FindFirstChild("Tycoons")
+    if not tycoons then return nil end
+    local best, bestDist = nil, math.huge
+    for _, ty in ipairs(tycoons:GetChildren()) do
+        local main = ty:FindFirstDescendant("TycoonMain") or ty:FindFirstChild("TycoonMain")
+        if not main then continue end
+        for _, p in ipairs(main:GetDescendants()) do
+            if p:IsA("BasePart") then
+                local d = (hrp.Position - p.Position).Magnitude
+                if d < bestDist then bestDist = d best = ty end
+                break
+            end
+        end
+    end
+    return best
+end
+
+local function findP(filter)
+    local out = {}
+    local ty = getMyTycoon()
+    if not ty then return out end
+    for _, v in ipairs(ty:GetDescendants()) do
+        if v:IsA("ProximityPrompt") and v.Enabled then
+            local p = v.Parent
+            if p and p:IsA("BasePart") and (hrp.Position - p.Position).Magnitude < RANGE then
+                local n = (v.ActionText .. v.ObjectText .. v.Name):lower()
+                if filter(n, p) then table.insert(out, {part = p, prompt = v}) end
+            end
+        end
+    end
+    return out
+end
 local function getCash() return findP(function(n,p) return (n:find("collect") or n:find("payment")) and isVisible(p) end) end
 local function getDirtyTrays() return findP(function(n) return n:find("grab") and n:find("tray") end) end
 -- Read maxDeposits from ConveyerConfig
@@ -45,9 +79,9 @@ end
 
 local function getDelivery()
     local avail = {}
-    local tycoons = ws:FindFirstChild("Tycoons")
-    if not tycoons then return avail end
-    for _, v in ipairs(tycoons:GetDescendants()) do
+    local ty = getMyTycoon()
+    if not ty then return avail end
+    for _, v in ipairs(ty:GetDescendants()) do
         if v:IsA("ProximityPrompt") and v.Enabled then
             local n = (v.ActionText .. v.ObjectText .. v.Name):lower()
             if n:find("deliver") then
