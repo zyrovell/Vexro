@@ -25,9 +25,7 @@ local function getMyTycoon()
     if not tycoons then return nil end
     local best, bestDist = nil, math.huge
     for _, ty in ipairs(tycoons:GetChildren()) do
-        local main = ty:FindFirstDescendant("TycoonMain") or ty:FindFirstChild("TycoonMain")
-        if not main then continue end
-        for _, p in ipairs(main:GetDescendants()) do
+        for _, p in ipairs(ty:GetDescendants()) do
             if p:IsA("BasePart") then
                 local d = (hrp.Position - p.Position).Magnitude
                 if d < bestDist then bestDist = d best = ty end
