@@ -1,5 +1,5 @@
 local Rayfield=loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local W=Window=Rayfield:CreateWindow({Name="Vexro | RYR",LoadingTitle="Vexro",LoadingSubtitle="Auto Collect",Theme="Default",ConfigurationSaving={Enabled=true,FolderName="VX",FileName="RYR"},KeySystem=false})
+local W=Rayfield:CreateWindow({Name="Vexro | RYR",LoadingTitle="Vexro",LoadingSubtitle="Auto Collect",Theme="Default",ConfigurationSaving={Enabled=true,FolderName="VX",FileName="RYR"},KeySystem=false})
 local T=W:CreateTab("Main",4483362458)
 local S=W:CreateTab("Settings",4483362458)
 local cfg={on=false,delay=0.2,speed=16}
