@@ -16,16 +16,40 @@ local function walk(pos)
     local t=tick()
     repeat task.wait(0.05) until (hrp.Position-pos).Magnitude<4 or tick()-t>6
 end
+local function getTycoon()
+    local tycoons=ws:FindFirstChild("Tycoons")
+    if not tycoons then return nil end
+    for _,ty in ipairs(tycoons:GetChildren()) do
+        local ow=ty:FindFirstChild("Owner") or ty:FindFirstChild("owner")
+        if ow then
+            if ow.Value==lp or ow.Value==lp.Name then return ty end
+        end
+        if ty.Name==lp.Name or ty.Name==lp.DisplayName then return ty end
+    end
+    return nil
+end
 local function getCash()
     local out={}
-    local root=ws:FindFirstChild("Tycoons") or ws
-    for _,v in ipairs(root:GetDescendants()) do
-        if v:IsA("ProximityPrompt") and v.Enabled then
-            local n=(v.ActionText..v.ObjectText..v.Name):lower()
-            if n:find("collect") or n:find("payment") or n:find("cash") then
-                local part=v.Parent
-                if part and part:IsA("BasePart") then
-                    table.insert(out,{part=part,prompt=v})
+    local ty=getTycoon()
+    if not ty then st("Tycoon not found!") return out end
+    local main=ty:FindFirstChild("TycoonMain")
+    if not main then return out end
+    local tables=main:FindFirstChild("Tables")
+    if not tables then return out end
+    for _,tbl in ipairs(tables:GetChildren()) do
+        local opt=tbl:FindFirstChild("TableOption")
+        if opt then
+            local set=opt:FindFirstChild("TableSet")
+            if set then
+                for _,cashFolder in ipairs(set:GetChildren()) do
+                    local cash=cashFolder:FindFirstChild("Cash")
+                    if cash then
+                        local pp=cash:FindFirstChildWhichIsA("ProximityPrompt")
+                        if pp and pp.Enabled then
+                            local part=cash:IsA("BasePart") and cash or cash:FindFirstChildWhichIsA("BasePart")
+                            if part then table.insert(out,{part=part,prompt=pp}) end
+                        end
+                    end
                 end
             end
         end
