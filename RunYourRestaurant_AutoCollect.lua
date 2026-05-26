@@ -17,22 +17,7 @@ local function st(t) if lbl then lbl:Set("Status: "..t) end end
 local function teleport(pos)
     hrp.CFrame=CFrame.new(pos+Vector3.new(0,3,0))
 end
-local function getTycoon()
-    local tycoons=ws:FindFirstChild("Tycoons")
-    if not tycoons then return nil end
-    local best,bestDist=nil,math.huge
-    for _,ty in ipairs(tycoons:GetChildren()) do
-        local main=ty:FindFirstChild("TycoonMain")
-        if main then
-            local ref=main:FindFirstChildWhichIsA("BasePart",true)
-            if ref then
-                local d=(hrp.Position-ref.Position).Magnitude
-                if d<bestDist then bestDist=d best=ty end
-            end
-        end
-    end
-    return best
-end
+local RANGE=300
 local function isVisible(obj)
     if obj:IsA("BasePart") then return obj.Transparency<1 end
     for _,p in ipairs(obj:GetDescendants()) do
@@ -42,25 +27,17 @@ local function isVisible(obj)
 end
 local function getCash()
     local out={}
-    local ty=getTycoon()
-    if not ty then st("Tycoon not found!") return out end
-    local main=ty:FindFirstChild("TycoonMain")
-    if not main then return out end
-    local tables=main:FindFirstChild("Tables")
-    if not tables then return out end
-    for _,tbl in ipairs(tables:GetChildren()) do
-        local opt=tbl:FindFirstChild("TableOption")
-        if opt then
-            local set=opt:FindFirstChild("TableSet")
-            if set then
-                for _,cashFolder in ipairs(set:GetChildren()) do
-                    local cash=cashFolder:FindFirstChild("Cash")
-                    if cash and isVisible(cash) then
-                        local pp=cash:FindFirstChildWhichIsA("ProximityPrompt")
-                        if pp and pp.Enabled then
-                            local part=cash:IsA("BasePart") and cash or cash:FindFirstChildWhichIsA("BasePart")
-                            if part then table.insert(out,{part=part,prompt=pp}) end
-                        end
+    local tycoons=ws:FindFirstChild("Tycoons")
+    if not tycoons then st("No Tycoons folder!") return out end
+    for _,v in ipairs(tycoons:GetDescendants()) do
+        if v:IsA("ProximityPrompt") and v.Enabled then
+            local part=v.Parent
+            if part and part:IsA("BasePart") then
+                local dist=(hrp.Position-part.Position).Magnitude
+                if dist<RANGE and isVisible(part) then
+                    local n=(v.ActionText..v.ObjectText..v.Name):lower()
+                    if n:find("collect") or n:find("payment") then
+                        table.insert(out,{part=part,prompt=v})
                     end
                 end
             end
