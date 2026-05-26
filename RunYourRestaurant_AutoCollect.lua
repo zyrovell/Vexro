@@ -1,290 +1,166 @@
--- Run Your Restaurant | Auto Collect Payment
--- UI: Rayfield Library
--- Vexro Scripts
-
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
     Name = "Vexro | Run Your Restaurant",
-    Icon = 0,
     LoadingTitle = "Vexro Scripts",
-    LoadingSubtitle = "Run Your Restaurant",
+    LoadingSubtitle = "Auto Collect",
     Theme = "Default",
-    DisableRayfieldPrompts = false,
-    DisableBuildWarnings = false,
-    ConfigurationSaving = {
-        Enabled = true,
-        FolderName = "VexroScripts",
-        FileName = "RunYourRestaurant"
-    },
+    ConfigurationSaving = { Enabled = true, FolderName = "VexroScripts", FileName = "RYR" },
     KeySystem = false,
 })
 
-local MainTab = Window:CreateTab("Auto Farm", 4483362458)
-local SettingsTab = Window:CreateTab("Settings", 4483362458)
+local Tab = Window:CreateTab("Main", 4483362458)
+local SetTab = Window:CreateTab("Settings", 4483362458)
 
-local StatusLabel
+local cfg = { on = false, walk = true, delay = 0.3, speed = 16 }
 
-local Settings = {
-    AutoCollect = false,
-    WalkToCustomer = true,
-    CollectDelay = 0.3,
-    WalkSpeed = 16,
-}
+local lp = game:GetService("Players").LocalPlayer
+local char = lp.Character or lp.CharacterAdded:Wait()
+local hrp = char:WaitForChild("HumanoidRootPart")
+local hum = char:WaitForChild("Humanoid")
 
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local Workspace = game:GetService("Workspace")
-
-local LocalPlayer = Players.LocalPlayer
-local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
-local Humanoid = Character:WaitForChild("Humanoid")
-
-LocalPlayer.CharacterAdded:Connect(function(newChar)
-    Character = newChar
-    HumanoidRootPart = newChar:WaitForChild("HumanoidRootPart")
-    Humanoid = newChar:WaitForChild("Humanoid")
+lp.CharacterAdded:Connect(function(c)
+    char = c
+    hrp = c:WaitForChild("HumanoidRootPart")
+    hum = c:WaitForChild("Humanoid")
 end)
 
-local function setStatus(text)
-    if StatusLabel then
-        StatusLabel:Set("Status: " .. text)
-    end
+local lbl
+
+local function setStatus(t)
+    if lbl then lbl:Set("Status: " .. t) end
 end
 
-local function walkTo(position, timeout)
-    timeout = timeout or 5
-    Humanoid:MoveTo(position)
-    local startTime = tick()
-    repeat
-        task.wait(0.05)
-    until (HumanoidRootPart.Position - position).Magnitude < 5
-        or (tick() - startTime) > timeout
+local function walkTo(pos, timeout)
+    hum:MoveTo(pos)
+    local t = tick()
+    repeat task.wait(0.05) until (hrp.Position - pos).Magnitude < 5 or tick() - t > (timeout or 5)
 end
 
-local function findCollectButtons()
-    local buttons = {}
-
-    local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
-    if playerGui then
-        for _, gui in ipairs(playerGui:GetDescendants()) do
-            if gui:IsA("TextButton") or gui:IsA("ImageButton") then
-                local name = gui.Name:lower()
-                local text = (gui:IsA("TextButton") and gui.Text:lower()) or ""
-                if name:find("collect") or text:find("collect")
-                    or name:find("payment") or text:find("payment")
-                    or name:find("pay") or text:find("pay") then
-                    if gui.Visible and gui.Active then
-                        table.insert(buttons, gui)
-                    end
-                end
-            end
-        end
-    end
-
-    for _, obj in ipairs(Workspace:GetDescendants()) do
-        if obj:IsA("BillboardGui") or obj:IsA("SurfaceGui") then
-            for _, child in ipairs(obj:GetDescendants()) do
-                if child:IsA("TextButton") or child:IsA("ImageButton") then
-                    local name = child.Name:lower()
-                    local text = (child:IsA("TextButton") and child.Text:lower()) or ""
-                    if name:find("collect") or text:find("collect")
-                        or name:find("payment") or text:find("payment")
-                        or name:find("pay") or text:find("pay") then
-                        if child.Visible and child.Active then
-                            table.insert(buttons, child)
-                        end
-                    end
-                end
-            end
-        end
-    end
-
-    return buttons
-end
-
-local function getButtonWorldPosition(button)
-    local bg = button:FindFirstAncestorWhichIsA("BillboardGui")
-        or button:FindFirstAncestorWhichIsA("SurfaceGui")
-    if bg then
-        local adornee = bg.Adornee
-        if adornee and adornee:IsA("BasePart") then
-            return adornee.Position
-        end
-        local p = bg.Parent
-        while p do
-            if p:IsA("BasePart") then
-                return p.Position
-            end
-            p = p.Parent
-        end
+local function getPos(btn)
+    local bg = btn:FindFirstAncestorWhichIsA("BillboardGui") or btn:FindFirstAncestorWhichIsA("SurfaceGui")
+    if not bg then return nil end
+    if bg.Adornee and bg.Adornee:IsA("BasePart") then return bg.Adornee.Position end
+    local p = bg.Parent
+    while p do
+        if p:IsA("BasePart") then return p.Position end
+        p = p.Parent
     end
     return nil
 end
 
-local function collectFromButton(button)
-    if not button or not button.Visible or not button.Active then
-        return
+local function getButtons()
+    local out = {}
+    local function check(obj)
+        if (obj:IsA("TextButton") or obj:IsA("ImageButton")) and obj.Visible and obj.Active then
+            local n = obj.Name:lower()
+            local tx = (obj:IsA("TextButton") and obj.Text:lower()) or ""
+            if n:find("collect") or n:find("payment") or n:find("pay")
+                or tx:find("collect") or tx:find("payment") or tx:find("pay") then
+                table.insert(out, obj)
+            end
+        end
     end
-
-    local worldPos = getButtonWorldPosition(button)
-
-    if Settings.WalkToCustomer and worldPos then
-        setStatus("Walking to customer...")
-        walkTo(worldPos, 6)
-    end
-
-    task.wait(Settings.CollectDelay)
-
-    local ok = pcall(function()
-        button.MouseButton1Click:Fire()
-    end)
-
-    if not ok then
-        pcall(function()
-            button.MouseButton1Down:Fire(0, 0, Enum.UserInputType.MouseButton1)
-        end)
-        task.wait(0.05)
-        pcall(function()
-            button.MouseButton1Up:Fire(0, 0, Enum.UserInputType.MouseButton1)
-        end)
-    end
-
-    setStatus("Payment collected!")
+    local pg = lp:FindFirstChild("PlayerGui")
+    if pg then for _, v in ipairs(pg:GetDescendants()) do check(v) end end
+    for _, v in ipairs(game.Workspace:GetDescendants()) do check(v) end
+    return out
 end
 
-local collectLoop = nil
-
-local function startAutoCollect()
-    if collectLoop then
-        return
+local function doCollect(btn)
+    if not btn or not btn.Visible or not btn.Active then return end
+    local pos = getPos(btn)
+    if cfg.walk and pos then
+        setStatus("Walking to customer...")
+        walkTo(pos, 6)
     end
-    setStatus("Running...")
+    task.wait(cfg.delay)
+    pcall(function() btn.MouseButton1Click:Fire() end)
+    setStatus("Collected!")
+end
 
-    collectLoop = task.spawn(function()
-        while Settings.AutoCollect do
-            local buttons = findCollectButtons()
-            if #buttons > 0 then
-                setStatus(#buttons .. " payment(s) found!")
-                for _, btn in ipairs(buttons) do
-                    if not Settings.AutoCollect then
-                        break
-                    end
-                    collectFromButton(btn)
+local loop = nil
+
+local function startLoop()
+    if loop then return end
+    setStatus("Running...")
+    loop = task.spawn(function()
+        while cfg.on do
+            local btns = getButtons()
+            if #btns > 0 then
+                setStatus(#btns .. " found!")
+                for _, b in ipairs(btns) do
+                    if not cfg.on then break end
+                    doCollect(b)
                     task.wait(0.2)
                 end
             else
-                setStatus("Waiting for customers...")
+                setStatus("Waiting...")
             end
             task.wait(0.5)
         end
-        collectLoop = nil
+        loop = nil
         setStatus("Stopped")
     end)
 end
 
-local function stopAutoCollect()
-    Settings.AutoCollect = false
-    collectLoop = nil
-    setStatus("Stopped")
-end
+Tab:CreateSection("Collect Payment")
 
--- Main Tab UI
-
-MainTab:CreateSection("Collect Payment")
-
-MainTab:CreateToggle({
+Tab:CreateToggle({
     Name = "Auto Collect Payment",
     CurrentValue = false,
-    Flag = "AutoCollect",
-    Callback = function(value)
-        Settings.AutoCollect = value
-        if value then
-            startAutoCollect()
-        else
-            stopAutoCollect()
-        end
+    Flag = "ac",
+    Callback = function(v)
+        cfg.on = v
+        if v then startLoop() else cfg.on = false setStatus("Stopped") end
     end,
 })
 
-MainTab:CreateToggle({
+Tab:CreateToggle({
     Name = "Walk To Customer",
     CurrentValue = true,
-    Flag = "WalkToCustomer",
-    Callback = function(value)
-        Settings.WalkToCustomer = value
-    end,
+    Flag = "wt",
+    Callback = function(v) cfg.walk = v end,
 })
 
-MainTab:CreateSection("Status")
+Tab:CreateSection("Status")
+lbl = Tab:CreateLabel("Status: Idle")
 
-StatusLabel = MainTab:CreateLabel("Status: Idle")
-
-MainTab:CreateButton({
-    Name = "Collect Once (Manual)",
+Tab:CreateButton({
+    Name = "Collect Once",
     Callback = function()
-        local buttons = findCollectButtons()
-        if #buttons == 0 then
+        local btns = getButtons()
+        if #btns == 0 then
             setStatus("No button found!")
-            Rayfield:Notify({
-                Title = "Vexro",
-                Content = "Collect Payment button not found!",
-                Duration = 3,
-                Image = 4483362458,
-            })
         else
-            for _, btn in ipairs(buttons) do
-                collectFromButton(btn)
-                task.wait(0.2)
-            end
+            for _, b in ipairs(btns) do doCollect(b) task.wait(0.2) end
         end
     end,
 })
 
--- Settings Tab UI
+SetTab:CreateSection("Speed")
 
-SettingsTab:CreateSection("Speed Settings")
-
-SettingsTab:CreateSlider({
-    Name = "Collect Delay (seconds)",
+SetTab:CreateSlider({
+    Name = "Collect Delay",
     Range = {0, 2},
     Increment = 0.1,
     Suffix = "s",
-    CurrentValue = Settings.CollectDelay,
-    Flag = "CollectDelay",
-    Callback = function(value)
-        Settings.CollectDelay = value
-    end,
+    CurrentValue = 0.3,
+    Flag = "cd",
+    Callback = function(v) cfg.delay = v end,
 })
 
-SettingsTab:CreateSlider({
+SetTab:CreateSlider({
     Name = "Walk Speed",
     Range = {16, 100},
     Increment = 1,
-    Suffix = "",
-    CurrentValue = Settings.WalkSpeed,
-    Flag = "WalkSpeed",
-    Callback = function(value)
-        Settings.WalkSpeed = value
-        if Humanoid then
-            Humanoid.WalkSpeed = value
-        end
+    CurrentValue = 16,
+    Flag = "ws",
+    Callback = function(v)
+        cfg.speed = v
+        if hum then hum.WalkSpeed = v end
     end,
 })
 
-SettingsTab:CreateSection("Info")
-
-SettingsTab:CreateLabel("Vexro Scripts | Run Your Restaurant")
-SettingsTab:CreateLabel("Auto Collect Payment v1.1")
-
--- Startup notification
-
-Rayfield:Notify({
-    Title = "Vexro Scripts",
-    Content = "Run Your Restaurant loaded!\nEnable Auto Collect to start.",
-    Duration = 5,
-    Image = 4483362458,
-})
-
+Rayfield:Notify({ Title = "Vexro", Content = "RYR loaded! Enable Auto Collect.", Duration = 4 })
 Rayfield:LoadConfiguration()
