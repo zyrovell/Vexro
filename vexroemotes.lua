@@ -19,7 +19,6 @@ $$ |   $$ |$$ |      \$$\ $$  |$$ |  $$ |$$ /  $$ |      $$ /  $$ |$$$$\ $$ |   
                                                                                                                            
 ]]
 
--- Önceki instance temizle (re-run desteği)
 pcall(function()
 	local b = game:GetService("Lighting"):FindFirstChild("VexroGlassBlur")
 	if b then b:Destroy() end
@@ -51,7 +50,7 @@ local DATA_FILE = "VexroEmotes_Data.json"
 local Settings = {theme = "Dark", speed = 1, notifications = true, loopEmote = true, language = nil, copyEmoteEnabled = false, stopOnWalk = true, showHUD = true}
 
 local FriendData = {
-	friends        = {},   -- [userId:string] = {name, syncEnabled}
+	friends        = {},
 	autoReject     = false,
 	acceptRequests = true,
 	playFriendEmote = true,
@@ -60,14 +59,13 @@ local FriendData = {
 	currentSyncPartner = nil,
 }
 local _friendConns = {}
-local RefreshFriendList  -- forward declaration
-local ShowFriendRequestPanel  -- forward declaration
+local RefreshFriendList
+local ShowFriendRequestPanel
 local Favorites = {}
 local Keybinds = {}
 local RecentEmotes = {}
--- Bridge: _VexroExtend içindeki HUD fonksiyonlarını dış kapsama bağlar
-local _onSpeedChanged  -- function(); HUD hız butonlarını + info panel'i günceller
-local _onPauseStateChanged  -- function(isPaused); HUD duraklat butonunu günceller
+local _onSpeedChanged
+local _onPauseStateChanged
 local MAX_RECENT = 20
 
 local _savePending = false
@@ -114,7 +112,6 @@ local function LoadData()
 					Settings.notifications = data.settings.notifications ~= false
 					Settings.loopEmote = data.settings.loopEmote ~= false
 					Settings.language = data.settings.language or nil
-					-- copyEmoteEnabled intentionally NOT loaded — always starts off
 					Settings.stopOnWalk = data.settings.stopOnWalk ~= false
 					Settings.showHUD = data.settings.showHUD ~= false
 				end
@@ -122,7 +119,7 @@ local function LoadData()
 				Keybinds = {}
 				if data.keybinds then
 					for k, v in pairs(data.keybinds) do
-						Keybinds[tonumber(k)] = v  -- {name="...", key="E"}
+						Keybinds[tonumber(k)] = v
 					end
 				end
 			end
@@ -132,11 +129,9 @@ end
 
 LoadData()
 
--- Hash set for O(1) favorite lookups
 local FavoritesSet = {}
 for _, v in ipairs(Favorites) do FavoritesSet[v] = true end
 
--- Keybind lookup table
 local KeybindsSet = {}
 for k, v in pairs(Keybinds) do KeybindsSet[tonumber(k)] = v end
 local function GetKeybind(emoteId) return KeybindsSet[emoteId] end
@@ -151,10 +146,8 @@ local function RemoveKeybind(emoteId)
 	SaveData()
 end
 
--- Lookup table for O(1) emote-by-ID access (populated after emotes load)
 local EmotesById = {}
 
--- Cache for async-fetched Roblox catalog metadata (keyed by numeric asset ID)
 local _emoteMetaCache = {}
 
 -- ===============================================================
@@ -163,7 +156,6 @@ local _emoteMetaCache = {}
 
 local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 
--- Auto Image/Decal resolver with cache
 local _resolvedCache = {}
 local function ResolveAssetImage(assetIdOrUrl)
 	if not assetIdOrUrl then return "" end
@@ -207,20 +199,18 @@ print(logo)
 -- ===============================================================
 
 local Themes = {
-	-- Kontrast yapısı: primary(dip) → sidebar(+4) → secondary(+8) → tertiary(+12)
-	-- Her tema kendi renk kişiliğiyle aynı mantığı izler.
 
 	Dark = {
-		primary     = Color3.fromRGB(0,  0,  0 ),   -- #000000  AMOLED siyah
-		sidebar     = Color3.fromRGB(0,  0,  0 ),   -- #000000  AMOLED siyah
-		secondary   = Color3.fromRGB(0,  0,  0 ),   -- #000000  AMOLED siyah
-		tertiary    = Color3.fromRGB(22, 22, 22),   -- #161616  butonlar için koyu gri
-		accent      = Color3.fromRGB(200, 200, 200), -- #C8C8C8  aktif sekme vurgusu
-		text        = Color3.fromRGB(255, 255, 255), -- #FFFFFF  ana yazı
-		textDim     = Color3.fromRGB(140, 140, 140), -- #8C8C8C  pasif yazı
-		stroke      = Color3.fromRGB(22, 22, 22),   -- #161616  kenarlık / bölücü
-		strokeHover = Color3.fromRGB(65, 65, 65),   -- #414141  kart hover kenarlık
-		critical    = Color3.fromRGB(196, 30, 30),   -- #C41E1E  kapat butonu
+		primary     = Color3.fromRGB(0,  0,  0 ),
+		sidebar     = Color3.fromRGB(0,  0,  0 ),
+		secondary   = Color3.fromRGB(0,  0,  0 ),
+		tertiary    = Color3.fromRGB(22, 22, 22),
+		accent      = Color3.fromRGB(200, 200, 200),
+		text        = Color3.fromRGB(255, 255, 255),
+		textDim     = Color3.fromRGB(140, 140, 140),
+		stroke      = Color3.fromRGB(22, 22, 22),
+		strokeHover = Color3.fromRGB(65, 65, 65),
+		critical    = Color3.fromRGB(196, 30, 30),
 		success     = Color3.fromRGB(80, 200, 100)
 	},
 	Purple = {
@@ -331,10 +321,10 @@ local Themes = {
 
 local currentTheme = Themes[Settings.theme] or Themes.Dark
 local themeElements = {}
-local mainStrokeGrad, miniIconGrad -- Forward declaration for the theme system
+local mainStrokeGrad, miniIconGrad
 local UpdateTabStyles
 local UpdateTabData
-local _updateTitleGrad  -- forward declared; assigned after title label is created
+local _updateTitleGrad
 
 local function RegisterTheme(el, prop, key)
 	if el then themeElements[#themeElements + 1] = {el = el, prop = prop, key = key} end
@@ -368,7 +358,6 @@ local function Notify(title, text, iconId)
 		
 		local theme = currentTheme or Themes.Dark
 		
-		-- Wrapper for animation compatibility with UIListLayout
 		local wrapper = Instance.new("Frame")
 		wrapper.BackgroundTransparency = 1
 		wrapper.Size = UDim2.new(1, 0, 0, 60)
@@ -426,7 +415,6 @@ local function Notify(title, text, iconId)
 		textLbl.ZIndex = 30002
 		textLbl.Parent = toast
 		
-		-- Tween inside wrapper
 		TweenService:Create(toast, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0, 0, 0, 0)}):Play()
 		
 		task.delay(3, function()
@@ -440,7 +428,6 @@ end
 
 local function ApplyTheme(name)
 	currentTheme = Themes[name] or Themes.Dark
-	-- Clean up destroyed elements and apply theme
 	local alive = {}
 	for i = 1, #themeElements do
 		local t = themeElements[i]
@@ -495,16 +482,13 @@ gui.Parent = playerGui
 local selectedLang = nil
 local rememberLang = false
 
--- Kayıtlı dil varsa direkt kullan, dil ekranını atla
 if Settings.language and Settings.language ~= "" then
 	selectedLang = Settings.language
 end
 
 if not selectedLang then
 
--- Dil ekranı her zaman kaydedilmiş temayı kullanır; tema yoksa Dark varsayılan
 local langTheme = Themes[Settings.theme] or Themes.Dark
--- Eğer kaydedilmiş tema yoksa (ilk kez) veya tema Dark ise, Dark'ı zorla
 if not Settings.theme or Settings.theme == "" then langTheme = Themes.Dark end
 
 local langScreen = Instance.new("Frame")
@@ -646,7 +630,6 @@ MakeLangBtn("🇮🇳  हिन्दी",   6, "HI")
 MakeLangBtn("🇵🇹  Português",7, "PT")
 MakeLangBtn("🇷🇺  Русский",  8, "RU")
 
--- Remember Language butonu
 local rememberBtn = Instance.new("TextButton")
 rememberBtn.Size = UDim2.new(0.92, 0, 0, 40)
 rememberBtn.Position = UDim2.new(0.04, 0, 1, -50)
@@ -684,7 +667,6 @@ TweenService:Create(langBox, TweenInfo.new(0.6, Enum.EasingStyle.Back), {Size = 
 
 repeat task.wait(0.1) until selectedLang
 
--- Dil hatırlama seçiliyse kaydet
 if rememberLang then
 	Settings.language = selectedLang
 	SaveData()
@@ -695,7 +677,7 @@ TweenService:Create(langScreen, TweenInfo.new(0.4), {BackgroundTransparency = 1}
 task.wait(0.4)
 langScreen:Destroy()
 
-end -- if not selectedLang
+end
 
 -- ===============================================================
 -- LANGUAGE
@@ -729,7 +711,6 @@ local L = {
 	clearCombo  = isTR and "Temizle"      or (isES and "Limpiar"       or (isAR and "مسح"           or (isFR and "Effacer"          or (isHI and "साफ़ करें"      or (isPT and "Limpar"        or (isRU and "Очистить"      or "Clear")))))),
 	selectFirst = isTR and "Önce seç!"      or (isES and "¡Selecciona!"   or (isAR and "اختر أولاً!"    or (isFR and "Choisir d'abord!" or (isHI and "पहले चुनें!"    or (isPT and "Selecione!"     or (isRU and "Выберите!"      or "Select first!")))))),
 	slotLabel   = isTR and "Slot"           or (isES and "Ranura"         or (isAR and "خانة"           or (isFR and "Slot"             or (isHI and "स्लॉट"          or (isPT and "Slot"           or (isRU and "Слот"           or "Slot")))))),
-	-- Bilgi paneli
 	infoTitle   = isTR and "Emote Bilgisi" or (isES and "Info del Emote" or (isAR and "معلومات الحركة" or (isFR and "Infos de l'Emote" or (isHI and "इमोट जानकारी"   or (isPT and "Info do Emote"  or (isRU and "Инфо Эмоции"    or "Emote Info")))))),
 	noDesc      = isTR and "Açıklama yok"  or (isES and "Sin descripción" or (isAR and "لا يوجد وصف"   or (isFR and "Sans description" or (isHI and "कोई विवरण नहीं" or (isPT and "Sem descrição"   or (isRU and "Нет описания"   or "No description")))))),
 	freePrice   = isTR and "Ücretsiz"      or (isES and "Gratis"          or (isAR and "مجاني"          or (isFR and "Gratuit"          or (isHI and "मुफ़्त"          or (isPT and "Grátis"          or (isRU and "Бесплатно"      or "Free")))))),
@@ -784,7 +765,7 @@ local Icons = {
 	Info = "rbxassetid://84622089809608",
 	Crown = "rbxassetid://73989246452336",
 	Minus = "rbxassetid://113043537756950", 
-	Close = "rbxassetid://71734731066706", -- X
+	Close = "rbxassetid://71734731066706",
 	Search = "rbxassetid://100759629447583",
 	FavoriteEmpty = "rbxassetid://139336655769578",
 	FavoriteFull = "rbxassetid://114412745011584",
@@ -810,7 +791,6 @@ if not hum or hum.RigType == Enum.HumanoidRigType.R6 then
 	return
 end
 
--- Emotes must be declared at top scope (used by later code)
 local Emotes = {}
 
 -- ===============================================================
@@ -823,7 +803,6 @@ local _splashPrimary = _splashTheme.primary
 local _splashAccent  = _splashTheme.accent
 local _splashIsGlass = Settings.theme == "FrostedGlass" or Settings.theme == "DarkGlass"
 
--- BlurEffect loading ekranı arkası için (sadece splash süresince)
 local splashBlur = Instance.new("BlurEffect")
 splashBlur.Size = 24
 splashBlur.Parent = game:GetService("Lighting")
@@ -831,7 +810,6 @@ splashBlur.Parent = game:GetService("Lighting")
 local splash = Instance.new("Frame")
 splash.Size = UDim2.fromScale(1, 1)
 splash.BackgroundColor3 = _splashPrimary
--- Blur'un görünmesi için her temada yarı saydam, glass'ta daha saydam
 splash.BackgroundTransparency = _splashIsGlass and 0.55 or 0.35
 splash.ZIndex = 10000
 splash.Parent = gui
@@ -1076,8 +1054,6 @@ end
 
 LoadEmotes()
 
--- Build lookup table for O(1) emote access by ID
--- Pre-compute lowercase names so search never calls .lower() at runtime
 for _, emote in ipairs(Emotes) do
 	EmotesById[emote.id] = emote
 	emote._lname = emote.name:lower()
@@ -1093,17 +1069,16 @@ TweenService:Create(splashBox, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.Ea
 task.wait(0.5)
 pcall(function() splashBlur:Destroy() end)
 splash:Destroy()
-end -- SPLASH SCREEN scope
+end
 
--- Forward declarations (dosya genelinde erişilebilir olması için)
 local MakeRow, MakeSectionHeader, MakePillToggle
 
 -- ===============================================================
 -- UI SIZE SETTINGS
 -- ===============================================================
-local ICON_SCALE = 1.5     -- İkonların resim boyutu (1.0 = normal, 1.5 = %50 daha büyük)
-local BUTTON_SCALE = 1.1   -- Kırpılmayı önlemek için buton kutusunu büyütme (1.0 = normal)
-local FONT_SCALE = 1.2     -- Yazı karakteri ve zar/menü sembol boyutu
+local ICON_SCALE = 1.5
+local BUTTON_SCALE = 1.1
+local FONT_SCALE = 1.2
 
 -- ===============================================================
 -- VARIABLES
@@ -1112,12 +1087,12 @@ local FONT_SCALE = 1.2     -- Yazı karakteri ve zar/menü sembol boyutu
 local EMOTE_ICON = "rbxassetid://120313093991132"
 local currentData, filtered = Emotes, Emotes
 local currentTab = "emotes"
-local page, perPage, pages, cols = 1, 14, 1, 7 -- Default to 7 cols
+local page, perPage, pages, cols = 1, 14, 1, 7
 local cards = {}
 local sideBarW = math.floor((isMobile and 50 or 60) * BUTTON_SCALE)
 local bottomBarH = isMobile and 26 or 22
-local currentCardSize = 0 -- Dynamic card size
-local _badEmotes = {}     -- [tostring(id)] = true  →  asset failed to load
+local currentCardSize = 0
+local _badEmotes = {}
 local _refreshPending = false
 
 -- ===============================================================
@@ -1229,21 +1204,16 @@ local _heartbeatConn = RunService.Heartbeat:Connect(function()
 	end
 end)
 
--- Animation objesi cache (her emote ID için bir kez GetObjects çağrılır, lag önlenir)
 local _animCache = {}
 
 local function PlayEmote(id, name, silent)
 	local animator = GetAnimator()
 	if not animator then return end
 	
-	-- Yeni emote çalmadan önce eski emoteyi durdur (hareket etmeden geçişte takılmayı önler)
 	StopAllTracks()
 	
-	-- Son oynatılan emote'u kaydet (auto-reload için)
 	_genv().lastVexroEmote = {id = id, name = name}
 	
-	-- Catalog ID'leri direkt LoadAnimation ile çalışmadığı için game:GetObjects ile asıl Animation'ı çekiyoruz.
-	-- Cache kullanarak tekrarlanan çağrılardan kaynaklanan kasılmayı önlüyoruz.
 	local success, err = pcall(function()
 		local anim = _animCache[id]
 		
@@ -1257,12 +1227,10 @@ local function PlayEmote(id, name, silent)
 				if item:IsA("Animation") then
 					anim = item
 				else
-					-- Folder içindeki asıl Animation objesini bul (Face animasyonları yerine vücudu bulur)
 					anim = item:FindFirstChildWhichIsA("Animation", true)
 				end
 			end
 			
-			-- Eğer exploit GetObjects desteklemiyorsa veya çalışmazsa normal şekilde dene
 			if not anim then
 				anim = Instance.new("Animation")
 				anim.AnimationId = "rbxassetid://" .. id
@@ -1290,7 +1258,6 @@ local function PlayEmote(id, name, silent)
 			Notify(L.playing .. speedTxt, name, 129338178452237)
 		end
 		lastEmoteTime = tick()
-		-- Arkadaşlara sync gönder
 		if _genv().VexroBroadcastSync then
 			pcall(_genv().VexroBroadcastSync, id, name)
 		end
@@ -1303,23 +1270,19 @@ end
 -- MAIN MENU
 -- ===============================================================
 
--- TARGET CARD SIZES
 local TARGET_PC_CARD = 75
 local TARGET_MOBILE_CARD = 55
 
 local function GetDefaultSize()
-	-- Calculate width needed for 7 columns exactly + padding
 	local PAD = isMobile and 4 or 6
 	local targetCard = isMobile and TARGET_MOBILE_CARD or TARGET_PC_CARD
 	
-	-- Width for 7 cards + sidebar
 	local perfectWidth = (targetCard * 7) + (PAD * 6) + sideBarW + 20
 	
 	local vp = workspace.CurrentCamera.ViewportSize
 	local finalW = math.clamp(perfectWidth, 400, vp.X * 0.95)
 	
-	-- Height for 2 rows approx
-	local cardH = targetCard + (targetCard * 0.3 * 2) + PAD -- approx card total height
+	local cardH = targetCard + (targetCard * 0.3 * 2) + PAD
 	local perfectHeight = (cardH * 2) + 60 + bottomBarH + 20
 	
 	local finalH = math.clamp(perfectHeight, 300, vp.Y * 0.8)
@@ -1336,10 +1299,9 @@ main.BackgroundColor3 = currentTheme.primary
 main.BackgroundTransparency = 0
 main.ClipsDescendants = true
 main.Parent = gui
-Instance.new("UICorner", main).CornerRadius = UDim.new(0, 20) -- Daha yumuşak köşeler
+Instance.new("UICorner", main).CornerRadius = UDim.new(0, 20)
 RegisterTheme(main, "BackgroundColor3", "primary")
 
--- Tema gradyan renkleri [üst-sol, alt-sağ, rotasyon]
 local ThemeGradients = {
 	Dark        = {Color3.fromRGB(22, 22, 30),  Color3.fromRGB(10, 10, 14),  135},
 	Purple      = {Color3.fromRGB(28, 18, 48),  Color3.fromRGB(10, 6, 18),   135},
@@ -1352,19 +1314,15 @@ local ThemeGradients = {
 	DarkGlass   = {Color3.fromRGB(24, 24, 34),  Color3.fromRGB(8, 8, 12),    135},
 }
 
--- Buzlu cam + gradyan wrapper
 local _glassApplyBase = ApplyTheme
 ApplyTheme = function(name)
 	_glassApplyBase(name)
 	local isGlass = name == "FrostedGlass" or name == "DarkGlass"
-	-- Eski blur varsa temizle
 	pcall(function()
 		local b = game:GetService("Lighting"):FindFirstChild("VexroGlassBlur")
 		if b then b:Destroy() end
 	end)
-	-- Şeffaflık
 	TweenService:Create(main, TweenInfo.new(0.3), {BackgroundTransparency = isGlass and 0.18 or 0}):Play()
-	-- Noise overlay (cam temaları)
 	local noiseOverlay = main:FindFirstChild("VexroGlassNoise")
 	if isGlass then
 		if not noiseOverlay then
@@ -1382,7 +1340,6 @@ ApplyTheme = function(name)
 	elseif noiseOverlay then
 		noiseOverlay:Destroy()
 	end
-	-- Gradyan: ayrı bir arka plan frame içinde (BackgroundColor3 tween'iyle çakışmaz)
 	local gradFrame = main:FindFirstChild("VexroGradFrame")
 	if not gradFrame then
 		gradFrame = Instance.new("Frame")
@@ -1398,7 +1355,6 @@ ApplyTheme = function(name)
 		grad.Name = "VexroMainGrad"
 		grad.Parent = gradFrame
 	end
-	-- Cam temalarında gradyan frame'i yarı saydam yap ki arkası görünsün
 	TweenService:Create(gradFrame, TweenInfo.new(0.3), {BackgroundTransparency = isGlass and 0.45 or 0}):Play()
 	local grad = gradFrame:FindFirstChild("VexroMainGrad")
 	if grad then
@@ -1412,7 +1368,7 @@ ApplyTheme = function(name)
 end
 
 local mainStroke = Instance.new("UIStroke")
-mainStroke.Color = Color3.new(1, 1, 1) -- Gradient kullanılacak
+mainStroke.Color = Color3.new(1, 1, 1)
 mainStroke.Thickness = 3
 mainStroke.Transparency = 0
 mainStroke.Parent = main
@@ -1426,7 +1382,6 @@ mainStrokeGrad.Color = ColorSequence.new{
 }
 mainStrokeGrad.Parent = mainStroke
 
--- Animasyonu başlat
 task.spawn(function()
 	local rot = 0
 	while mainStroke.Parent do
@@ -1436,7 +1391,6 @@ task.spawn(function()
 	end
 end)
 
--- Background Particles
 local bgParticles = Instance.new("Frame")
 bgParticles.Name = "BgParticles"
 bgParticles.Size = UDim2.new(1, 0, 1, 0)
@@ -1545,7 +1499,6 @@ local function CreateTabBtn(icon, tabName, yPos, customScale, rawImage)
 		}):Play()
 	end)
 	
-	-- Quatrefoil indicator (MaterialYou theme - asset tabanlı)
 	local qSize = tabBtnS + 10
 	local quatrefoil = Instance.new("ImageLabel")
 	quatrefoil.Name = "Quatrefoil"
@@ -1573,7 +1526,6 @@ if not isMobile then
 end
 CreateTabBtn(Icons.Settings, "settings", isMobile and 8 + (tabBtnS + 6) * 4 or 8 + (tabBtnS + 6) * 5)
 
--- Sliding active-tab indicator (replaces per-btn gradient; hidden for MaterialYou)
 local _indS = tabBtnS + 4
 local _tabIndicator = Instance.new("Frame")
 _tabIndicator.Name = "TabIndicator"
@@ -1732,7 +1684,6 @@ local function MakeBtn(icon, px, colorKey, customSize)
 			RegisterTheme(img, "ImageColor3", "text")
 		end
 	else
-		-- Minus için bold metin kullan (Görünürlük için en iyisi)
 		if icon == "STOP_SHAPE" then
 			b.Text = ""
 			local sq = Instance.new("ImageLabel")
@@ -1749,7 +1700,7 @@ local function MakeBtn(icon, px, colorKey, customSize)
 			b.Text = ""
 			local line1 = Instance.new("Frame")
 			line1.BorderSizePixel = 0
-			line1.Size = UDim2.new(0.40, 0, 0, math.floor(2 * math.max(1, ICON_SCALE))) -- Fixed: Reduced X size
+			line1.Size = UDim2.new(0.40, 0, 0, math.floor(2 * math.max(1, ICON_SCALE)))
 			line1.Position = UDim2.new(0.5, 0, 0.5, 0)
 			line1.AnchorPoint = Vector2.new(0.5, 0.5)
 			line1.Rotation = 45
@@ -1770,7 +1721,7 @@ local function MakeBtn(icon, px, colorKey, customSize)
 			b.Text = ""
 			local line = Instance.new("Frame")
 			line.BorderSizePixel = 0
-			line.Size = UDim2.new(0.40, 0, 0, math.floor(2 * math.max(1, ICON_SCALE))) -- Fixed: Reduced Minus size
+			line.Size = UDim2.new(0.40, 0, 0, math.floor(2 * math.max(1, ICON_SCALE)))
 			line.Position = UDim2.new(0.5, 0, 0.5, 0)
 			line.AnchorPoint = Vector2.new(0.5, 0.5)
 			line.BackgroundColor3 = useWhite and Color3.new(1, 1, 1) or currentTheme.text
@@ -1828,29 +1779,23 @@ RegisterTheme(minBtn, "BackgroundColor3", "stroke")
 RegisterTheme(closeBtn, "BackgroundColor3", "critical")
 
 local _isPaused = false
--- stopBtn içindeki stop karesi (duraklat/devam durumuna göre gizlenir)
 local _stopBtnSquare = stopBtn:FindFirstChildWhichIsA("ImageLabel")
 
 local _pauseTextSize = math.floor((isMobile and 14 or 18) * (ICON_SCALE or 1))
 
 local function _SetPauseState(paused)
 	_isPaused = paused
-	-- stopBtn görselini güncelle: duraklat = kare gizli + ">" yaz, devam = kare göster
 	if _stopBtnSquare then
 		_stopBtnSquare.Image = paused and ResolveAssetImage("rbxassetid://129338178452237") or ResolveAssetImage("rbxassetid://113416463749658")
 	end
-	-- HUD duraklat butonunu güncelle (bridge)
 	if _onPauseStateChanged then _onPauseStateChanged(paused) end
 end
 
 stopBtn.MouseButton1Click:Connect(function()
-	-- Onceligi duraklat halini kontrol etmeye ver (hiz=0 oldugu icin IsPlaying hala true)
 	if currentAnimTrack and _isPaused then
-		-- Duraklatilmissa devam ettir
 		pcall(function() currentAnimTrack:AdjustSpeed(Settings.speed) end)
 		_SetPauseState(false)
 	elseif currentAnimTrack and currentAnimTrack.IsPlaying then
-		-- Calan emoteyi mevcut pozisyonda dondur (hiz=0)
 		pcall(function() currentAnimTrack:AdjustSpeed(0) end)
 		_SetPauseState(true)
 	else
@@ -1862,7 +1807,7 @@ randBtn.MouseButton1Click:Connect(function()
 		local r = currentData[math.random(#currentData)]
 		local speedTxt = Settings.speed ~= 1 and " (" .. Settings.speed .. "x)" or ""
 		Notify("[~] " .. L.playing .. speedTxt, r.name)
-		PlayEmote(r.id, r.name, true) -- true = varsayılan bildirimi atla
+		PlayEmote(r.id, r.name, true)
 	end
 end)
 
@@ -2028,13 +1973,12 @@ local keybindsPanelLayout = Instance.new("UIListLayout")
 keybindsPanelLayout.Padding = UDim.new(0, 8)
 keybindsPanelLayout.Parent = keybindsPanel
 
-local RefreshKeybindsPanel  -- forward declaration (defined after ShowKeybindDialog)
+local RefreshKeybindsPanel
 
 -- ---------------------------------------------------------------
 -- Yardımcı: bölüm başlığı
 -- ---------------------------------------------------------------
 MakeSectionHeader = function(text, order)
-	-- Frame kullanmak zorundayız: TextLabel UIListLayout LayoutOrder'ı görmezden gelebiliyor
 	local container = Instance.new("Frame")
 	container.Size = UDim2.new(1, 0, 0, 26)
 	container.BackgroundTransparency = 1
@@ -2195,7 +2139,6 @@ end
 -- ===============================================================
 MakeSectionHeader(isTR and "Görünüm" or (isES and "Apariencia" or (isAR and "المظهر" or (isFR and "Apparence" or (isHI and "दिखावट" or (isPT and "Aparência" or (isRU and "Внешний вид" or "Appearance")))))), 1)
 
--- Tema
 do
 	local themeRow = MakeRow("110192525313214", L.theme, "", 2)
 	local themeNames = {"Dark", "Purple", "Blue", "Green", "Red", "Light", "MaterialYou", "FrostedGlass", "DarkGlass"}
@@ -2226,7 +2169,6 @@ do
 	end)
 end
 
--- Hız
 do
 	local speedRow = MakeRow("113837085020684", L.speed, "", 3, 78)
 	local speeds = {0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3}
@@ -2314,7 +2256,6 @@ end
 -- ===============================================================
 MakeSectionHeader(isTR and "Davranış" or (isES and "Comportamiento" or (isAR and "السلوك" or (isFR and "Comportement" or (isHI and "व्यवहार" or (isPT and "Comportamento" or (isRU and "Поведение" or "Behaviour")))))), 9)
 
--- Bildirimler
 do
 	local row = MakeRow("99427666057293", L.notif, "", 10)
 	MakePillToggle(row, Settings.notifications, function(v)
@@ -2323,7 +2264,6 @@ do
 	end)
 end
 
--- Döngü
 do
 	local row = MakeRow("103179694587186", L.loopText or "Loop", "", 11)
 	MakePillToggle(row, Settings.loopEmote, function(v)
@@ -2333,7 +2273,6 @@ do
 	end)
 end
 
--- Yürüyünce Durdur
 do
 	local row = MakeRow("", L.stopOnWalk, L.stopOnWalkDesc, 12)
 	MakePillToggle(row, Settings.stopOnWalk, function(v)
@@ -2342,7 +2281,6 @@ do
 	end)
 end
 
--- Oynatma Barı
 do
 	local row = MakeRow("", L.showHUD, L.showHUDDesc, 13)
 	MakePillToggle(row, Settings.showHUD, function(v)
@@ -2357,7 +2295,6 @@ end
 -- ===============================================================
 MakeSectionHeader(isTR and "Genel" or (isES and "General" or (isAR and "عام" or (isFR and "Général" or (isHI and "सामान्य" or (isPT and "Geral" or (isRU and "Общее" or "General")))))), 19)
 
--- Dil Sıfırla
 do
 	local row = MakeRow("76975628127992", L.resetLangLbl, L.resetLangDesc, 20)
 
@@ -2476,30 +2413,27 @@ end)
 
 -- ===============================================================
 -- ===============================================================
--- ARKADAŞ & BERABER EMOTE SİSTEMİ
 -- ===============================================================
 local friendAddModeBtn
 local _syncLock = false
 do
-local ATTR_REQ  = "VFR_Req"   -- "<targetUserId>"
-local ATTR_RESP = "VFR_Resp"  -- "<senderId>:1|0"
-local ATTR_SYNC = "VFR_Sync"  -- "<emoteId>|<emoteName>"
-local ATTR_STOP = "VFR_Stop"  -- tick() as string
+local ATTR_REQ  = "VFR_Req"
+local ATTR_RESP = "VFR_Resp"
+local ATTR_SYNC = "VFR_Sync"
+local ATTR_STOP = "VFR_Stop"
 
--- Spam koruması
-local REQ_COOLDOWN        = 5   -- aynı kişiye tekrar istek için bekleme (sn)
-local REQ_SPAM_WINDOW     = 5   -- spam penceresi (sn)
-local REQ_SPAM_LIMIT      = 3   -- bu kadar hızlı istek → timeout
-local REQ_TIMEOUT_DUR     = 30  -- timeout süresi (sn)
-local INCOMING_COOLDOWN   = 5   -- aynı kişiden gelen isteği tekrar gösterme eşiği (sn)
+local REQ_COOLDOWN        = 5
+local REQ_SPAM_WINDOW     = 5
+local REQ_SPAM_LIMIT      = 3
+local REQ_TIMEOUT_DUR     = 30
+local INCOMING_COOLDOWN   = 5
 
-local _reqCooldowns      = {}   -- [targetUserId] = lastSendTime
+local _reqCooldowns      = {}
 local _reqSpamStart      = 0
 local _reqSpamCount      = 0
-local _reqTimeoutUntil   = 0   -- timeout bitiş zamanı
-local _incomingCooldowns = {}  -- [senderUserId] = lastReceivedTime
+local _reqTimeoutUntil   = 0
+local _incomingCooldowns = {}
 
--- Kaydet / Yükle
 local function _SaveFriend()
 	pcall(function()
 		local enc = HttpService:JSONEncode({
@@ -2528,7 +2462,6 @@ local function _LoadFriend()
 end
 _LoadFriend()
 
--- Kendi karakterine attr yaz
 local function _MyAttr(attr, val)
 	pcall(function()
 		local c = player.Character
@@ -2536,9 +2469,7 @@ local function _MyAttr(attr, val)
 	end)
 end
 
--- Gelen istek paneli
 ShowFriendRequestPanel = function(senderUserId, senderName)
-	-- Arka plan karartıcı
 	local dimmer = Instance.new("Frame")
 	dimmer.Size = UDim2.new(1,0,1,0)
 	dimmer.BackgroundColor3 = Color3.new(0,0,0)
@@ -2556,14 +2487,12 @@ ShowFriendRequestPanel = function(senderUserId, senderName)
 	Instance.new("UICorner", panel).CornerRadius = UDim.new(0, 16)
 	local ps = Instance.new("UIStroke", panel); ps.Color = currentTheme.stroke; ps.Thickness = 1.5
 
-	-- Brand
 	local brand = Instance.new("TextLabel")
 	brand.Size = UDim2.new(1, 0, 0, 20); brand.Position = UDim2.new(0,0,0,8)
 	brand.BackgroundTransparency = 1; brand.Text = "Vexro Emote Player"
 	brand.TextColor3 = currentTheme.accent; brand.Font = Enum.Font.GothamBold
 	brand.TextSize = 11; brand.ZIndex = 98002; brand.Parent = panel
 
-	-- Avatar
 	local av = Instance.new("ImageLabel")
 	av.Size = UDim2.new(0,48,0,48); av.Position = UDim2.new(0,14,0,34)
 	av.BackgroundTransparency = 1
@@ -2571,7 +2500,6 @@ ShowFriendRequestPanel = function(senderUserId, senderName)
 	av.ZIndex = 98002; av.Parent = panel
 	Instance.new("UICorner", av).CornerRadius = UDim.new(1,0)
 
-	-- İstek metni
 	local reqTxt = Instance.new("TextLabel")
 	reqTxt.Size = UDim2.new(1,-80,0,48); reqTxt.Position = UDim2.new(0,70,0,34)
 	reqTxt.BackgroundTransparency = 1
@@ -2582,7 +2510,6 @@ ShowFriendRequestPanel = function(senderUserId, senderName)
 	reqTxt.TextYAlignment = Enum.TextYAlignment.Center
 	reqTxt.ZIndex = 98002; reqTxt.Parent = panel
 
-	-- Otomatik reddet barı
 	local bar = Instance.new("Frame")
 	bar.Size = UDim2.new(1,-28,0,34); bar.Position = UDim2.new(0,14,0,90)
 	bar.BackgroundColor3 = currentTheme.tertiary; bar.ZIndex = 98002; bar.Parent = panel
@@ -2618,7 +2545,6 @@ ShowFriendRequestPanel = function(senderUserId, senderName)
 		pcall(function() panel:Destroy() end)
 	end
 
-	-- Reddet butonu
 	local rejBtn = Instance.new("TextButton")
 	rejBtn.Size = UDim2.new(0.46,0,0,40); rejBtn.Position = UDim2.new(0,14,0,138)
 	rejBtn.BackgroundColor3 = currentTheme.critical; rejBtn.Text = L.reject or "Reddet"
@@ -2626,7 +2552,6 @@ ShowFriendRequestPanel = function(senderUserId, senderName)
 	rejBtn.TextSize = 13; rejBtn.ZIndex = 98002; rejBtn.Parent = panel
 	Instance.new("UICorner", rejBtn).CornerRadius = UDim.new(0,12)
 
-	-- Kabul Et butonu
 	local accBtn = Instance.new("TextButton")
 	accBtn.Size = UDim2.new(0.46,0,0,40); accBtn.Position = UDim2.new(0.54,-14,0,138)
 	accBtn.BackgroundColor3 = currentTheme.success; accBtn.Text = L.accept or "Kabul Et"
@@ -2650,7 +2575,6 @@ ShowFriendRequestPanel = function(senderUserId, senderName)
 		_close()
 	end)
 
-	-- Otomatik reddet aktifse hemen kapat
 	if FriendData.autoReject then
 		_MyAttr(ATTR_RESP, tostring(senderUserId) .. ":0")
 		task.delay(0.5, function() _MyAttr(ATTR_RESP, "") end)
@@ -2658,7 +2582,6 @@ ShowFriendRequestPanel = function(senderUserId, senderName)
 	end
 end
 
--- Bir karakteri izle (attr değişikliklerini dinle)
 local function _WatchChar(char, uid, uname)
 	local function _conn(attr, fn)
 		local ok, sig = pcall(function() return char:GetAttributeChangedSignal(attr) end)
@@ -2668,12 +2591,10 @@ local function _WatchChar(char, uid, uname)
 		end
 	end
 
-	-- Arkadaş isteği bana mı geliyor?
 	_conn(ATTR_REQ, function()
 		local v = char:GetAttribute(ATTR_REQ)
 		if tostring(v) ~= tostring(player.UserId) then return end
 		if not FriendData.acceptRequests then return end
-		-- Aynı kişiden spam isteği yoksay
 		local now = tick()
 		local uid_s = tostring(uid)
 		local lastIn = _incomingCooldowns[uid_s] or 0
@@ -2682,7 +2603,6 @@ local function _WatchChar(char, uid, uname)
 		ShowFriendRequestPanel(uid, uname)
 	end)
 
-	-- İstek cevabı (benim isteğime cevap)
 	_conn(ATTR_RESP, function()
 		local v = char:GetAttribute(ATTR_RESP)
 		if not v then return end
@@ -2697,7 +2617,6 @@ local function _WatchChar(char, uid, uname)
 		end
 	end)
 
-	-- Emote senkron
 	_conn(ATTR_SYNC, function()
 		if not FriendData.playFriendEmote then return end
 		if _syncLock then return end
@@ -2705,7 +2624,6 @@ local function _WatchChar(char, uid, uname)
 		if not fdata or not fdata.syncEnabled then return end
 		local v = char:GetAttribute(ATTR_SYNC)
 		if not v or v == "" then return end
-		-- Çakışma kontrolü: başka biriyle zaten senkronda mı
 		if FriendData.currentSyncPartner and FriendData.currentSyncPartner ~= tostring(uid) then
 			Notify(L.friendAlreadySyncing or "Hata! Zaten başka birisiyle senkrondayız.", "", nil)
 			return
@@ -2722,7 +2640,6 @@ local function _WatchChar(char, uid, uname)
 		end
 	end)
 
-	-- Emote durdurma
 	_conn(ATTR_STOP, function()
 		if FriendData.currentSyncPartner == tostring(uid) then
 			FriendData.currentSyncPartner = nil
@@ -2731,7 +2648,6 @@ local function _WatchChar(char, uid, uname)
 	end)
 end
 
--- Tüm oyuncuları izle
 local function _WatchAll()
 	for _, p in ipairs(Players:GetPlayers()) do
 		if p ~= player then
@@ -2765,7 +2681,6 @@ local function _WatchAll()
 end
 _WatchAll()
 
--- BillboardGui yönetimi
 local _billConns = {}
 local _MakeBillboard
 local function _RemoveBillboard(p)
@@ -2820,14 +2735,12 @@ _MakeBillboard = function(p)
 		local now = tick()
 		local uid_s = tostring(p.UserId)
 
-		-- Global timeout kontrolü
 		if now < _reqTimeoutUntil then
 			local rem = math.ceil(_reqTimeoutUntil - now)
 			Notify(L.spamProtect:format(rem), "", nil)
 			_done(); return
 		end
 
-		-- Aynı kişiye tekrar istek cooldown
 		local lastSent = _reqCooldowns[uid_s] or 0
 		if now - lastSent < REQ_COOLDOWN then
 			local rem = math.ceil(REQ_COOLDOWN - (now - lastSent))
@@ -2835,7 +2748,6 @@ _MakeBillboard = function(p)
 			_done(); return
 		end
 
-		-- Spam sayacı güncelle
 		if now - _reqSpamStart > REQ_SPAM_WINDOW then
 			_reqSpamStart = now
 			_reqSpamCount = 0
@@ -2851,7 +2763,6 @@ _MakeBillboard = function(p)
 			_done(); return
 		end
 
-		-- İstek gönder
 		_reqCooldowns[uid_s] = now
 		_MyAttr(ATTR_REQ, uid_s)
 		btn.Text = L.requestSent
@@ -2865,7 +2776,6 @@ end
 
 local function _SetAddMode(on)
 	FriendData.addModeActive = on
-	-- Mevcut billboard bağlantılarını temizle
 	for _, c in ipairs(_billConns) do pcall(function() c:Disconnect() end) end
 	_billConns = {}
 	if on then
@@ -2877,14 +2787,12 @@ local function _SetAddMode(on)
 			if p ~= player then _RemoveBillboard(p) end
 		end
 	end
-	-- Renk güncelle
 	TweenService:Create(friendAddModeBtn, TweenInfo.new(0.2), {
 		BackgroundColor3 = on and currentTheme.success or currentTheme.critical
 	}):Play()
 end
 
 
--- Emote sync broadcast (PlayEmote sonrası çağrılır)
 _genv().VexroBroadcastSync = function(emoteId, emoteName)
 	if not FriendData.syncEmote then return end
 	local hasSyncFriend = false
@@ -2900,7 +2808,6 @@ _genv().VexroBroadcastStop = function()
 	FriendData.currentSyncPartner = nil
 end
 
--- Arkadaş sekmesi içeriği
 local function _MakeFriendToggle(txt, desc, order, getVal, setVal)
 	local row = Instance.new("Frame")
 	row.Size = UDim2.new(1,0,0,60)
@@ -2956,7 +2863,6 @@ _MakeFriendToggle(
 	function(v) FriendData.syncEmote = v end
 )
 
--- Arkadaş Ekle Modu butonu
 local friendAddBtn = Instance.new("TextButton")
 friendAddBtn.Size = UDim2.new(1, 0, 0, 38)
 friendAddBtn.BackgroundColor3 = currentTheme.accent
@@ -2979,7 +2885,6 @@ friendAddBtn.MouseButton1Click:Connect(function()
 	}):Play()
 end)
 
--- Bilgi kutusu
 local infoBox = Instance.new("Frame")
 infoBox.Size = UDim2.new(1, 0, 0, 52)
 infoBox.BackgroundColor3 = Color3.fromRGB(40, 60, 100)
@@ -3012,7 +2917,6 @@ infoIcon.TextSize = 14
 infoIcon.ZIndex = 6
 infoIcon.Parent = infoBox
 
--- Arkadaş listesi başlığı
 local flHeader = Instance.new("TextLabel")
 flHeader.Size = UDim2.new(1,0,0,22); flHeader.BackgroundTransparency = 1
 flHeader.Text = L.friendListHeader; flHeader.TextColor3 = currentTheme.textDim
@@ -3100,7 +3004,6 @@ RefreshFriendList = function()
 end
 RefreshFriendList()
 
--- Ayarlar paneline "Arkadaş istekleri al" satırı (Davranış bölümünün altı: order 15)
 do
 	local arRow = MakeRow("", L.acceptRequestsLbl, "", 15)
 	MakePillToggle(arRow, FriendData.acceptRequests, function(v)
@@ -3109,7 +3012,6 @@ do
 	end)
 end
 
--- Cleanup kaydı güncelle
 local _prevClean = _genv().VexroEmotesCleanup
 _genv().VexroEmotesCleanup = function()
 	if _prevClean then pcall(_prevClean) end
@@ -3120,9 +3022,8 @@ _genv().VexroEmotesCleanup = function()
 	pcall(function() _genv().VexroBroadcastStop = nil end)
 end
 
-end -- arkadaş sistemi do...end sonu
+end
 
--- BOTTOM BAR
 -- ===============================================================
 
 local bottomBar = Instance.new("Frame")
@@ -3171,17 +3072,13 @@ local function CalcLayout()
 	local PAD = isMobile and 4 or 6
 	local w = scroll.AbsoluteSize.X
 	
-	-- Determine minimal viable card size to allow more columns
 	local minCardSize = isMobile and TARGET_MOBILE_CARD or TARGET_PC_CARD
 	
-	-- Calculate how many columns fit
 	cols = math.floor(w / (minCardSize + PAD))
 	if cols < 1 then cols = 1 end
 	
-	-- Expand card size slightly to fill gaps
 	currentCardSize = (w - (PAD * (cols - 1))) / cols
 	
-	-- Calculate rows based on available height to fill page mostly
 	local NAME_H = math.clamp(currentCardSize * 0.35, 18, 28)
 	local FAV_H = math.clamp(currentCardSize * 0.3, 18, 24)
 	local CARD_TOTAL_H = currentCardSize + NAME_H + FAV_H
@@ -3189,7 +3086,6 @@ local function CalcLayout()
 	local rowsVisible = math.floor(scroll.AbsoluteSize.Y / (CARD_TOTAL_H + PAD))
 	if rowsVisible < 2 then rowsVisible = 2 end
 	
-	-- Determine items per page dynamically
 	perPage = cols * rowsVisible
 	
 	pages = math.max(1, math.ceil(#filtered / perPage))
@@ -3231,16 +3127,13 @@ local function _MarkBadEmote(emoteId)
 	local key = tostring(emoteId)
 	if _badEmotes[key] then return end
 	_badEmotes[key] = true
-	-- Remove from master Emotes list
 	for i = #Emotes, 1, -1 do
 		if tostring(Emotes[i].id) == key then table.remove(Emotes, i); break end
 	end
 	EmotesById[tonumber(key)] = nil
-	-- Remove from current filtered list so page counts update
 	for i = #filtered, 1, -1 do
 		if tostring(filtered[i].id) == key then table.remove(filtered, i); break end
 	end
-	-- Debounced grid refresh so rapid failures coalesce into one redraw
 	if not _refreshPending then
 		_refreshPending = true
 		task.delay(0.8, function()
@@ -3256,7 +3149,6 @@ end
 local function ClearCards()
 	for _, c in pairs(cards) do
 		if c and c.Parent then
-			-- Cancel any running tweens to avoid they reference destroyed instances
 			for _, desc in ipairs(c:GetDescendants()) do
 				if desc:IsA("TweenBase") then pcall(function() desc:Cancel() end) end
 			end
@@ -3264,7 +3156,6 @@ local function ClearCards()
 		end
 	end
 	cards = {}
-	-- Prune _textGrads of entries whose parent was just destroyed
 	for i = #_textGrads, 1, -1 do
 		local g = _textGrads[i]
 		if not (g and g.Parent) then
@@ -3278,7 +3169,6 @@ end
 -- ===============================================================
 
 local function ShowKeybindDialog(emoteId, emote, isEdit)
-	-- Remove existing overlay
 	local existing = main:FindFirstChild("VexroKeybindOverlay")
 	if existing then existing:Destroy() end
 
@@ -3291,7 +3181,7 @@ local function ShowKeybindDialog(emoteId, emote, isEdit)
 	overlay.AutoButtonColor = false
 	overlay.ZIndex = 200
 	overlay.Parent = main
-	overlay.MouseButton1Click:Connect(function() end) -- tüm tıklamaları yut
+	overlay.MouseButton1Click:Connect(function() end)
 
 	local dialog = Instance.new("Frame")
 	dialog.Size = UDim2.new(0.85, 0, 0, 260)
@@ -3307,7 +3197,6 @@ local function ShowKeybindDialog(emoteId, emote, isEdit)
 	dStroke.Transparency = 0.4
 	dStroke.Parent = dialog
 
-	-- Title
 	local titleLbl = Instance.new("TextLabel")
 	titleLbl.Size = UDim2.new(1, -16, 0, 36)
 	titleLbl.Position = UDim2.new(0, 8, 0, 8)
@@ -3319,7 +3208,6 @@ local function ShowKeybindDialog(emoteId, emote, isEdit)
 	titleLbl.ZIndex = 202
 	titleLbl.Parent = dialog
 
-	-- Name label
 	local nameLblTitle = Instance.new("TextLabel")
 	nameLblTitle.Size = UDim2.new(0, 60, 0, 24)
 	nameLblTitle.Position = UDim2.new(0, 12, 0, 52)
@@ -3351,7 +3239,6 @@ local function ShowKeybindDialog(emoteId, emote, isEdit)
 	nbStroke.Thickness = 1.5
 	nbStroke.Parent = nameBox
 
-	-- Atama label
 	local atamaLbl = Instance.new("TextLabel")
 	atamaLbl.Size = UDim2.new(0, 80, 0, 24)
 	atamaLbl.Position = UDim2.new(0, 12, 0, 122)
@@ -3364,7 +3251,6 @@ local function ShowKeybindDialog(emoteId, emote, isEdit)
 	atamaLbl.ZIndex = 202
 	atamaLbl.Parent = dialog
 
-	-- Key recording button
 	local recordedKey = isEdit and (GetKeybind(emoteId) and GetKeybind(emoteId).key or nil) or nil
 	local isRecording = false
 	local recordConn
@@ -3406,7 +3292,6 @@ local function ShowKeybindDialog(emoteId, emote, isEdit)
 		end)
 	end)
 
-	-- Cancel button
 	local cancelBtn = Instance.new("TextButton")
 	cancelBtn.Size = UDim2.new(0.45, -6, 0, 38)
 	cancelBtn.Position = UDim2.new(0, 12, 0, 208)
@@ -3419,7 +3304,6 @@ local function ShowKeybindDialog(emoteId, emote, isEdit)
 	cancelBtn.Parent = dialog
 	Instance.new("UICorner", cancelBtn).CornerRadius = UDim.new(0, 10)
 
-	-- Save button
 	local saveBtn = Instance.new("TextButton")
 	saveBtn.Size = UDim2.new(0.55, -18, 0, 38)
 	saveBtn.Position = UDim2.new(0.45, 6, 0, 208)
@@ -3464,12 +3348,10 @@ local function ShowKeybindDialog(emoteId, emote, isEdit)
 		if currentTab == "keybinds" and RefreshKeybindsPanel then RefreshKeybindsPanel() end
 	end)
 
-	-- Entry animation
 	dialog.Size = UDim2.new(0, 0, 0, 0)
 	TweenService:Create(dialog, TweenInfo.new(0.35, Enum.EasingStyle.Back), {Size = UDim2.new(0.85, 0, 0, 260)}):Play()
 end
 
--- Assign RefreshKeybindsPanel (forward-declared above keybindsPanel)
 RefreshKeybindsPanel = function()
 	for _, c in ipairs(keybindsPanel:GetChildren()) do
 		if not c:IsA("UIListLayout") then c:Destroy() end
@@ -3486,7 +3368,6 @@ RefreshKeybindsPanel = function()
 		row.ZIndex = 6
 		row.Parent = keybindsPanel
 		Instance.new("UICorner", row).CornerRadius = UDim.new(0, 10)
-		-- Emote thumbnail
 		local thumb = Instance.new("ImageLabel")
 		thumb.Size = UDim2.new(0, 44, 0, 44)
 		thumb.Position = UDim2.new(0, 6, 0.5, -22)
@@ -3495,7 +3376,6 @@ RefreshKeybindsPanel = function()
 		thumb.ZIndex = 7
 		thumb.Parent = row
 		Instance.new("UICorner", thumb).CornerRadius = UDim.new(0, 6)
-		-- Name
 		local nameLbl = Instance.new("TextLabel")
 		nameLbl.Size = UDim2.new(1, -130, 0, 20)
 		nameLbl.Position = UDim2.new(0, 56, 0, 8)
@@ -3507,7 +3387,6 @@ RefreshKeybindsPanel = function()
 		nameLbl.TextXAlignment = Enum.TextXAlignment.Left
 		nameLbl.ZIndex = 7
 		nameLbl.Parent = row
-		-- Key badge
 		local keyLbl = Instance.new("TextLabel")
 		keyLbl.Size = UDim2.new(0, 38, 0, 24)
 		keyLbl.Position = UDim2.new(0, 56, 0, 28)
@@ -3519,7 +3398,6 @@ RefreshKeybindsPanel = function()
 		keyLbl.ZIndex = 7
 		keyLbl.Parent = row
 		Instance.new("UICorner", keyLbl).CornerRadius = UDim.new(0, 6)
-		-- Custom name label
 		local customName = Instance.new("TextLabel")
 		customName.Size = UDim2.new(1, -110, 0, 14)
 		customName.Position = UDim2.new(0, 100, 0, 30)
@@ -3531,7 +3409,6 @@ RefreshKeybindsPanel = function()
 		customName.TextXAlignment = Enum.TextXAlignment.Left
 		customName.ZIndex = 7
 		customName.Parent = row
-		-- Delete button
 		local delBtn = Instance.new("ImageButton")
 		delBtn.Size = UDim2.new(0, 42, 0, 42)
 		delBtn.Position = UDim2.new(1, -40, 0.5, -16)
@@ -3567,13 +3444,11 @@ local function MakeCard(emote, ci, animate)
 	local CARD = currentCardSize
 	local PAD = isMobile and 4 or 6
 
-	-- Dynamic text height based on card size, but capped
 	local NAME_H = math.clamp(CARD * 0.35, 18, 28)
 	local FAV_H = math.clamp(CARD * 0.3, 18, 24)
-	local KB_H = (not isMobile) and math.clamp(CARD * 0.45, 30, 40) or 0  -- keybind row height (PC only)
+	local KB_H = (not isMobile) and math.clamp(CARD * 0.45, 30, 40) or 0
 	local CARD_TOTAL_H = KB_H + CARD + NAME_H + FAV_H
 
-	-- Ana kart container
 	local cardContainer = Instance.new("Frame")
 	cardContainer.Size = UDim2.new(0, CARD, 0, CARD_TOTAL_H)
 	cardContainer.BackgroundTransparency = 1
@@ -3583,7 +3458,6 @@ local function MakeCard(emote, ci, animate)
 	local col = ci % cols
 	local row = math.floor(ci / cols)
 	
-	-- Position logic for grid
 	local targetX = col * (CARD + PAD)
 	local targetY = PAD + row * (CARD_TOTAL_H + PAD)
 	
@@ -3612,10 +3486,8 @@ local function MakeCard(emote, ci, animate)
 	Instance.new("UICorner", card).CornerRadius = UDim.new(0, 8)
 	
 	card.Image = "rbxthumb://type=Asset&id=" .. emote.id .. "&w=420&h=420"
-	-- Cards are dynamic, register/unregister is complex. We set color directly on refresh.
 	card.BackgroundColor3 = currentTheme.tertiary
 
-	-- Async asset validation with 15-second timeout
 	task.spawn(function()
 		local _done = false
 		local function _onResult(_, status)
@@ -3649,7 +3521,6 @@ local function MakeCard(emote, ci, animate)
 	stroke.Transparency = 0.6
 	stroke.Parent = card
 	
-	-- İsim Label (resmin altında)
 	local nameLbl = Instance.new("TextLabel")
 	nameLbl.Size = UDim2.new(1, -4, 0, NAME_H - 2) 
 	nameLbl.Position = UDim2.new(0, 2, 0, KB_H + CARD)
@@ -3685,7 +3556,7 @@ local function MakeCard(emote, ci, animate)
 	favBtn.Size = UDim2.new(1, 0, 0, FAV_H)
 	favBtn.Position = UDim2.new(0, 0, 0, KB_H + CARD + NAME_H)
 	favBtn.BackgroundColor3 = currentTheme.accent
-	favBtn.BackgroundTransparency = 1 -- Kareyi kaldır
+	favBtn.BackgroundTransparency = 1
 	favBtn.Text = ""
 	favBtn.ZIndex = 4
 	favBtn.Parent = cardContainer
@@ -3735,7 +3606,6 @@ local function MakeCard(emote, ci, animate)
 			BackgroundColor3 = isFav and currentTheme.tertiary or currentTheme.stroke
 		}):Play()
 		
-		-- YILDIZ PATLAMA ANİMASYONU
 		if isFav then
 			favIcon.Size = UDim2.new(0, 0, 0, 0)
 			TweenService:Create(favIcon, TweenInfo.new(0.5, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), {
@@ -3763,7 +3633,6 @@ local function MakeCard(emote, ci, animate)
 			}):Play()
 			task.delay(0.4, function() if ripple then ripple:Destroy() end end)
 		else
-			-- Geri alırken küçük bir küçülme efekti
 			TweenService:Create(favIcon, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
 				Size = UDim2.new(0, iconSize - 4, 0, iconSize - 4)
 			}):Play()
@@ -3781,7 +3650,6 @@ local function MakeCard(emote, ci, animate)
 		end
 	end)
 
-	-- Keybind button row at TOP of card (PC only, same style as favBtn at bottom)
 	local kbHasBinding = GetKeybind(emote.id) ~= nil
 	if not isMobile then
 		local kbBtn = Instance.new("TextButton")
@@ -3823,10 +3691,8 @@ local function MakeCard(emote, ci, animate)
 
 		kbBtn.MouseButton1Click:Connect(function()
 			ShowKeybindDialog(emote.id, emote, kbHasBinding)
-			-- Update icon after dialog closes via Refresh
 		end)
 
-		-- Long press: show red remove overlay on card
 		local longPressTimer = nil
 		local longPressOverlay = nil
 
@@ -3888,21 +3754,18 @@ local function MakeCard(emote, ci, animate)
 				end
 			end
 		end)
-	end -- isMobile check for keybind block
+	end
 
 	card.MouseEnter:Connect(function()
-		-- Hafif büyütme ve tilt efekti
 		TweenService:Create(card, TweenInfo.new(0.2, Enum.EasingStyle.Back), {
 			Size = UDim2.new(1, 6, 0, CARD + 6),
 			Rotation = math.random(-2, 2)
 		}):Play()
-		-- Stroke parlaması
 		local hoverColor = currentTheme.strokeHover or currentTheme.accent
 		TweenService:Create(stroke, TweenInfo.new(0.2), {Transparency = 0, Thickness = 2.5, Color = hoverColor}):Play()
 	end)
 
 	card.MouseLeave:Connect(function()
-		-- Normale dönüş
 		TweenService:Create(card, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {
 			Size = UDim2.new(1, 0, 0, CARD),
 			Rotation = 0
@@ -3912,11 +3775,9 @@ local function MakeCard(emote, ci, animate)
 	
 	
 	card.MouseButton1Click:Connect(function()
-		-- İçeri göçme (Jelly)
 		TweenService:Create(card, TweenInfo.new(0.1, Enum.EasingStyle.Quad), {Size = UDim2.new(0.9, 0, 0, CARD * 0.9)}):Play()
 		
 		task.delay(0.1, function()
-			-- Geri fırlama
 			TweenService:Create(card, TweenInfo.new(0.3, Enum.EasingStyle.Elastic), {Size = UDim2.new(1, 0, 0, CARD)}):Play()
 		end)
 		
@@ -3927,7 +3788,6 @@ local function MakeCard(emote, ci, animate)
 			end
 		end)
 		
-		-- Break any active friend sync when user manually picks a new emote
 		if FriendData and FriendData.currentSyncPartner then
 			FriendData.currentSyncPartner = nil
 		end
@@ -3961,7 +3821,6 @@ local function UpdateCards(animate)
 	scroll.CanvasSize = UDim2.new(0, 0, 0, rows * (CARD_TOTAL_H + PAD) + PAD)
 	scroll.CanvasPosition = Vector2.zero
 
-	-- Background preload next page thumbnails so page changes feel instant
 	local _npStart = page * perPage + 1
 	local _npEnd   = math.min((page + 1) * perPage, #filtered)
 	if _npStart <= _npEnd then
@@ -3994,7 +3853,7 @@ prevBtn.MouseButton1Click:Connect(function()
 	if page > 1 then 
 		page = page - 1
 	else 
-		page = pages -- Loop to end
+		page = pages
 	end
 	Refresh(true)
 end)
@@ -4003,7 +3862,7 @@ nextBtn.MouseButton1Click:Connect(function()
 	if page < pages then 
 		page = page + 1
 	else 
-		page = 1 -- Loop to start
+		page = 1
 	end
 	Refresh(true)
 end)
@@ -4019,7 +3878,6 @@ UpdateTabStyles = function()
 		local targetColor = active and currentTheme.accent or currentTheme.sidebar
 		local targetIconColor = active and Color3.new(1, 1, 1) or currentTheme.text
 		
-		-- Quatrefoil göstergesi (sadece MaterialYou)
 		if data.quatrefoil then
 			if isM3 and active then
 				data.quatrefoil.Visible = true
@@ -4044,7 +3902,6 @@ UpdateTabStyles = function()
 			end
 		end
 		
-		-- Tüm temalarda butonlar şeffaf; aktif gösterge ayrı frame'de
 		TweenService:Create(data.btn, TweenInfo.new(0.2), {
 			BackgroundTransparency = 1,
 			Size = UDim2.new(0, tabBtnS, 0, tabBtnS)
@@ -4052,10 +3909,8 @@ UpdateTabStyles = function()
 		data.stroke.Transparency = 1
 
 		if isM3 then
-			-- MaterialYou: quatrefoil göstergesi, sliding indicator gizli
 			if _tabIndicator then _tabIndicator.Visible = false end
 		else
-			-- Diğer temalar: sliding indicator göster, aktif tab'a kaydır
 			if _tabIndicator then
 				_tabIndicator.Visible = true
 				if active then
@@ -4103,7 +3958,6 @@ UpdateTabData = function()
 	
 	if currentTab == "emotes" then
 		currentData = Emotes
-		-- If bad emotes exist, build a clean filtered copy; otherwise share the table
 		if next(_badEmotes) then
 			filtered = {}
 			for _, e in ipairs(Emotes) do
@@ -4185,7 +4039,7 @@ search:GetPropertyChangedSignal("Text"):Connect(function()
 	searchToken = searchToken + 1
 	local myToken = searchToken
 	task.wait(0.08)
-	if myToken ~= searchToken then return end -- Newer input supersedes
+	if myToken ~= searchToken then return end
 	local q = search.Text:lower()
 	filtered = {}
 	for i = 1, #currentData do
@@ -4215,7 +4069,7 @@ miniIcon.Parent = gui
 Instance.new("UICorner", miniIcon).CornerRadius = UDim.new(1, 0)
 
 local miniIconStroke = Instance.new("UIStroke")
-miniIconStroke.Color = Color3.new(1, 1, 1) -- Gradient için beyaz taban
+miniIconStroke.Color = Color3.new(1, 1, 1)
 miniIconStroke.Thickness = 3
 miniIconStroke.Parent = miniIcon
 
@@ -4311,7 +4165,6 @@ minBtn.MouseButton1Click:Connect(function()
 	end)
 end)
 
--- Tüm bağlantıları kesip scripti temizle
 local function _CleanupScript()
 	pcall(function() _heartbeatConn:Disconnect() end)
 	pcall(function() _charAddedConn:Disconnect() end)
@@ -4327,7 +4180,7 @@ end
 _genv().VexroEmotesCleanup = _CleanupScript
 
 closeBtn.MouseButton1Click:Connect(function()
-	gui.Enabled = false  -- tüm input'u hemen kes
+	gui.Enabled = false
 	main.ClipsDescendants = true
 	TweenService:Create(main, TweenInfo.new(0.22, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {
 		Size = UDim2.new(0, 0, 0, 0),
@@ -4335,8 +4188,8 @@ closeBtn.MouseButton1Click:Connect(function()
 	}):Play()
 	task.delay(0.22, _CleanupScript)
 end)
-end -- iconDrag scope
-end -- miniIcon/iconS scope
+end
+end
 
 -- ===============================================================
 -- DRAG & RESIZE
@@ -4398,7 +4251,6 @@ end)
 UserInputService.InputChanged:Connect(function(input)
 	if resizing and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 		local delta = input.Position - resizeStart
-		-- Min height: enough for all tabs + padding (6 tabs on PC, 5 on mobile)
 		local tabCount = isMobile and 5 or 6
 		local minH = 8 + (tabBtnS + 6) * tabCount + tabBtnS + 16
 		local newW = math.clamp(sizeStart.X + delta.X, 400, 1200)
@@ -4419,21 +4271,19 @@ UserInputService.InputEnded:Connect(function(input)
 		if currentTab ~= "settings" then Refresh(false) end
 	end
 end)
-end -- resize scope
-end -- drag scope
+end
+end
 
 -- ===============================================================
 -- CHARACTER RESPAWN & AUTO-RELOAD
 -- ===============================================================
 
--- Enable auto reload before listener registration
 _genv().autoReloadEnabled_Vexro = Settings.loopEmote
 
 local _charAddedConn = player.CharacterAdded:Connect(function(newChar)
 	local newHum = newChar:WaitForChild("Humanoid", 5)
 	if not newHum then return end
 	
-	-- R6 check
 	if newHum.RigType == Enum.HumanoidRigType.R6 then
 		Notify(utf8.char(0x274C), L.r6Msg)
 		task.wait(2)
@@ -4441,7 +4291,6 @@ local _charAddedConn = player.CharacterAdded:Connect(function(newChar)
 		return
 	end
 	
-	-- Auto-reload last emote after respawn
 	if _genv().lastVexroEmote and _genv().autoReloadEnabled_Vexro then
 		task.wait(1)
 		PlayEmote(_genv().lastVexroEmote.id, _genv().lastVexroEmote.name, true)
@@ -4465,7 +4314,6 @@ ApplyTheme(Settings.theme)
 UpdateTabStyles()
 UpdateTabData()
 
--- Keybind playback listener (PC only)
 local _keybindInputConn = nil
 if not isMobile then
 	_keybindInputConn = UserInputService.InputBegan:Connect(function(inp, gp)
@@ -4493,16 +4341,13 @@ Notify(utf8.char(0x2705) .. " " .. L.ready, #Emotes .. " emotes")
 -- Bölüm 3: Canlı Emote HUD  |  Bölüm 4: Entegrasyon
 -- NOT: do...end bloğu Lua'nın 200 local sınırını aşmamak için
 -- ================================================================
-local function _VexroExtend() -- Ayrı fonksiyon: kendi 200 register tablosu
+local function _VexroExtend()
 
 -- ----------------------------------------------------------------
 -- ----------------------------------------------------------------
 
 
 
--- Lighting.OutdoorAmbient → vurgu rengi
--- Max 0.72 ile sınırlıyoruz: buton arka planı asla beyaza dönmesin
--- Forward declarations
 local HUD, infoPanel, infoSpeedLbl, comboSlots, comboQueue_UI
 local _currentInfoId, _currentInfoName
 local _comboLoopEnabled = false
@@ -4515,24 +4360,20 @@ local _comboLoopList    = {}
 -- Stopped sinyali ile otomatik sıralama, max 3 emote combo.
 -- ----------------------------------------------------------------
 
--- Forward declaration: HUD fonksiyonları aşağıda tanımlanır
 local ShowEmoteHUD, HideEmoteHUD
 
-local ComboQueue    = {} -- {id, name} tablosu
+local ComboQueue    = {}
 local isComboActive = false
 
--- 0.3 saniyelik smooth fade ile tek bir combo adımını oynat
 local function PlayComboStep(emoteId, emoteName)
 	local animator = GetAnimator()
 	if not animator then return end
 
-	-- Mevcut animasyonu 0.3s fade-out ile durdur
 	if currentAnimTrack and currentAnimTrack.IsPlaying then
 		currentAnimTrack:Stop(0.3)
 		task.wait(0.08)
 	end
 
-	-- Animasyonu cache'den al veya yükle
 	local anim = _animCache[emoteId]
 	if not anim then
 		pcall(function()
@@ -4556,9 +4397,9 @@ local function PlayComboStep(emoteId, emoteName)
 	pcall(function()
 		local track = animator:LoadAnimation(anim)
 		track.Priority = Enum.AnimationPriority.Action4
-		track.Looped   = false             -- Combo modunda döngü kapalı
+		track.Looped   = false
 
-		track:Play(0.3)                    -- 0.3s FADE-IN (harmanlama)
+		track:Play(0.3)
 		task.delay(0.05, function()
 			if track.IsPlaying then
 				track:AdjustSpeed(Settings.speed)
@@ -4569,19 +4410,16 @@ local function PlayComboStep(emoteId, emoteName)
 		_genv().lastVexroEmote = {id = emoteId, name = emoteName}
 		AddToRecent(emoteId)
 
-		-- HUD'u göster (defer: ShowEmoteHUD aşağıda tanımlanır)
 		task.defer(function()
 			if ShowEmoteHUD then ShowEmoteHUD(emoteId, emoteName) end
 		end)
 
-		-- Track durduğunda → kuyrukta sonraki varsa çal, yoksa bitir
 		track.Stopped:Connect(function()
 			if not isComboActive then return end
 			if #ComboQueue > 0 then
 				local nxt = table.remove(ComboQueue, 1)
 				PlayComboStep(nxt.id, nxt.name)
 			else
-				-- Döngü açıksa listeyi yeniden başlat, kuyruğu sıfırlama
 				if _comboLoopEnabled and #_comboLoopList > 0 then
 					ComboQueue = {}
 					for i = 2, #_comboLoopList do
@@ -4593,7 +4431,6 @@ local function PlayComboStep(emoteId, emoteName)
 					task.defer(function()
 						if HideEmoteHUD then HideEmoteHUD() end
 					end)
-					-- Combo bitince slot UI'ını sıfırla
 					task.defer(function()
 						if comboQueue_UI then comboQueue_UI = {} end
 						if comboSlots then
@@ -4613,11 +4450,9 @@ local function PlayComboStep(emoteId, emoteName)
 	end)
 end
 
--- Combo sıralamasını başlat
 local function StartCombo(emoteList)
 	if #emoteList == 0 then return end
 	isComboActive = true
-	-- Döngü için orijinal listeyi sakla
 	_comboLoopList = {}
 	for _, e in ipairs(emoteList) do
 		_comboLoopList[#_comboLoopList + 1] = {id = e.id, name = e.name}
@@ -4635,10 +4470,9 @@ end
 -- bilgi popup, sürüklenebilir knob, Disconnect ile FPS koruması.
 -- ----------------------------------------------------------------
 
-local hudTrackerConn = nil  -- RenderStepped bağlantısı (yönetilir)
-local _hudHideToken  = 0   -- Hızlı emote geçişlerinde eski hide task'ını iptal eder
+local hudTrackerConn = nil
+local _hudHideToken  = 0
 
--- ▸ Ana HUD çerçevesi (forward declared above — do NOT add local here)
 HUD = Instance.new("Frame")
 HUD.Name                   = "VexroHUD"
 HUD.Size                   = isMobile and UDim2.new(0, 320, 0, 100) or UDim2.new(0, 500, 0, 104)
@@ -4659,7 +4493,6 @@ hudStroke.Thickness    = 1.5
 hudStroke.Transparency = 0.25
 hudStroke.Parent       = HUD
 
--- ▸ Sol üst: Favori yıldızı
 local hudFavBtn = Instance.new("ImageButton")
 hudFavBtn.Size                   = UDim2.new(0, 22, 0, 22)
 hudFavBtn.Position               = UDim2.new(0, 9, 0, 6)
@@ -4687,7 +4520,6 @@ hudFavBtn.MouseButton1Click:Connect(function()
 	RefreshHUDFavBtn()
 end)
 
--- ▸ Sol alt: "i" bilgi ikonu
 local hudInfoBtn = Instance.new("TextButton")
 hudInfoBtn.Size                   = UDim2.new(0, 22, 0, 22)
 hudInfoBtn.Position               = UDim2.new(0, 9, 0, 32)
@@ -4701,7 +4533,6 @@ hudInfoBtn.ZIndex                 = 502
 hudInfoBtn.Parent                 = HUD
 Instance.new("UICorner", hudInfoBtn).CornerRadius = UDim.new(1, 0)
 
--- ▸ Orta üst: Emote adı
 local hudName = Instance.new("TextLabel")
 hudName.Size                   = UDim2.new(1, -130, 0, 22)
 hudName.Position               = UDim2.new(0, 44, 0, 7)
@@ -4715,7 +4546,6 @@ hudName.TextTruncate           = Enum.TextTruncate.AtEnd
 hudName.ZIndex                 = 501
 hudName.Parent                 = HUD
 
--- ▸ Orta alt: Creator (daha küçük, sönük)
 local hudCreator = Instance.new("TextLabel")
 hudCreator.Size                   = UDim2.new(1, -130, 0, 15)
 hudCreator.Position               = UDim2.new(0, 44, 0, 30)
@@ -4728,7 +4558,6 @@ hudCreator.TextXAlignment         = Enum.TextXAlignment.Left
 hudCreator.ZIndex                 = 501
 hudCreator.Parent                 = HUD
 
--- ▸ Progress slider arka planı
 local hudSliderBg = Instance.new("Frame")
 hudSliderBg.Size             = UDim2.new(1, -148, 0, 4)
 hudSliderBg.Position         = UDim2.new(0, 44, 0, 54)
@@ -4737,7 +4566,6 @@ hudSliderBg.ZIndex           = 501
 hudSliderBg.Parent           = HUD
 Instance.new("UICorner", hudSliderBg).CornerRadius = UDim.new(1, 0)
 
--- İlerleme (fill) kısmı
 local hudFill = Instance.new("Frame")
 hudFill.Size             = UDim2.new(0, 0, 1, 0)
 hudFill.BackgroundColor3 = currentTheme.accent
@@ -4745,7 +4573,6 @@ hudFill.ZIndex           = 502
 hudFill.Parent           = hudSliderBg
 Instance.new("UICorner", hudFill).CornerRadius = UDim.new(1, 0)
 
--- Sürüklenebilir tutaç (knob)
 local hudKnob = Instance.new("TextButton")
 hudKnob.Size             = UDim2.new(0, 12, 0, 12)
 hudKnob.AnchorPoint      = Vector2.new(0.5, 0.5)
@@ -4756,7 +4583,6 @@ hudKnob.ZIndex           = 503
 hudKnob.Parent           = hudSliderBg
 Instance.new("UICorner", hudKnob).CornerRadius = UDim.new(1, 0)
 
--- ▸ Orta-alt: Duraklat / Devam Et butonu
 local hudPauseBtn = Instance.new("ImageButton")
 hudPauseBtn.Size                   = UDim2.new(0, 60, 0, 22)
 hudPauseBtn.AnchorPoint            = Vector2.new(0.5, 0)
@@ -4787,7 +4613,6 @@ local function RefreshHudPauseBtn()
 end
 
 hudPauseBtn.MouseButton1Click:Connect(function()
-	-- Onceligi duraklat halini kontrol etmeye ver (hiz=0 iken IsPlaying hala true)
 	if currentAnimTrack and _isPaused then
 		pcall(function() currentAnimTrack:AdjustSpeed(Settings.speed) end)
 		_SetPauseState(false)
@@ -4797,12 +4622,10 @@ hudPauseBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
--- Bridge'i buraya bağla: stopBtn _onPauseStateChanged'i çağırınca hudPauseBtn güncellenir
 _onPauseStateChanged = function(paused)
 	RefreshHudPauseBtn()
 end
 
--- ▸ Sağ: Hız kontrol butonları (0.1x  0.5x  1x  1.5x  2x)
 local HUD_SPEEDS = {0.1, 0.5, 1, 1.5, 2}
 local HUD_LABELS = {"0.1", "0.5", "1x", "1.5", "2x"}
 local hudSpeedBtns = {}
@@ -4810,7 +4633,6 @@ local spBtnW   = isMobile and 26 or 30
 local spBtnGap = 3
 local spTotalW = #HUD_SPEEDS * spBtnW + (#HUD_SPEEDS - 1) * spBtnGap
 
--- Aktif hız butonunu vurgula
 local function RefreshHUDSpeedBtns()
 	for i, btn in ipairs(hudSpeedBtns) do
 		local active = math.abs(HUD_SPEEDS[i] - Settings.speed) < 0.01
@@ -4839,7 +4661,6 @@ for si, spd in ipairs(HUD_SPEEDS) do
 
 	sBtn.MouseButton1Click:Connect(function()
 		Settings.speed = spd
-		-- Anlık hız uygula (AdjustSpeed)
 		if currentAnimTrack and currentAnimTrack.IsPlaying then
 			pcall(function() currentAnimTrack:AdjustSpeed(spd) end)
 		end
@@ -4848,12 +4669,10 @@ for si, spd in ipairs(HUD_SPEEDS) do
 	end)
 end
 
--- ▸ Bilgi Paneli — gui'ye bağlı ayrı sekme (HUD'a değil)
--- HUD'dan bağımsız; ClipsDescendants sorunu olmaz (forward declared above — do NOT add local here)
 infoPanel = Instance.new("Frame")
 infoPanel.Name                   = "VexroInfoPanel"
 infoPanel.Size                   = UDim2.new(0, 270, 0, 260)
-infoPanel.Position               = UDim2.new(0, -290, 1, -285) -- Başlangıç: sol dışarıda
+infoPanel.Position               = UDim2.new(0, -290, 1, -285)
 infoPanel.BackgroundColor3       = Color3.fromRGB(10, 10, 18)
 infoPanel.BackgroundTransparency = 0.08
 infoPanel.BorderSizePixel        = 0
@@ -4868,16 +4687,14 @@ infoPanelStroke.Thickness   = 1.5
 infoPanelStroke.Transparency = 0.30
 infoPanelStroke.Parent      = infoPanel
 
--- Başlık çubuğu (sürükleme tutacağı)
 local infoPanelTitle = Instance.new("Frame")
 infoPanelTitle.Size             = UDim2.new(1, 0, 0, 36)
 infoPanelTitle.BackgroundColor3 = currentTheme.accent
 infoPanelTitle.BackgroundTransparency = 0.55
 infoPanelTitle.ZIndex           = 701
-infoPanelTitle.Active           = true   -- input alabilsin
+infoPanelTitle.Active           = true
 infoPanelTitle.Parent           = infoPanel
 Instance.new("UICorner", infoPanelTitle).CornerRadius = UDim.new(0, 14)
--- Alt köşeleri düzeltmek için overlay
 local infoPanelTitleOverlay = Instance.new("Frame")
 infoPanelTitleOverlay.Size             = UDim2.new(1, 0, 0, 14)
 infoPanelTitleOverlay.Position         = UDim2.new(0, 0, 1, -14)
@@ -4887,7 +4704,6 @@ infoPanelTitleOverlay.BorderSizePixel  = 0
 infoPanelTitleOverlay.ZIndex           = 701
 infoPanelTitleOverlay.Parent           = infoPanelTitle
 
--- Başlık ikonu (Icons.Info)
 local infoPanelTitleIcon = Instance.new("ImageLabel")
 infoPanelTitleIcon.Size             = UDim2.new(0, 20, 0, 20)
 infoPanelTitleIcon.Position         = UDim2.new(0, 10, 0.5, -10)
@@ -4909,7 +4725,6 @@ infoPanelTitleLbl.TextXAlignment         = Enum.TextXAlignment.Left
 infoPanelTitleLbl.ZIndex                 = 702
 infoPanelTitleLbl.Parent                 = infoPanelTitle
 
--- Kapat butonu — orijinal CLOSE_SHAPE (iki çapraz çizgi, emoji yok)
 local infoPanelClose = Instance.new("TextButton")
 infoPanelClose.Size             = UDim2.new(0, 24, 0, 24)
 infoPanelClose.Position         = UDim2.new(1, -30, 0.5, -12)
@@ -4920,7 +4735,6 @@ infoPanelClose.ZIndex           = 703
 infoPanelClose.Parent           = infoPanelTitle
 Instance.new("UICorner", infoPanelClose).CornerRadius = UDim.new(1, 0)
 
--- Çarpı çizgileri (MakeBtn'deki CLOSE_SHAPE ile aynı mantık)
 do
 	local thick = 2
 	local lineLen = 10
@@ -4939,7 +4753,6 @@ do
 	cl2.Parent    = infoPanelClose
 end
 
--- İçerik alanı
 local infoPanelBody = Instance.new("Frame")
 infoPanelBody.Size                   = UDim2.new(1, -24, 1, -46)
 infoPanelBody.Position               = UDim2.new(0, 12, 0, 42)
@@ -4947,7 +4760,6 @@ infoPanelBody.BackgroundTransparency = 1
 infoPanelBody.ZIndex                 = 701
 infoPanelBody.Parent                 = infoPanel
 
--- 1) Emote adı
 local infoEmoteName = Instance.new("TextLabel")
 infoEmoteName.Size                   = UDim2.new(1, 0, 0, 22)
 infoEmoteName.Position               = UDim2.new(0, 0, 0, 0)
@@ -4961,7 +4773,6 @@ infoEmoteName.TextTruncate           = Enum.TextTruncate.AtEnd
 infoEmoteName.ZIndex                 = 702
 infoEmoteName.Parent                 = infoPanelBody
 
--- 2) Açıklama (ismin hemen altı)
 local infoDescLbl = Instance.new("TextLabel")
 infoDescLbl.Size                   = UDim2.new(1, 0, 0, 28)
 infoDescLbl.Position               = UDim2.new(0, 0, 0, 24)
@@ -4976,7 +4787,6 @@ infoDescLbl.TextWrapped            = true
 infoDescLbl.ZIndex                 = 702
 infoDescLbl.Parent                 = infoPanelBody
 
--- Ayırıcı çizgi
 local infoDivider = Instance.new("Frame")
 infoDivider.Size             = UDim2.new(1, 0, 0, 1)
 infoDivider.Position         = UDim2.new(0, 0, 0, 56)
@@ -4985,7 +4795,6 @@ infoDivider.BorderSizePixel  = 0
 infoDivider.ZIndex           = 702
 infoDivider.Parent           = infoPanelBody
 
--- 3) Creator
 do
 	local ic = Instance.new("ImageLabel")
 	ic.Size = UDim2.new(0, 13, 0, 13); ic.Position = UDim2.new(0, 0, 0, 63)
@@ -5004,14 +4813,12 @@ infoCreatorLbl.TextXAlignment         = Enum.TextXAlignment.Left
 infoCreatorLbl.ZIndex                 = 702
 infoCreatorLbl.Parent                 = infoPanelBody
 
--- 4) Hız
 do
 	local ic = Instance.new("ImageLabel")
 	ic.Size = UDim2.new(0, 13, 0, 13); ic.Position = UDim2.new(0, 0, 0, 83)
 	ic.BackgroundTransparency = 1; ic.Image = Icons.Emote; ic.ZIndex = 702
 	ic.Parent = infoPanelBody
 end
--- infoSpeedLbl: forward declared above
 infoSpeedLbl = Instance.new("TextLabel")
 infoSpeedLbl.Size                   = UDim2.new(1, -18, 0, 16)
 infoSpeedLbl.Position               = UDim2.new(0, 18, 0, 81)
@@ -5024,7 +4831,6 @@ infoSpeedLbl.TextXAlignment         = Enum.TextXAlignment.Left
 infoSpeedLbl.ZIndex                 = 702
 infoSpeedLbl.Parent                 = infoPanelBody
 
--- RefreshHUDSpeedBtns ve infoSpeedLbl artık tanımlı — bridge'i bağla
 _onSpeedChanged = function()
 	RefreshHUDSpeedBtns()
 	if infoSpeedLbl then
@@ -5032,7 +4838,6 @@ _onSpeedChanged = function()
 	end
 end
 
--- 5) Fiyat (tam genişlik)
 local infoPriceLbl = Instance.new("TextLabel")
 infoPriceLbl.Size                   = UDim2.new(1, 0, 0, 16)
 infoPriceLbl.Position               = UDim2.new(0, 0, 0, 101)
@@ -5045,7 +4850,6 @@ infoPriceLbl.TextXAlignment         = Enum.TextXAlignment.Left
 infoPriceLbl.ZIndex                 = 702
 infoPriceLbl.Parent                 = infoPanelBody
 
--- 6) Favori sayısı (tam genişlik)
 local infoFavLbl = Instance.new("TextLabel")
 infoFavLbl.Size                   = UDim2.new(1, 0, 0, 16)
 infoFavLbl.Position               = UDim2.new(0, 0, 0, 120)
@@ -5058,7 +4862,6 @@ infoFavLbl.TextXAlignment         = Enum.TextXAlignment.Left
 infoFavLbl.ZIndex                 = 702
 infoFavLbl.Parent                 = infoPanelBody
 
--- 7) Yaratılma tarihi
 do
 	local ic = Instance.new("ImageLabel")
 	ic.Size = UDim2.new(0, 13, 0, 13); ic.Position = UDim2.new(0, 0, 0, 141)
@@ -5077,7 +4880,6 @@ infoDateLbl.TextXAlignment         = Enum.TextXAlignment.Left
 infoDateLbl.ZIndex                 = 702
 infoDateLbl.Parent                 = infoPanelBody
 
--- 8) Copy ID butonu + Arkadaş Ekle Modu butonu
 friendAddModeBtn = Instance.new("TextButton")
 friendAddModeBtn.Size             = UDim2.new(0.48, -2, 0, 26)
 friendAddModeBtn.Position         = UDim2.new(0, 0, 0, 161)
@@ -5116,21 +4918,17 @@ copyIdStroke.Color       = Color3.fromRGB(70, 70, 100)
 copyIdStroke.Thickness   = 1
 copyIdStroke.Parent      = copyIdBtn
 
-local infoIdLbl = nil -- eski referans (kaldırıldı)
+local infoIdLbl = nil
 
--- Panel aç/kapa fonksiyonu
 local infoPanelOpen = false
 local INFO_OPEN_POS  = UDim2.new(0, 10, 1, -285)
 local INFO_CLOSE_POS = UDim2.new(0, -290, 1, -285)
 
-local _copyIdTarget = 0  -- Copy ID için mevcut emote id'si
+local _copyIdTarget = 0
 
 local function _applyMetaToInfoPanel(meta)
-	-- Yaratıcı
 	infoCreatorLbl.Text = (meta.creatorName and meta.creatorName ~= "") and meta.creatorName or "—"
-	-- Açıklama
 	infoDescLbl.Text    = (meta.description and meta.description ~= "") and meta.description or L.noDesc
-	-- Fiyat
 	if meta.priceStatus == "Free" or meta.price == 0 then
 		infoPriceLbl.Text       = L.freePrice
 		infoPriceLbl.TextColor3 = Color3.fromRGB(100, 220, 130)
@@ -5141,22 +4939,18 @@ local function _applyMetaToInfoPanel(meta)
 		infoPriceLbl.Text       = (meta.priceStatus and meta.priceStatus ~= "") and meta.priceStatus or "—"
 		infoPriceLbl.TextColor3 = Color3.fromRGB(160, 160, 185)
 	end
-	-- Favori sayısı
 	infoFavLbl.Text = meta.favoriteCount
 		and ("♥ " .. tostring(meta.favoriteCount))
 		or "—"
-	-- Tarih
 	if meta.createdUtc and meta.createdUtc ~= "" then
 		infoDateLbl.Text = meta.createdUtc:sub(1, 10)
 	else
 		infoDateLbl.Text = "—"
 	end
-	-- HUD creator
 	hudCreator.Text = (meta.creatorName and meta.creatorName ~= "") and meta.creatorName or "Vexro Emotes"
 end
 
 local function _fetchAndCacheMeta(numId, targetId)
-	-- MarketplaceService ile metadata çek (native Roblox, HTTP'ye gerek yok)
 	local ok, info = pcall(function()
 		return game:GetService("MarketplaceService"):GetProductInfo(numId)
 	end)
@@ -5177,7 +4971,6 @@ local function _fetchAndCacheMeta(numId, targetId)
 
 	_emoteMetaCache[numId] = meta
 
-	-- emotes tablosunu da güncelle (gelecekteki arama için)
 	local eData = EmotesById[numId]
 	if eData then
 		eData.creatorName   = meta.creatorName
@@ -5188,7 +4981,6 @@ local function _fetchAndCacheMeta(numId, targetId)
 		eData.createdUtc    = meta.createdUtc
 	end
 
-	-- Panel hâlâ aynı emote için açıksa UI'yi güncelle
 	if infoPanelOpen and _copyIdTarget == numId then
 		_applyMetaToInfoPanel(meta)
 	end
@@ -5203,12 +4995,10 @@ local function OpenInfoPanel(emoteId, emoteName)
 
 	local numId = tonumber(emoteId)
 
-	-- Önce önbellekten veya Emotes tablosundan bak
 	local meta = _emoteMetaCache[numId]
 	if not meta then
 		local eData = EmotesById[numId]
 		if eData and eData.creatorName ~= "" then
-			-- Emotes tablosunda zaten tam veri var
 			meta = eData
 		end
 	end
@@ -5216,7 +5006,6 @@ local function OpenInfoPanel(emoteId, emoteName)
 	if meta then
 		_applyMetaToInfoPanel(meta)
 	else
-		-- Placeholder göster, arka planda çek
 		infoCreatorLbl.Text = "…"
 		infoDescLbl.Text    = "…"
 		infoPriceLbl.Text   = "…"
@@ -5229,7 +5018,6 @@ local function OpenInfoPanel(emoteId, emoteName)
 		end
 	end
 
-	-- Copy ID buton tıklama
 	copyIdBtn.Text = L.copyId .. ": " .. tostring(numId)
 
 	infoPanel.Position = INFO_CLOSE_POS
@@ -5260,7 +5048,6 @@ end)
 
 local function CloseInfoPanel()
 	infoPanelOpen = false
-	-- Panelin şu anki konumundan sola kayarak kapan (sürüklendiyse oradan çıkar)
 	local curX = infoPanel.AbsolutePosition.X
 	local curY = infoPanel.AbsolutePosition.Y
 	local exitPos = UDim2.new(0, curX - 300, 0, curY)
@@ -5275,7 +5062,6 @@ local function CloseInfoPanel()
 	end)
 end
 
--- "i" butonuna tıklayınca panel aç/kapat
 hudInfoBtn.MouseButton1Click:Connect(function()
 	if infoPanelOpen then
 		CloseInfoPanel()
@@ -5285,7 +5071,6 @@ hudInfoBtn.MouseButton1Click:Connect(function()
 end)
 infoPanelClose.MouseButton1Click:Connect(CloseInfoPanel)
 
--- ▸ InfoPanel sürükle-bırak — başlık çubuğundan tutarak taşı
 local _ipDragActive     = false
 local _ipDragMouseStart = Vector2.zero
 local _ipDragPanelStart = Vector2.zero
@@ -5317,7 +5102,6 @@ UserInputService.InputEnded:Connect(function(inp)
 	end
 end)
 
--- ▸ Slider knob sürükleme
 local hudKnobDragging = false
 
 hudKnob.InputBegan:Connect(function(inp)
@@ -5327,7 +5111,6 @@ hudKnob.InputBegan:Connect(function(inp)
 	end
 end)
 
--- Slider arka planına tıkla → o noktaya atla
 hudSliderBg.InputBegan:Connect(function(inp)
 	if inp.UserInputType ~= Enum.UserInputType.MouseButton1
 	and inp.UserInputType ~= Enum.UserInputType.Touch then return end
@@ -5346,7 +5129,6 @@ UserInputService.InputEnded:Connect(function(inp)
 	end
 end)
 
--- Sürükleme → TimePosition güncelle
 UserInputService.InputChanged:Connect(function(inp)
 	if not hudKnobDragging then return end
 	if inp.UserInputType ~= Enum.UserInputType.MouseMovement
@@ -5359,9 +5141,7 @@ UserInputService.InputChanged:Connect(function(inp)
 	end
 end)
 
--- ▸ RenderStepped: slider'ı her kare canlı güncelle
 local function StartHUDTracking()
-	-- Önceki bağlantıyı kes → FPS kaybını önle
 	if hudTrackerConn then
 		hudTrackerConn:Disconnect()
 		hudTrackerConn = nil
@@ -5372,14 +5152,11 @@ local function StartHUDTracking()
 		local len = currentAnimTrack.Length
 		if not len or len <= 0 then return end
 
-		-- TimePosition / Length = ilerleme oranı (0..1)
 		local alpha = math.clamp(currentAnimTrack.TimePosition / len, 0, 1)
 
-		-- Slider fill ve knob'u güncelle (tween gerekmez, her frame smooth)
 		hudFill.Size     = UDim2.new(alpha, 0, 1, 0)
 		hudKnob.Position = UDim2.new(alpha, 0, 0.5, 0)
 
-		-- Tema renkleriyle senkron tut
 		hudFill.BackgroundColor3    = currentTheme.accent
 		hudStroke.Color             = currentTheme.stroke
 		hudInfoBtn.BackgroundColor3 = currentTheme.accent
@@ -5388,17 +5165,14 @@ local function StartHUDTracking()
 end
 
 local function StopHUDTracking()
-	-- Disconnect -> RenderStepped baglantisini kes (FPS korunur)
 	if hudTrackerConn then
 		hudTrackerConn:Disconnect()
 		hudTrackerConn = nil
 	end
 end
 
--- ShowEmoteHUD: HUD'u asagidan kaydirarak goster
 ShowEmoteHUD = function(emoteId, emoteName)
 	if not Settings.showHUD then return end
-	-- Bekleyen gizleme işlemini iptal et (hızlı geçiş hatası düzeltmesi)
 	_hudHideToken = _hudHideToken + 1
 
 	_currentInfoId   = emoteId
@@ -5408,7 +5182,6 @@ ShowEmoteHUD = function(emoteId, emoteName)
 	hudName.Text    = emoteName or "Emote"
 	hudCreator.Text = "Vexro Emotes"
 
-	-- Duraklat butonunu sıfırla
 	_isPaused = false
 	RefreshHudPauseBtn()
 
@@ -5429,18 +5202,15 @@ ShowEmoteHUD = function(emoteId, emoteName)
 	StartHUDTracking()
 end
 
--- HideEmoteHUD: HUD'u asagiya kaydirarak gizle
 HideEmoteHUD = function()
 	_isPaused = false
 	RefreshHudPauseBtn()
-	-- stopBtn görselini sıfırla (doğrudan, döngü yaratmamak için)
 	if _stopBtnSquare then _stopBtnSquare.Image = ResolveAssetImage("rbxassetid://113416463749658") end
 	StopHUDTracking()
 	TweenService:Create(HUD,
 		TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
 		{Position = UDim2.new(0.5, 0, 1, -88), BackgroundTransparency = 1}
 	):Play()
-	-- Token tabanlı iptal: sadece güncel token eşleşiyorsa gizle
 	local token = _hudHideToken
 	task.delay(0.22, function()
 		if HUD and _hudHideToken == token then
@@ -5457,11 +5227,9 @@ end
 local _origPlayEmote = PlayEmote
 PlayEmote = function(id, name, silent)
 	_origPlayEmote(id, name, silent)
-	-- Anlık token'ı yakala: bu emote için geçerli token
 	local myToken = _hudHideToken + 1
 	_hudHideToken = myToken
 	task.defer(function()
-		-- Başka bir emote daha geçildiyse bu defer'ı atla
 		if _hudHideToken ~= myToken then return end
 		if currentAnimTrack then
 			ShowEmoteHUD(id, name)
@@ -5488,7 +5256,6 @@ end
 -- BOLUM 5 - COMBO SIRASI
 -- ----------------------------------------------------------------
 
--- comboQueue_UI forward declared above; reset here
 comboQueue_UI = {}
 
 local comboRow = MakeRow("", L.comboTitle, "", 25, 196)
@@ -5513,7 +5280,6 @@ slotLayout.FillDirection    = Enum.FillDirection.Horizontal
 slotLayout.Padding          = UDim.new(0, 5)
 slotLayout.Parent           = slotHolder
 
--- comboSlots forward declared above; populate here
 comboSlots = {}
 for si = 1, 3 do
 	local s = Instance.new("TextButton")
@@ -5574,7 +5340,6 @@ playComboBtn.ZIndex           = 9
 playComboBtn.Parent           = comboBtnHolder
 Instance.new("UICorner", playComboBtn).CornerRadius = UDim.new(0, 8)
 
--- ▸ Loop toggle butonu
 local loopComboBtn = Instance.new("TextButton")
 loopComboBtn.Size             = UDim2.new(1, -12, 0, 26)
 loopComboBtn.Position         = UDim2.new(0, 6, 0, 106)
@@ -5591,7 +5356,6 @@ loopStroke.Color        = Color3.fromRGB(60, 60, 90)
 loopStroke.Thickness    = 1
 loopStroke.Transparency = 0.5
 loopStroke.Parent       = loopComboBtn
--- Sol taraftaki loop ikonu (Icons.Refresh asset'i)
 local loopIcon = Instance.new("ImageLabel")
 loopIcon.Size                   = UDim2.new(0, 14, 0, 14)
 loopIcon.Position               = UDim2.new(0, 8, 0.5, -7)
@@ -5600,7 +5364,6 @@ loopIcon.Image                  = ResolveAssetImage(Icons.Refresh)
 loopIcon.ImageColor3            = Color3.fromRGB(120, 120, 148)
 loopIcon.ZIndex                 = 10
 loopIcon.Parent                 = loopComboBtn
--- İkona yer açmak için text'i sağa kaydır
 loopComboBtn.TextXAlignment = Enum.TextXAlignment.Center
 
 loopComboBtn.MouseButton1Click:Connect(function()
@@ -5639,7 +5402,6 @@ Instance.new("UICorner", clearComboBtn).CornerRadius = UDim.new(0, 8)
 addComboBtn.MouseButton1Click:Connect(function()
 	if #comboQueue_UI >= 3 then return end
 	if not _currentInfoId then
-		-- Emote seçilmedi — butonu kısa süre kırmızı yak
 		local origCol = addComboBtn.BackgroundColor3
 		addComboBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
 		addComboBtn.Text = L.selectFirst
@@ -5671,7 +5433,6 @@ clearComboBtn.MouseButton1Click:Connect(function()
 	isComboActive    = false
 	ComboQueue       = {}
 	_comboLoopList   = {}
-	-- Loop kapatılsın
 	if _comboLoopEnabled then
 		_comboLoopEnabled             = false
 		loopComboBtn.Text             = L.loopText .. ": " .. L.off
@@ -5688,7 +5449,6 @@ clearComboBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
--- Tema değişince loop butonu aktifse yeni accent rengine güncelle
 do
 	local _prevApply = ApplyTheme
 	ApplyTheme = function(name)
@@ -5703,5 +5463,5 @@ do
 	end
 end
 
-end -- _VexroExtend kapatiliyor
+end
 _VexroExtend()
