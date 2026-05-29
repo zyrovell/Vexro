@@ -94,7 +94,6 @@ local function LoadData()
 		if readfile and isfile and isfile(DATA_FILE) then
 			local data = HttpService:JSONDecode(readfile(DATA_FILE))
 			if data then
-				-- FIX: ID
 				Favorites = {}
 				if data.favorites then
 					for _, v in pairs(data.favorites) do
@@ -1237,13 +1236,13 @@ local function PlayEmote(id, name, silent)
 	local animator = GetAnimator()
 	if not animator then return end
 	
-	-- FIX: Yeni emote çalmadan önce eski emoteyi durdur (hareket etmeden geçişte takılmayı önler)
+	-- Yeni emote çalmadan önce eski emoteyi durdur (hareket etmeden geçişte takılmayı önler)
 	StopAllTracks()
 	
-	-- MODIFIED: Save last played emote for Auto-Reload (Continue)
+	-- Son oynatılan emote'u kaydet (auto-reload için)
 	_genv().lastVexroEmote = {id = id, name = name}
 	
-	-- FIX: Catalog ID'leri direkt LoadAnimation ile çalışmadığı için game:GetObjects ile asıl Animation'ı çekiyoruz.
+	-- Catalog ID'leri direkt LoadAnimation ile çalışmadığı için game:GetObjects ile asıl Animation'ı çekiyoruz.
 	-- Cache kullanarak tekrarlanan çağrılardan kaynaklanan kasılmayı önlüyoruz.
 	local success, err = pcall(function()
 		local anim = _animCache[id]
@@ -1863,7 +1862,7 @@ randBtn.MouseButton1Click:Connect(function()
 		local r = currentData[math.random(#currentData)]
 		local speedTxt = Settings.speed ~= 1 and " (" .. Settings.speed .. "x)" or ""
 		Notify("[~] " .. L.playing .. speedTxt, r.name)
-		PlayEmote(r.id, r.name, true) -- Passing true to silence the default notification
+		PlayEmote(r.id, r.name, true) -- true = varsayılan bildirimi atla
 	end
 end)
 
