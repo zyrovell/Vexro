@@ -1303,9 +1303,9 @@ end
 -- MAIN MENU
 -- ===============================================================
 
--- TARGET CARD SIZES (Made larger for better visibility)
-local TARGET_PC_CARD = 75 -- Was 75
-local TARGET_MOBILE_CARD = 55 -- Was 55
+-- TARGET CARD SIZES
+local TARGET_PC_CARD = 75
+local TARGET_MOBILE_CARD = 55
 
 local function GetDefaultSize()
 	-- Calculate width needed for 7 columns exactly + padding
