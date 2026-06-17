@@ -1,5 +1,6 @@
 -- Made by zyrovell
 -- Roblox: Oyuncu15q Scriptblox: https://scriptblox.com/u/Zyrovell
+-- Inspired by Sametexe001 Github: https://github.com/sametexe001
 
 if getgenv().Library and getgenv().Library.Exit then
     getgenv().Library:Exit()
