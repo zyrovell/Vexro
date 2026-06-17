@@ -16,6 +16,7 @@ local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 local HttpService = game:GetService("HttpService")
 local TweenService = game:GetService("TweenService")
+local MarketplaceService = game:GetService("MarketplaceService")
 local CoreGui = cloneref(game:GetService("CoreGui"))
 --#endregion
 
@@ -31,6 +32,8 @@ if Icons then
     Icons.SetIconsType("lucide")
 end
 
+local AssetImageCache = { }
+
 local function GetAssetImage(iconName)
     if type(iconName) ~= "string" then
         return iconName
@@ -38,7 +41,46 @@ local function GetAssetImage(iconName)
 
     local assetId = iconName:match("^rbxassetid://(%d+)$") or iconName:match("^(%d+)$")
     if assetId then
-        return "rbxthumb://type=Asset&id=" .. assetId .. "&w=420&h=420"
+        if AssetImageCache[assetId] then
+            return AssetImageCache[assetId]
+        end
+
+        local resolvedImage = nil
+
+        pcall(function()
+            if game.GetObjects then
+                local objects = game:GetObjects("rbxassetid://" .. assetId)
+                local object = objects and objects[1]
+
+                if object then
+                    if object:IsA("Decal") or object:IsA("Texture") then
+                        resolvedImage = object.Texture
+                    elseif object:IsA("ImageLabel") or object:IsA("ImageButton") then
+                        resolvedImage = object.Image
+                    end
+
+                    pcall(function()
+                        object:Destroy()
+                    end)
+                end
+            end
+        end)
+
+        if not resolvedImage or resolvedImage == "" then
+            pcall(function()
+                local info = MarketplaceService:GetProductInfo(tonumber(assetId))
+                if info and info.IconImageAssetId and info.IconImageAssetId ~= 0 then
+                    resolvedImage = "rbxassetid://" .. tostring(info.IconImageAssetId)
+                end
+            end)
+        end
+
+        if not resolvedImage or resolvedImage == "" then
+            resolvedImage = "rbxassetid://" .. assetId
+        end
+
+        AssetImageCache[assetId] = resolvedImage
+        return resolvedImage
     end
 
     return iconName
@@ -65,7 +107,7 @@ local function CreateIcon(iconName, size, colorOrTheme)
         elseif typeof(colorOrTheme) == "Color3" then
             colors = { colorOrTheme }
         else
-            colors = { Color3.fromRGB(230, 230, 235) }
+            colors = { Color3.fromRGB(235, 246, 255) }
         end
 
         local ok, iconObj = pcall(function()
@@ -87,7 +129,7 @@ local function CreateIcon(iconName, size, colorOrTheme)
     local img = Instance.new("ImageLabel")
     img.BackgroundTransparency = 1
     img.Size = size or UDim2.fromOffset(18, 18)
-    img.ImageColor3 = (typeof(colorOrTheme) == "Color3" and colorOrTheme) or Color3.fromRGB(230, 230, 235)
+    img.ImageColor3 = (typeof(colorOrTheme) == "Color3" and colorOrTheme) or Color3.fromRGB(235, 246, 255)
     img.Image = "rbxassetid://0"
     return img
 end
@@ -142,7 +184,7 @@ local function ApplyIconToContainer(container, iconName, size, colorOrTheme)
         elseif typeof(colorOrTheme) == "Color3" then
             colors = { colorOrTheme }
         else
-            colors = { Color3.fromRGB(230, 230, 235) }
+            colors = { Color3.fromRGB(235, 246, 255) }
         end
         
         local ok, iconObj = pcall(function()
@@ -170,7 +212,7 @@ local function ApplyIconToContainer(container, iconName, size, colorOrTheme)
         if typeof(colorOrTheme) == "Color3" then
             colors = { colorOrTheme }
         else
-            colors = { Color3.fromRGB(230, 230, 235) }
+            colors = { Color3.fromRGB(235, 246, 255) }
         end
         
         local ok, iconObj = pcall(function()
@@ -335,15 +377,15 @@ local Library = {
 
     local Themes = {
         ["Preset"] = {
-            ["Background"] = Color3.fromRGB(44, 94, 173),
-            ["Inline"] = Color3.fromRGB(21, 145, 220),
+            ["Background"] = Color3.fromRGB(10, 16, 28),
+            ["Inline"] = Color3.fromRGB(14, 25, 42),
             ["Accent Start"] = Color3.fromRGB(75, 184, 250),
             ["Accent End"] = Color3.fromRGB(21, 145, 220),
-            ["Text"] = Color3.fromRGB(196, 226, 245),
-            ["Text 2"] = Color3.fromRGB(196, 226, 245),
-            ["Element"] = Color3.fromRGB(44, 94, 173),
-            ["Hovered Element"] = Color3.fromRGB(75, 184, 250),
-            ["Topbar"] = Color3.fromRGB(44, 94, 173)
+            ["Text"] = Color3.fromRGB(235, 246, 255),
+            ["Text 2"] = Color3.fromRGB(142, 166, 190),
+            ["Element"] = Color3.fromRGB(20, 43, 68),
+            ["Hovered Element"] = Color3.fromRGB(30, 71, 111),
+            ["Topbar"] = Color3.fromRGB(14, 31, 54)
         }
     }
 
@@ -1074,7 +1116,7 @@ local Library = {
                     Size = UDim2.new(0, 24, 0, 18),
                     BorderSizePixel = 0,
                     TextSize = 14,
-                    BackgroundColor3 = Color3.fromRGB(196, 226, 245)
+                    BackgroundColor3 = Color3.fromRGB(235, 246, 255)
                 })
                 
                 Library:Create("UICorner", {
@@ -1096,7 +1138,7 @@ local Library = {
                     Size = UDim2.new(0, 215, 0, 215),
                     BorderSizePixel = 0,
                     TextSize = 14,
-                    BackgroundColor3 = Color3.fromRGB(18, 18, 20)
+                    BackgroundColor3 = Color3.fromRGB(10, 16, 28)
                 }):AddToTheme({BackgroundColor3 = "Background"})
                 
                 Library:Create("UICorner", {
@@ -1116,7 +1158,7 @@ local Library = {
                     Size = UDim2.new(1, -20, 1, -100),
                     BorderSizePixel = 0,
                     TextSize = 14,
-                    BackgroundColor3 = Color3.fromRGB(196, 226, 245)
+                    BackgroundColor3 = Color3.fromRGB(235, 246, 255)
                 })
                 
                 Library:Create("UICorner", {
@@ -1279,7 +1321,7 @@ local Library = {
                     Size = UDim2.new(1, -20, 0, 20),
                     BorderSizePixel = 0,
                     TextSize = 14,
-                    BackgroundColor3 = Color3.fromRGB(196, 226, 245)
+                    BackgroundColor3 = Color3.fromRGB(235, 246, 255)
                 })
                 
                 Library:Create("UICorner", {
@@ -1664,7 +1706,7 @@ local Library = {
                     Parent = Data.Parent.Instance,
                     Name = "\0",
                     FontFace = Library.Font,
-                    TextColor3 = Color3.fromRGB(220, 229, 247),
+                    TextColor3 = Color3.fromRGB(235, 246, 255),
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
                     Text = "BackSpace",
                     AutoButtonColor = false,
@@ -1672,7 +1714,7 @@ local Library = {
                     BorderSizePixel = 0,
                     AutomaticSize = Enum.AutomaticSize.X,
                     TextSize = 14,
-                    BackgroundColor3 = Color3.fromRGB(24, 24, 27)
+                    BackgroundColor3 = Color3.fromRGB(20, 43, 68)
                 }):AddToTheme({TextColor3 = "Text", BackgroundColor3 = "Element"})
 
                 Items["KeyButton"]:OnHover(function()
@@ -1708,7 +1750,7 @@ local Library = {
                     Size = UDim2.new(0, 241, 0, 71),
                     BorderSizePixel = 0,
                     TextSize = 14,
-                    BackgroundColor3 = Color3.fromRGB(18, 18, 20)
+                    BackgroundColor3 = Color3.fromRGB(10, 16, 28)
                 })
                 
                 Library:Create("UICorner", {
@@ -2071,7 +2113,7 @@ local Library = {
                     Visible = false,
                     BackgroundTransparency = 1,
                     BorderSizePixel = 0,
-                    BackgroundColor3 = Color3.fromRGB(18, 18, 20)
+                    BackgroundColor3 = Color3.fromRGB(10, 16, 28)
                 }):AddToTheme({BackgroundColor3 = "Background"})
 
                 Items["MainFrame"]:MakeDraggable()
@@ -2088,7 +2130,7 @@ local Library = {
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
                     Size = UDim2.new(1, 0, 0, 35),
                     BorderSizePixel = 0,
-                    BackgroundColor3 = Color3.fromRGB(28, 28, 29)
+                    BackgroundColor3 = Color3.fromRGB(14, 31, 54)
                 }):AddToTheme({BackgroundColor3 = "Topbar"})
                 
                 Library:Create("UICorner", {
@@ -2104,7 +2146,7 @@ local Library = {
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
                     Size = UDim2.new(1, 0, 0, 6),
                     BorderSizePixel = 0,
-                    BackgroundColor3 = Color3.fromRGB(28, 28, 29)
+                    BackgroundColor3 = Color3.fromRGB(14, 31, 54)
                 }):AddToTheme({BackgroundColor3 = "Topbar"})
                 
                 Items["Logo"] = Library:Create("ImageLabel", {
@@ -2136,7 +2178,7 @@ local Library = {
                     Name = "\0",
                     FontFace = Library.Font,
                     RichText = true,
-                    TextColor3 = Color3.fromRGB(220, 229, 247),
+                    TextColor3 = Color3.fromRGB(235, 246, 255),
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
                     Text = Window.Name,
                     Size = UDim2.new(0, 0, 0, 15),
@@ -2175,7 +2217,7 @@ local Library = {
                 Items["CloseButton"] = Library:Create("ImageButton", {
                     Parent = Items["Top"].Instance,
                     Name = "\0",
-                    ImageColor3 = Color3.fromRGB(220, 229, 247),
+                    ImageColor3 = Color3.fromRGB(235, 246, 255),
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
                     AutoButtonColor = false,
                     AnchorPoint = Vector2.new(1, 0.5),
@@ -2190,7 +2232,7 @@ local Library = {
                 Items["FullScreenButton"] = Library:Create("ImageButton", {
                     Parent = Items["Top"].Instance,
                     Name = "\0",
-                    ImageColor3 = Color3.fromRGB(220, 229, 247),
+                    ImageColor3 = Color3.fromRGB(235, 246, 255),
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
                     AutoButtonColor = false,
                     AnchorPoint = Vector2.new(1, 0.5),
@@ -2205,7 +2247,7 @@ local Library = {
                 Items["MinimizeButton"] = Library:Create("ImageButton", {
                     Parent = Items["Top"].Instance,
                     Name = "\0",
-                    ImageColor3 = Color3.fromRGB(220, 229, 247),
+                    ImageColor3 = Color3.fromRGB(235, 246, 255),
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
                     AutoButtonColor = false,
                     AnchorPoint = Vector2.new(1, 0.5),
@@ -2230,7 +2272,7 @@ local Library = {
                     AutomaticCanvasSize = Enum.AutomaticSize.Y,
                     CanvasSize = UDim2.new(0, 0, 0, 0),
                     ScrollBarThickness = 2,
-                    ScrollBarImageColor3 = Color3.fromRGB(60, 60, 65),
+                    ScrollBarImageColor3 = Color3.fromRGB(54, 92, 130),
                     ScrollBarImageTransparency = 0.5
                 })
                 
@@ -2257,7 +2299,7 @@ local Library = {
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
                     Size = UDim2.new(1, -240, 1, -66),
                     BorderSizePixel = 0,
-                    BackgroundColor3 = Color3.fromRGB(15, 15, 16)
+                    BackgroundColor3 = Color3.fromRGB(14, 25, 42)
                 }):AddToTheme({BackgroundColor3 = "Inline"})
                 
                 Library:Create("UICorner", {
@@ -2279,7 +2321,7 @@ local Library = {
                     Size = UDim2.new(1, 0, 1, 0),
                     ZIndex = 99,
                     TextSize = 14,
-                    BackgroundColor3 = Color3.fromRGB(18, 18, 20)
+                    BackgroundColor3 = Color3.fromRGB(10, 16, 28)
                 })
 
                 Library:Create("UICorner", {
@@ -2322,7 +2364,7 @@ local Library = {
                 AnchorPoint = toggleAnchor,
                 Position = togglePos,
                 Size = toggleSize,
-                BackgroundColor3 = Color3.fromRGB(24, 24, 27),
+                BackgroundColor3 = Color3.fromRGB(20, 43, 68),
                 BorderSizePixel = 0,
                 Text = "",
                 AutoButtonColor = false
@@ -2338,12 +2380,12 @@ local Library = {
                 Parent = Items["ToggleButton"].Instance,
                 Name = "\0",
                 ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-                Color = Color3.fromRGB(37, 37, 37),
+                Color = Color3.fromRGB(54, 92, 130),
                 Thickness = 1.5
             })
 
             -- Add the logo icon to the toggle button
-            local toggleIcon = CreateIcon(Window.Logo, toggleIconSize, Color3.fromRGB(220, 229, 247))
+            local toggleIcon = CreateIcon(Window.Logo, toggleIconSize, Color3.fromRGB(235, 246, 255))
             toggleIcon.AnchorPoint = Vector2.new(0.5, 0.5)
             toggleIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
             toggleIcon.Parent = Items["ToggleButton"].Instance
@@ -2390,7 +2432,7 @@ local Library = {
                         Size = UDim2.new(0, 350, 0, 155),
                         ZIndex = 99,
                         BorderSizePixel = 0,
-                        BackgroundColor3 = Color3.fromRGB(15, 15, 16)
+                        BackgroundColor3 = Color3.fromRGB(14, 25, 42)
                     }):AddToTheme({BackgroundColor3 = "Inline"})
                     
                     Library:Create("UICorner", {
@@ -2438,7 +2480,7 @@ local Library = {
                         Parent = PromptItems["Dialog"].Instance,
                         Name = "\0",
                         ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-                        Color = Color3.fromRGB(26, 26, 26),
+                        Color = Color3.fromRGB(14, 25, 42),
                         Thickness = 1.399999976158142
                     })  
                     
@@ -2511,7 +2553,7 @@ local Library = {
                             Size = UDim2.new(1, -2, 1, 0),
                             ZIndex = 99,
                             TextSize = 14,
-                            BackgroundColor3 = Color3.fromRGB(24, 24, 27)
+                            BackgroundColor3 = Color3.fromRGB(20, 43, 68)
                         }):AddToTheme({BackgroundColor3 = "Element"})
                         
                         Library:Create("UICorner", {
@@ -2524,7 +2566,7 @@ local Library = {
                             Parent = ButtonItems["ButtonBackground"].Instance,
                             Name = "\0",
                             FontFace = Library.Font,
-                            TextColor3 = Color3.fromRGB(220, 229, 247),
+                            TextColor3 = Color3.fromRGB(235, 246, 255),
                             BorderColor3 = Color3.fromRGB(0, 0, 0),
                             Text = Name,
                             AutomaticSize = Enum.AutomaticSize.X,
@@ -2626,7 +2668,7 @@ local Library = {
                 -- Main notification frame
                 local NotifFrame = Instance.new("Frame")
                 NotifFrame.Name = "Notification"
-                NotifFrame.BackgroundColor3 = Library.Theme and Library.Theme.Background or Color3.fromRGB(18, 18, 20)
+                NotifFrame.BackgroundColor3 = Library.Theme and Library.Theme.Background or Color3.fromRGB(10, 16, 28)
                 NotifFrame.Size = UDim2.new(1, 0, 0, 0)
                 NotifFrame.AutomaticSize = Enum.AutomaticSize.Y
                 NotifFrame.ClipsDescendants = true
@@ -2637,7 +2679,7 @@ local Library = {
                 NotifCorner.Parent = NotifFrame
 
                 local NotifStroke = Instance.new("UIStroke")
-                NotifStroke.Color = Library.Theme and Library.Theme.Outline or Color3.fromRGB(37, 37, 37)
+                NotifStroke.Color = Library.Theme and Library.Theme.Outline or Color3.fromRGB(54, 92, 130)
                 NotifStroke.Thickness = 1
                 NotifStroke.Parent = NotifFrame
 
@@ -2656,7 +2698,7 @@ local Library = {
                 TitleLabel.Size = UDim2.new(1, 0, 0, 18)
                 TitleLabel.Font = Enum.Font.GothamBold
                 TitleLabel.Text = Title
-                TitleLabel.TextColor3 = Library.Theme and Library.Theme.Text or Color3.fromRGB(230, 230, 235)
+                TitleLabel.TextColor3 = Library.Theme and Library.Theme.Text or Color3.fromRGB(235, 246, 255)
                 TitleLabel.TextSize = 14
                 TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
                 TitleLabel.Parent = NotifFrame
@@ -2670,7 +2712,7 @@ local Library = {
                 DescLabel.AutomaticSize = Enum.AutomaticSize.Y
                 DescLabel.Font = Enum.Font.Gotham
                 DescLabel.Text = Description
-                DescLabel.TextColor3 = Library.Theme and Library.Theme["Text Dark"] or Color3.fromRGB(150, 150, 155)
+                DescLabel.TextColor3 = Library.Theme and Library.Theme["Text Dark"] or Color3.fromRGB(142, 166, 190)
                 DescLabel.TextSize = 12
                 DescLabel.TextXAlignment = Enum.TextXAlignment.Left
                 DescLabel.TextWrapped = true
@@ -2679,7 +2721,7 @@ local Library = {
                 -- Progress bar at bottom
                 local ProgressBg = Instance.new("Frame")
                 ProgressBg.Name = "ProgressBg"
-                ProgressBg.BackgroundColor3 = Library.Theme and Library.Theme.Inline or Color3.fromRGB(30, 30, 32)
+                ProgressBg.BackgroundColor3 = Library.Theme and Library.Theme.Inline or Color3.fromRGB(14, 25, 42)
                 ProgressBg.Size = UDim2.new(1, 24, 0, 3)
                 ProgressBg.Position = UDim2.new(0, -12, 1, 7)
                 ProgressBg.BorderSizePixel = 0
@@ -2830,7 +2872,7 @@ local Library = {
                     Size = UDim2.new(1, 0, 0, 60),
                     BorderSizePixel = 0,
                     TextSize = 14,
-                    BackgroundColor3 = Color3.fromRGB(15, 15, 16)
+                    BackgroundColor3 = Color3.fromRGB(14, 25, 42)
                 }):AddToTheme({BackgroundColor3 = "Inline"})
                 
                 Library:Create("UICorner", {
@@ -2859,7 +2901,7 @@ local Library = {
                     Parent = Items["IconBackground"].Instance,
                     Name = "\0",
                     ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-                    Color = Color3.fromRGB(37, 37, 37),
+                    Color = Color3.fromRGB(54, 92, 130),
                     Thickness = 1.399999976158142
                 })
                 
@@ -2928,7 +2970,7 @@ local Library = {
                     Parent = Items["Inactive"].Instance,
                     Name = "\0",
                     FontFace = Library.Font,
-                    TextColor3 = Color3.fromRGB(220, 229, 247),
+                    TextColor3 = Color3.fromRGB(235, 246, 255),
                     TextTransparency = 0.5,
                     Text = Page.Name,
                     Size = UDim2.new(0, 0, 0, 15),
@@ -2945,7 +2987,7 @@ local Library = {
                     Parent = Items["Inactive"].Instance,
                     Name = "\0",
                     FontFace = Library.Font,
-                    TextColor3 = Color3.fromRGB(220, 229, 247),
+                    TextColor3 = Color3.fromRGB(235, 246, 255),
                     TextTransparency = 0.800000011920929,
                     Text = Page.Description,
                     Size = UDim2.new(0, 0, 0, 15),
@@ -2981,7 +3023,7 @@ local Library = {
                     AutomaticCanvasSize = Enum.AutomaticSize.X,
                     CanvasSize = UDim2.new(0, 0, 0, 0),
                     ScrollBarThickness = 2,
-                    ScrollBarImageColor3 = Color3.fromRGB(60, 60, 65),
+                    ScrollBarImageColor3 = Color3.fromRGB(54, 92, 130),
                     ScrollBarImageTransparency = 0.5
                 })                
 
@@ -3021,7 +3063,7 @@ local Library = {
                         BorderColor3 = Color3.fromRGB(0, 0, 0),
                         Size = UDim2.new(1, -20, 0, 35),
                         BorderSizePixel = 0,
-                        BackgroundColor3 = Color3.fromRGB(18, 18, 20)
+                        BackgroundColor3 = Color3.fromRGB(10, 16, 28)
                     }):AddToTheme({BackgroundColor3 = "Background"})
                     
                     Library:Create("UICorner", {
@@ -3033,7 +3075,7 @@ local Library = {
                         Parent = Items["Search"].Instance,
                         Name = "\0",
                         FontFace = Library.Font,
-                        TextColor3 = Color3.fromRGB(220, 229, 247),
+                        TextColor3 = Color3.fromRGB(235, 246, 255),
                         BorderColor3 = Color3.fromRGB(0, 0, 0),
                         Text = "",
                         Size = UDim2.new(0, 0, 0, 15),
@@ -3041,7 +3083,7 @@ local Library = {
                         AnchorPoint = Vector2.new(0, 0.5),
                         BorderSizePixel = 0,
                         BackgroundTransparency = 1,
-                        PlaceholderColor3 = Color3.fromRGB(145, 151, 163),
+                        PlaceholderColor3 = Color3.fromRGB(142, 166, 190),
                         AutomaticSize = Enum.AutomaticSize.X,
                         PlaceholderText = "Search..",
                         TextSize = 14,
@@ -3098,7 +3140,7 @@ local Library = {
                         Items["Columns"]:Tween({Position = UDim2.new(0, 0, 0, 80)})
                     end
                     Items["Gradient"].Instance.Enabled = false 
-                    Items["UIStroke"].Instance.Color = Color3.fromRGB(37, 37, 37)
+                    Items["UIStroke"].Instance.Color = Color3.fromRGB(54, 92, 130)
 
                     Items["Text"]:Tween({TextTransparency = 0.5})
                     Items["Description"]:ChangeItemTheme({TextColor3 = "Text"})
@@ -3211,7 +3253,7 @@ local Library = {
                     Items["Icon"] = Library:Create("ImageLabel", {
                         Parent = Items["IconContainer"].Instance,
                         Name = "\0",
-                        ImageColor3 = Color3.fromRGB(220, 229, 247),
+                        ImageColor3 = Color3.fromRGB(235, 246, 255),
                         ImageTransparency = 0.800000011920929,
                         BorderColor3 = Color3.fromRGB(0, 0, 0),
                         Size = UDim2.new(1, 0, 1, 0),
@@ -3255,7 +3297,7 @@ local Library = {
                         Items["Icon"] = Library:Create("ImageLabel", {
                             Parent = Items["IconContainer"].Instance,
                             Name = "\0",
-                            ImageColor3 = Color3.fromRGB(220, 229, 247),
+                            ImageColor3 = Color3.fromRGB(235, 246, 255),
                             ImageTransparency = 0.800000011920929,
                             BorderColor3 = Color3.fromRGB(0, 0, 0),
                             Size = UDim2.new(1, 0, 1, 0),
@@ -3326,7 +3368,7 @@ local Library = {
                         BackgroundTransparency = 1,
                         Text = Page.Name,
                         Font = Enum.Font.GothamMedium,
-                        TextColor3 = Color3.fromRGB(220, 229, 247),
+                        TextColor3 = Color3.fromRGB(235, 246, 255),
                         TextTransparency = 0.8,
                         TextTruncate = Enum.TextTruncate.AtEnd,
                         ZIndex = 2,
@@ -3532,7 +3574,7 @@ local Library = {
                     Parent = Items["Section"].Instance,
                     Name = "\0",
                     FontFace = Library.Font,
-                    TextColor3 = Color3.fromRGB(220, 229, 247),
+                    TextColor3 = Color3.fromRGB(235, 246, 255),
                     TextTransparency = 0.699999988079071,
                     Text = Section.Name,
                     Size = UDim2.new(0, 0, 0, 15),
@@ -3551,7 +3593,7 @@ local Library = {
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
                     Size = UDim2.new(1, 0, 1, -25),
                     BorderSizePixel = 0,
-                    BackgroundColor3 = Color3.fromRGB(18, 18, 20)
+                    BackgroundColor3 = Color3.fromRGB(10, 16, 28)
                 }):AddToTheme({BackgroundColor3 = "Background"})
                 
                 Items["Content"] = Library:Create("Frame", {
@@ -3616,7 +3658,7 @@ local Library = {
                     Size = UDim2.new(1, 40, 1, 0),
                     Selectable = false,
                     BorderSizePixel = 0,
-                    BackgroundColor3 = Color3.fromRGB(18, 18, 20)
+                    BackgroundColor3 = Color3.fromRGB(10, 16, 28)
                 }):AddToTheme({BackgroundColor3 = "Background"})
 
                 Library:Create("UICorner", {
@@ -3701,7 +3743,7 @@ local Library = {
                         Size = UDim2.new(1, 40, 1, 0),
                         Selectable = false,
                         BorderSizePixel = 0,
-                        BackgroundColor3 = Color3.fromRGB(18, 18, 20)
+                        BackgroundColor3 = Color3.fromRGB(10, 16, 28)
                     }):AddToTheme({BackgroundColor3 = "Background"})
                     
                     Library:Create("UICorner", {
@@ -3719,7 +3761,7 @@ local Library = {
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
                     Size = UDim2.new(0, 20, 0, 20),
                     BorderSizePixel = 0,
-                    BackgroundColor3 = Color3.fromRGB(24, 24, 27),
+                    BackgroundColor3 = Color3.fromRGB(20, 43, 68),
                     Text = "",
                     AutoButtonColor = false
                 }):AddToTheme({BackgroundColor3 = "Element"})
@@ -3763,7 +3805,7 @@ local Library = {
                     Parent = Items["Toggle"].Instance,
                     Name = "\0",
                     FontFace = Library.Font,
-                    TextColor3 = Color3.fromRGB(220, 229, 247),
+                    TextColor3 = Color3.fromRGB(235, 246, 255),
                     TextTransparency = 0.699999988079071,
                     Text = Toggle.Name,
                     Size = UDim2.new(0, 0, 0, 15),
@@ -3811,7 +3853,7 @@ local Library = {
                     Size = UDim2.new(0, 150, 0, 30),
                     BorderSizePixel = 0,
                     TextSize = 14,
-                    BackgroundColor3 = Color3.fromRGB(18, 13, 17)
+                    BackgroundColor3 = Color3.fromRGB(10, 16, 28)
                 }):AddToTheme({BackgroundColor3 = "Background"})
                 
                 Library:Create("UICorner", {
@@ -3823,7 +3865,7 @@ local Library = {
                 Library:Create("UIStroke", {
                     Parent = Items["AddKeybind"].Instance,
                     Name = "\0",
-                    Color = Color3.fromRGB(26, 23, 25),
+                    Color = Color3.fromRGB(14, 25, 42),
                     ApplyStrokeMode = Enum.ApplyStrokeMode.Border
                 }):AddToTheme({Color = "Inline"})
                 
@@ -3831,7 +3873,7 @@ local Library = {
                     Parent = Items["AddKeybind"].Instance,
                     Name = "\0",
                     FontFace = Library.Font,
-                    TextColor3 = Color3.fromRGB(210, 210, 210),
+                    TextColor3 = Color3.fromRGB(235, 246, 255),
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
                     Text = "Add Keybind",
                     AnchorPoint = Vector2.new(0.5, 0.5),
@@ -4088,7 +4130,7 @@ local Library = {
                         Size = UDim2.new(1, 40, 1, 0),
                         Selectable = false,
                         BorderSizePixel = 0,
-                        BackgroundColor3 = Color3.fromRGB(18, 18, 20)
+                        BackgroundColor3 = Color3.fromRGB(10, 16, 28)
                     }):AddToTheme({BackgroundColor3 = "Background"})
                     
                     Library:Create("UICorner", {
@@ -4102,7 +4144,7 @@ local Library = {
                     Parent = Items["ButtonBackground"].Instance,
                     Name = "\0",
                     FontFace = Library.Font,
-                    TextColor3 = Color3.fromRGB(220, 229, 247),
+                    TextColor3 = Color3.fromRGB(235, 246, 255),
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
                     Text = Button.Name,
                     AutomaticSize = Enum.AutomaticSize.X,
@@ -4146,7 +4188,7 @@ local Library = {
                     Size = UDim2.new(1, -2, 1, 0),
                     BorderSizePixel = 0,
                     TextSize = 14,
-                    BackgroundColor3 = Color3.fromRGB(24, 24, 27)
+                    BackgroundColor3 = Color3.fromRGB(20, 43, 68)
                 }):AddToTheme({BackgroundColor3 = "Element"})
                 
                 Library:Create("UICorner", {
@@ -4256,7 +4298,7 @@ local Library = {
                         Size = UDim2.new(1, 40, 1, 0),
                         Selectable = false,
                         BorderSizePixel = 0,
-                        BackgroundColor3 = Color3.fromRGB(18, 18, 20)
+                        BackgroundColor3 = Color3.fromRGB(10, 16, 28)
                     }):AddToTheme({BackgroundColor3 = "Background"})
                     
                     Library:Create("UICorner", {
@@ -4270,7 +4312,7 @@ local Library = {
                     Parent = Items["Slider"].Instance,
                     Name = "\0",
                     FontFace = Library.Font,
-                    TextColor3 = Color3.fromRGB(220, 229, 247),
+                    TextColor3 = Color3.fromRGB(235, 246, 255),
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
                     Text = Slider.Name,
                     BackgroundTransparency = 1,
@@ -4295,7 +4337,7 @@ local Library = {
                     Size = UDim2.new(1, 0, 0, 10),
                     BorderSizePixel = 0,
                     TextSize = 14,
-                    BackgroundColor3 = Color3.fromRGB(24, 24, 27)
+                    BackgroundColor3 = Color3.fromRGB(20, 43, 68)
                 }):AddToTheme({BackgroundColor3 = "Element"})
                 
                 Library:Create("UICorner", {
@@ -4334,7 +4376,7 @@ local Library = {
                     Parent = Items["Accent"].Instance,
                     Name = "\0",
                     FontFace = Library.Font,
-                    TextColor3 = Color3.fromRGB(220, 229, 247),
+                    TextColor3 = Color3.fromRGB(235, 246, 255),
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
                     Text = "50%",
                     AnchorPoint = Vector2.new(0, 0.5),
@@ -4357,7 +4399,7 @@ local Library = {
                     Parent = Items["Slider"].Instance,
                     Name = "\0",
                     FontFace = Library.Font,
-                    TextColor3 = Color3.fromRGB(220, 229, 247),
+                    TextColor3 = Color3.fromRGB(235, 246, 255),
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
                     Text = "-",
                     AutoButtonColor = false,
@@ -4374,7 +4416,7 @@ local Library = {
                     Parent = Items["Slider"].Instance,
                     Name = "\0",
                     FontFace = Library.Font,
-                    TextColor3 = Color3.fromRGB(220, 229, 247),
+                    TextColor3 = Color3.fromRGB(235, 246, 255),
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
                     Text = "+",
                     AutoButtonColor = false,
@@ -4573,7 +4615,7 @@ local Library = {
                         Size = UDim2.new(1, 40, 1, 0),
                         Selectable = false,
                         BorderSizePixel = 0,
-                        BackgroundColor3 = Color3.fromRGB(18, 18, 20)
+                        BackgroundColor3 = Color3.fromRGB(10, 16, 28)
                     }):AddToTheme({BackgroundColor3 = "Background"})
                     
                     Library:Create("UICorner", {
@@ -4587,7 +4629,7 @@ local Library = {
                     Parent = Items["Dropdown"].Instance,
                     Name = "\0",
                     FontFace = Library.Font,
-                    TextColor3 = Color3.fromRGB(220, 229, 247),
+                    TextColor3 = Color3.fromRGB(235, 246, 255),
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
                     Text = Dropdown.Name,
                     BackgroundTransparency = 1,
@@ -4643,7 +4685,7 @@ local Library = {
                     Size = UDim2.new(1, -2, 1, 0),
                     BorderSizePixel = 0,
                     TextSize = 14,
-                    BackgroundColor3 = Color3.fromRGB(24, 24, 27)
+                    BackgroundColor3 = Color3.fromRGB(20, 43, 68)
                 }):AddToTheme({BackgroundColor3 = "Element"})
                 
                 Library:Create("UICorner", {
@@ -4656,7 +4698,7 @@ local Library = {
                     Parent = Items["RealDropdown"].Instance,
                     Name = "\0",
                     FontFace = Library.Font,
-                    TextColor3 = Color3.fromRGB(220, 229, 247),
+                    TextColor3 = Color3.fromRGB(235, 246, 255),
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
                     Text = "",
                     AnchorPoint = Vector2.new(0, 0.5),
@@ -4682,7 +4724,7 @@ local Library = {
                 Items["Arrow"] = Library:Create("ImageLabel", {
                     Parent = Items["RealDropdown"].Instance,
                     Name = "\0",
-                    ImageColor3 = Color3.fromRGB(220, 229, 247),
+                    ImageColor3 = Color3.fromRGB(235, 246, 255),
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
                     AnchorPoint = Vector2.new(1, 0.5),
                     Image = "rbxassetid://130111928866688",
@@ -4706,7 +4748,7 @@ local Library = {
                     Size = UDim2.new(0, 263, 0, 146),
                     BorderSizePixel = 0,
                     TextSize = 14,
-                    BackgroundColor3 = Color3.fromRGB(18, 18, 20)
+                    BackgroundColor3 = Color3.fromRGB(10, 16, 28)
                 }):AddToTheme({BackgroundColor3 = "Background"})
                 
                 Library:Create("UICorner", {
@@ -4721,7 +4763,7 @@ local Library = {
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
                     Size = UDim2.new(1, -20, 0, 35),
                     BorderSizePixel = 0,
-                    BackgroundColor3 = Color3.fromRGB(24, 24, 26)
+                    BackgroundColor3 = Color3.fromRGB(20, 43, 68)
                 }):AddToTheme({BackgroundColor3 = "Element"})
                 
                 Library:Create("UICorner", {
@@ -4746,7 +4788,7 @@ local Library = {
                     Parent = Items["Search"].Instance,
                     Name = "\0",
                     FontFace = Library.Font,
-                    TextColor3 = Color3.fromRGB(220, 229, 247),
+                    TextColor3 = Color3.fromRGB(235, 246, 255),
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
                     Text = "",
                     Size = UDim2.new(1, -46, 0, 15),
@@ -4754,7 +4796,7 @@ local Library = {
                     AnchorPoint = Vector2.new(0, 0.5),
                     BorderSizePixel = 0,
                     BackgroundTransparency = 1,
-                    PlaceholderColor3 = Color3.fromRGB(145, 151, 163),
+                    PlaceholderColor3 = Color3.fromRGB(142, 166, 190),
                     AutomaticSize = Enum.AutomaticSize.None,
                     PlaceholderText = "Search..",
                     TextSize = 14,
@@ -4900,7 +4942,7 @@ local Library = {
                     Size = UDim2.new(1, -2, 1, 0),
                     BorderSizePixel = 0,
                     TextSize = 14,
-                    BackgroundColor3 = Color3.fromRGB(24, 24, 27)
+                    BackgroundColor3 = Color3.fromRGB(20, 43, 68)
                 })
                 
                 Library:Create("UICorner", {
@@ -4913,7 +4955,7 @@ local Library = {
                     Parent = OptionBackground.Instance,
                     Name = "\0",
                     FontFace = Library.Font,
-                    TextColor3 = Color3.fromRGB(220, 229, 247),
+                    TextColor3 = Color3.fromRGB(235, 246, 255),
                     TextTransparency = 0.5,
                     Text = Value,
                     Size = UDim2.new(0, 0, 0, 15),
@@ -5212,7 +5254,7 @@ local Library = {
                         Size = UDim2.new(1, 40, 1, 0),
                         Selectable = false,
                         BorderSizePixel = 0,
-                        BackgroundColor3 = Color3.fromRGB(18, 18, 20)
+                        BackgroundColor3 = Color3.fromRGB(10, 16, 28)
                     }):AddToTheme({BackgroundColor3 = "Background"})
                     
                     Library:Create("UICorner", {
@@ -5226,7 +5268,7 @@ local Library = {
                     Parent = Items["Label"].Instance,
                     Name = "\0",
                     FontFace = Library.Font,
-                    TextColor3 = Color3.fromRGB(220, 229, 247),
+                    TextColor3 = Color3.fromRGB(235, 246, 255),
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
                     Text = Label.Name,
                     AnchorPoint = Vector2.new(0, 0.5),
@@ -5395,7 +5437,7 @@ local Library = {
                         Size = UDim2.new(1, 40, 1, 0),
                         Selectable = false,
                         BorderSizePixel = 0,
-                        BackgroundColor3 = Color3.fromRGB(18, 18, 20)
+                        BackgroundColor3 = Color3.fromRGB(10, 16, 28)
                     }):AddToTheme({BackgroundColor3 = "Background"})
                     
                     Library:Create("UICorner", {
@@ -5409,7 +5451,7 @@ local Library = {
                     Parent = Items["Textbox"].Instance,
                     Name = "\0",
                     FontFace = Library.Font,
-                    TextColor3 = Color3.fromRGB(220, 229, 247),
+                    TextColor3 = Color3.fromRGB(235, 246, 255),
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
                     Text = Textbox.Name,
                     BackgroundTransparency = 1,
@@ -5462,7 +5504,7 @@ local Library = {
                     Size = UDim2.new(1, -2, 1, 0),
                     BorderSizePixel = 0,
                     TextSize = 14,
-                    BackgroundColor3 = Color3.fromRGB(24, 24, 27)
+                    BackgroundColor3 = Color3.fromRGB(20, 43, 68)
                 }):AddToTheme({BackgroundColor3 = "Element"})
                 
                 Library:Create("UICorner", {
@@ -5476,11 +5518,11 @@ local Library = {
                     Name = "\0",
                     FontFace = Library.Font,
                     AnchorPoint = Vector2.new(0, 0.5),
-                    PlaceholderColor3 = Color3.fromRGB(145, 151, 163),
+                    PlaceholderColor3 = Color3.fromRGB(142, 166, 190),
                     PlaceholderText = Textbox.Placeholder,
                     TextSize = 14,
                     Size = UDim2.new(1, -20, 0, 15),
-                    TextColor3 = Color3.fromRGB(220, 229, 247),
+                    TextColor3 = Color3.fromRGB(235, 246, 255),
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
                     Text = "",
                     BackgroundTransparency = 1,
@@ -5608,7 +5650,7 @@ local Library = {
                     Parent = Items["Paragraph"].Instance,
                     Name = "\0",
                     FontFace = Library.Font,
-                    TextColor3 = Color3.fromRGB(220, 229, 247),
+                    TextColor3 = Color3.fromRGB(235, 246, 255),
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
                     Text = Paragraph.Name,
                     BackgroundTransparency = 1,
@@ -5645,7 +5687,7 @@ local Library = {
                     Parent = Items["Statuses"].Instance,
                     Name = "\0",
                     FontFace = Library.Font,
-                    TextColor3 = Color3.fromRGB(220, 229, 247),
+                    TextColor3 = Color3.fromRGB(235, 246, 255),
                     TextTransparency = 0.5,
                     Text = Text,
                     Size = UDim2.new(0, 0, 0, 15),
@@ -5712,7 +5754,7 @@ local Library = {
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
                     Size = UDim2.new(1, 0, 0, 250),
                     BorderSizePixel = 0,
-                    BackgroundColor3 = Color3.fromRGB(24, 24, 27)
+                    BackgroundColor3 = Color3.fromRGB(20, 43, 68)
                 })
                 
                 Items["Holder"] = Library:Create("ScrollingFrame", {
@@ -5742,7 +5784,7 @@ local Library = {
                 Library:Create("UIStroke", {
                     Parent = Items["Holder"].Instance,
                     Name = "\0",
-                    Color = Color3.fromRGB(15, 15, 16)
+                    Color = Color3.fromRGB(14, 25, 42)
                 }):AddToTheme({Color = 'Inline'})
                 
                 Library:Create("UICorner", {
@@ -5787,7 +5829,7 @@ local Library = {
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
                     Size = UDim2.new(1, 0, 0, 35),
                     BorderSizePixel = 0,
-                    BackgroundColor3 = Color3.fromRGB(15, 15, 16)
+                    BackgroundColor3 = Color3.fromRGB(14, 25, 42)
                 }):AddToTheme({BackgroundColor3 = "Inline"})
                 
                 Library:Create("UICorner", {
@@ -5799,7 +5841,7 @@ local Library = {
                     Parent = Items["Search"].Instance,
                     Name = "\0",
                     FontFace = Library.Font,
-                    TextColor3 = Color3.fromRGB(220, 229, 247),
+                    TextColor3 = Color3.fromRGB(235, 246, 255),
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
                     Text = "",
                     Size = UDim2.new(0, 0, 0, 15),
@@ -5807,7 +5849,7 @@ local Library = {
                     AnchorPoint = Vector2.new(0, 0.5),
                     BorderSizePixel = 0,
                     BackgroundTransparency = 1,
-                    PlaceholderColor3 = Color3.fromRGB(145, 151, 163),
+                    PlaceholderColor3 = Color3.fromRGB(142, 166, 190),
                     AutomaticSize = Enum.AutomaticSize.X,
                     PlaceholderText = "Search..",
                     TextSize = 14,
@@ -5830,7 +5872,7 @@ local Library = {
                 Library:Create("UIStroke", {
                     Parent = Items["Search"].Instance,
                     Name = "\0",
-                    Color = Color3.fromRGB(15, 15, 16)
+                    Color = Color3.fromRGB(14, 25, 42)
                 })
             end
 
@@ -5846,7 +5888,7 @@ local Library = {
                     LayoutOrder = #List.Items,
                     Size = UDim2.new(1, 0, 0, 30),
                     BorderSizePixel = 0,
-                    BackgroundColor3 = Color3.fromRGB(15, 15, 16)
+                    BackgroundColor3 = Color3.fromRGB(14, 25, 42)
                 })
 
                 local ColorSelected
