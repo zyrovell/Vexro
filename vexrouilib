@@ -93,9 +93,6 @@ local function CreateIcon(iconName, size, colorOrTheme)
         img.BackgroundTransparency = 1
         img.Size = size or UDim2.fromOffset(18, 18)
         img.Image = GetAssetImage(iconName)
-        if typeof(colorOrTheme) == "Color3" then
-            img.ImageColor3 = colorOrTheme
-        end
         return img
     end
     
@@ -2156,8 +2153,8 @@ local Library = {
                     AnchorPoint = Vector2.new(0, 0.5),
                     Image = Window.Logo,
                     BackgroundTransparency = 1,
-                    Position = UDim2.new(0, 10, 0.5, 0),
-                    Size = UDim2.new(0, 20, 0, 20),
+                    Position = UDim2.new(0, 9, 0.5, 0),
+                    Size = UDim2.new(0, 26, 0, 26),
                     BorderSizePixel = 0,
                     BackgroundColor3 = Color3.fromRGB(255, 255, 255)
                 })
@@ -2186,7 +2183,7 @@ local Library = {
                     AnchorPoint = Vector2.new(0, 0.5),
                     BorderSizePixel = 0,
                     BackgroundTransparency = 1,
-                    Position = UDim2.new(0, 42, 0.5, 0),
+                    Position = UDim2.new(0, 48, 0.5, 0),
                     AutomaticSize = Enum.AutomaticSize.X,
                     TextSize = 17,
                     BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -2356,7 +2353,7 @@ local Library = {
             local toggleSize = UDim2.new(0, 70, 0, 70)
             local togglePos = UDim2.new(0, 20, 1, -90)
             local toggleAnchor = Vector2.new(0, 1)
-            local toggleIconSize = UDim2.fromOffset(42, 42)
+            local toggleIconSize = UDim2.fromOffset(52, 52)
 
             Items["ToggleButton"] = Library:Create("TextButton", {
                 Parent = Library.Holder.Instance,
@@ -2385,7 +2382,7 @@ local Library = {
             })
 
             -- Add the logo icon to the toggle button
-            local toggleIcon = CreateIcon(Window.Logo, toggleIconSize, Color3.fromRGB(235, 246, 255))
+            local toggleIcon = CreateIcon(Window.Logo, toggleIconSize)
             toggleIcon.AnchorPoint = Vector2.new(0.5, 0.5)
             toggleIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
             toggleIcon.Parent = Items["ToggleButton"].Instance
@@ -2924,8 +2921,8 @@ local Library = {
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
                     AnchorPoint = Vector2.new(0.5, 0.5),
                     BackgroundTransparency = 1,
-                    Position = UDim2.new(0.5, 0, 0.5, -1),
-                    Size = UDim2.new(0, 18, 0, 18),
+                    Position = UDim2.new(0.5, 0, 0.5, 0),
+                    Size = UDim2.new(0, 28, 0, 28),
                     BorderSizePixel = 0,
                     BackgroundColor3 = Color3.fromRGB(255, 255, 255)
                 })
@@ -2943,7 +2940,7 @@ local Library = {
                         Size = UDim2.new(1, 0, 1, 0),
                         BorderSizePixel = 0,
                         BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-                    }):AddToTheme({ImageColor3 = "Text"})
+                    })
                 else
                     -- Lucide icon
                     local iconCreated = ApplyIconToContainer(Items["IconContainer"].Instance, Page.Icon, UDim2.new(1, 0, 1, 0), Library.Theme.Text)
@@ -3236,7 +3233,7 @@ local Library = {
                     Parent = Items["Inactive"].Instance,
                     Name = "\0",
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
-                    Size = UDim2.new(0, 38, 0, 38),
+                    Size = UDim2.new(0, 46, 0, 46),
                     AnchorPoint = Vector2.new(0.5, 0),
                     BackgroundTransparency = 1,
                     Position = UDim2.new(0.5, 0, 0, 0),
@@ -3253,8 +3250,7 @@ local Library = {
                     Items["Icon"] = Library:Create("ImageLabel", {
                         Parent = Items["IconContainer"].Instance,
                         Name = "\0",
-                        ImageColor3 = Color3.fromRGB(235, 246, 255),
-                        ImageTransparency = 0.800000011920929,
+                        ImageTransparency = 0,
                         BorderColor3 = Color3.fromRGB(0, 0, 0),
                         Size = UDim2.new(1, 0, 1, 0),
                         AnchorPoint = Vector2.new(0.5, 0.5),
@@ -3264,7 +3260,7 @@ local Library = {
                         ZIndex = 2,
                         BorderSizePixel = 0,
                         BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-                    }):AddToTheme({ImageColor3 = "Text"})
+                    })
                     gradientTarget = Items["Icon"].Instance
                 else
                     -- Lucide icon - create the icon inside the container
@@ -3488,8 +3484,12 @@ local Library = {
                 if Bool then 
                     Items["Shadow"]:Tween({ImageTransparency = 0.7})
                     Items["IconGradient"].Instance.Enabled = true 
-                    Items["Icon"]:ChangeItemTheme({ImageColor3 = "Accent End"})
-                    Items["Icon"]:Tween({ImageColor3 = Color3.fromRGB(255, 255, 255), ImageTransparency = 0})
+                    if IsAssetId(Page.Icon) then
+                        Items["Icon"]:Tween({ImageTransparency = 0})
+                    else
+                        Items["Icon"]:ChangeItemTheme({ImageColor3 = "Accent End"})
+                        Items["Icon"]:Tween({ImageColor3 = Color3.fromRGB(255, 255, 255), ImageTransparency = 0})
+                    end
                     if Items["NameLabel"] then
                         Items["NameLabelGradient"].Instance.Enabled = true
                         Items["NameLabel"]:Tween({TextColor3 = Color3.fromRGB(255, 255, 255), TextTransparency = 0})
@@ -3500,8 +3500,12 @@ local Library = {
                 else
                     Items["Shadow"]:Tween({ImageTransparency = 1})
                     Items["IconGradient"].Instance.Enabled = false 
-                    Items["Icon"]:ChangeItemTheme({ImageColor3 = "Text"})
-                    Items["Icon"]:Tween({ImageColor3 = Library.Theme.Text, ImageTransparency = 0.8})
+                    if IsAssetId(Page.Icon) then
+                        Items["Icon"]:Tween({ImageTransparency = 0.15})
+                    else
+                        Items["Icon"]:ChangeItemTheme({ImageColor3 = "Text"})
+                        Items["Icon"]:Tween({ImageColor3 = Library.Theme.Text, ImageTransparency = 0.8})
+                    end
                     if Items["NameLabel"] then
                         Items["NameLabelGradient"].Instance.Enabled = false
                         Items["NameLabel"]:Tween({TextColor3 = Library.Theme.Text, TextTransparency = 0.8})
