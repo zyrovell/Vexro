@@ -31,17 +31,26 @@ if Icons then
     Icons.SetIconsType("lucide")
 end
 
+local function GetAssetImage(iconName)
+    if type(iconName) ~= "string" then
+        return iconName
+    end
+
+    local assetId = iconName:match("^rbxassetid://(%d+)$") or iconName:match("^(%d+)$")
+    if assetId then
+        return "rbxthumb://type=Asset&id=" .. assetId .. "&w=420&h=420"
+    end
+
+    return iconName
+end
+
 local function CreateIcon(iconName, size, colorOrTheme)
     -- Check if it's an asset id (starts with rbxassetid or is a number)
     if type(iconName) == "string" and (iconName:match("^rbxassetid://") or iconName:match("^%d+$")) then
         local img = Instance.new("ImageLabel")
         img.BackgroundTransparency = 1
         img.Size = size or UDim2.fromOffset(18, 18)
-        if type(iconName) == "string" and iconName:match("^%d+$") then
-            img.Image = "rbxassetid://" .. iconName
-        else
-            img.Image = iconName
-        end
+        img.Image = GetAssetImage(iconName)
         if typeof(colorOrTheme) == "Color3" then
             img.ImageColor3 = colorOrTheme
         end
@@ -101,14 +110,6 @@ end
 -- Helper to check if an icon string is an asset id
 local function IsAssetId(iconName)
     return type(iconName) == "string" and (iconName:match("^rbxassetid://") or iconName:match("^%d+$"))
-end
-
--- Get the proper image string for asset ids
-local function GetAssetImage(iconName)
-    if type(iconName) == "string" and iconName:match("^%d+$") then
-        return "rbxassetid://" .. iconName
-    end
-    return iconName
 end
 
 -- Apply icon to an ImageLabel - handles both asset ids and lucide icons
@@ -2037,7 +2038,7 @@ local Library = {
 
             local Window = {
                 Name = Params.Name or Params.name or '<font color="rgb(75, 184, 250)">vexro</font>',
-                Logo = Params.Logo or Params.logo or "rbxassetid://98571080660171",
+                Logo = GetAssetImage(Params.Logo or Params.logo or "98571080660171"),
 
                 IsOpen = true,
                 IsMinimized = false,
