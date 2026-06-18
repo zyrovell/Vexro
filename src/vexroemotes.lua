@@ -1,5 +1,5 @@
 --Made by Zyrovell Roblox:Oyuncu15q Discord:_ege.
--- V4.3 Better UI
+-- V4.4 Blur
 -- OPEN SOURCE FOREVER!
 
 --[[
@@ -22,6 +22,10 @@ $$ |   $$ |$$ |      \$$\ $$  |$$ |  $$ |$$ /  $$ |      $$ /  $$ |$$$$\ $$ |   
 pcall(function()
 	local b = game:GetService("Lighting"):FindFirstChild("VexroGlassBlur")
 	if b then b:Destroy() end
+end)
+pcall(function()
+	local f = workspace:FindFirstChild("VexroGlassBlurFolder")
+	if f then f:Destroy() end
 end)
 local _genv = (type(getgenv) == "function") and getgenv or function() return {} end
 if _genv().VexroEmotesCleanup then
@@ -1390,14 +1394,157 @@ local ThemeGradients = {
 	DarkGlass   = {Color3.fromRGB(24, 24, 34),  Color3.fromRGB(8, 8, 12),    135},
 }
 
+local VexroAcrylic = (function()
+	local api = {}
+	local folder, body, mesh, dof
+	local conns = {}
+
+	local function disconnectAll()
+		for _, conn in ipairs(conns) do
+			pcall(function() conn:Disconnect() end)
+		end
+		conns = {}
+	end
+
+	function api.Stop()
+		disconnectAll()
+		if body then pcall(function() body:Destroy() end) end
+		if folder then pcall(function() folder:Destroy() end) end
+		if dof then pcall(function() dof:Destroy() end) end
+		body, mesh, folder, dof = nil, nil, nil, nil
+	end
+
+	local function viewportPointToWorld(point, distance)
+		local camera = workspace.CurrentCamera
+		if not camera then return Vector3.new() end
+		return camera:ViewportPointToRay(point.X, point.Y, distance).Origin
+	end
+
+	local function getViewportOffset()
+		if gui.IgnoreGuiInset then
+			local ok, inset = pcall(function()
+				return game:GetService("GuiService"):GetGuiInset()
+			end)
+			if ok and inset then return inset end
+		end
+		return Vector2.new()
+	end
+
+	local function createBody()
+		local part = Instance.new("Part")
+		part.Name = "VexroGlassBody"
+		part.Color = Color3.new(0, 0, 0)
+		part.Material = Enum.Material.Glass
+		part.Size = Vector3.new(1, 1, 0)
+		part.Anchored = true
+		part.CanCollide = false
+		part.Locked = true
+		part.CastShadow = false
+		part.Transparency = 0.985
+
+		local partMesh = Instance.new("SpecialMesh")
+		partMesh.MeshType = Enum.MeshType.Brick
+		partMesh.Offset = Vector3.new(0, 0, -0.000001)
+		partMesh.Parent = part
+
+		return part, partMesh
+	end
+
+	function api.Start(themeName)
+		if body and body.Parent then
+			if dof then
+				dof.InFocusRadius = themeName == "FrostedGlass" and 0.08 or 0.12
+				dof.NearIntensity = themeName == "FrostedGlass" and 0.85 or 1
+			end
+			body.Transparency = themeName == "FrostedGlass" and 0.985 or 0.99
+			return
+		end
+
+		api.Stop()
+
+		folder = Instance.new("Folder")
+		folder.Name = "VexroGlassBlurFolder"
+		folder.Parent = workspace
+
+		body, mesh = createBody()
+		body.Parent = folder
+
+		dof = Instance.new("DepthOfFieldEffect")
+		dof.Name = "VexroGlassBlur"
+		dof.FarIntensity = 0
+		dof.InFocusRadius = themeName == "FrostedGlass" and 0.08 or 0.12
+		dof.NearIntensity = themeName == "FrostedGlass" and 0.85 or 1
+		dof.Parent = game:GetService("Lighting")
+
+		local positions = {
+			topLeft = Vector2.new(),
+			topRight = Vector2.new(),
+			bottomRight = Vector2.new(),
+		}
+
+		local function updatePositions()
+			local size = main.AbsoluteSize
+			local inset = getViewportOffset()
+			local pad = math.clamp(math.min(size.X, size.Y) * 0.035, 10, 18)
+			local pos = main.AbsolutePosition + inset + Vector2.new(pad, pad)
+			local clippedSize = Vector2.new(math.max(size.X - pad * 2, 1), math.max(size.Y - pad * 2, 1))
+			positions.topLeft = pos
+			positions.topRight = pos + Vector2.new(clippedSize.X, 0)
+			positions.bottomRight = pos + clippedSize
+		end
+
+		local function render()
+			if not body or not mesh or not main or not main.Parent then return end
+			local camera = workspace.CurrentCamera
+			if not camera then return end
+
+			local size = main.AbsoluteSize
+			if not gui.Enabled or not main.Visible or size.X <= 2 or size.Y <= 2 then
+				body.Transparency = 1
+				return
+			end
+
+			body.Transparency = themeName == "FrostedGlass" and 0.985 or 0.99
+			updatePositions()
+
+			local distance = 0.002
+			local topLeft3D = viewportPointToWorld(positions.topLeft, distance)
+			local topRight3D = viewportPointToWorld(positions.topRight, distance)
+			local bottomRight3D = viewportPointToWorld(positions.bottomRight, distance)
+			local width = (topRight3D - topLeft3D).Magnitude
+			local height = (topRight3D - bottomRight3D).Magnitude
+
+			body.CFrame = CFrame.fromMatrix(
+				(topLeft3D + bottomRight3D) / 2,
+				camera.CFrame.XVector,
+				camera.CFrame.YVector,
+				camera.CFrame.ZVector
+			)
+			mesh.Scale = Vector3.new(width, height, 0)
+		end
+
+		table.insert(conns, main:GetPropertyChangedSignal("AbsolutePosition"):Connect(render))
+		table.insert(conns, main:GetPropertyChangedSignal("AbsoluteSize"):Connect(render))
+		table.insert(conns, main:GetPropertyChangedSignal("Visible"):Connect(render))
+		table.insert(conns, gui:GetPropertyChangedSignal("Enabled"):Connect(render))
+		table.insert(conns, RunService.RenderStepped:Connect(render))
+		table.insert(conns, main.Destroying:Connect(api.Stop))
+
+		render()
+	end
+
+	return api
+end)()
+
 local _glassApplyBase = ApplyTheme
 ApplyTheme = function(name)
 	_glassApplyBase(name)
 	local isGlass = name == "FrostedGlass" or name == "DarkGlass"
-	pcall(function()
-		local b = game:GetService("Lighting"):FindFirstChild("VexroGlassBlur")
-		if b then b:Destroy() end
-	end)
+	if isGlass then
+		VexroAcrylic.Start(name)
+	else
+		VexroAcrylic.Stop()
+	end
 	TweenService:Create(main, TweenInfo.new(0.3), {BackgroundTransparency = isGlass and 0.18 or 0}):Play()
 	local noiseOverlay = main:FindFirstChild("VexroGlassNoise")
 	if isGlass then
@@ -4247,6 +4394,7 @@ local function _CleanupScript()
 	pcall(function() if _keybindInputConn then _keybindInputConn:Disconnect() end end)
 	pcall(function() DisableCopyEmotePrompts() end)
 	pcall(function() StopHUDTracking() end)
+	pcall(function() VexroAcrylic.Stop() end)
 	_genv().VexroEmotesCleanup = nil
 	_genv().lastVexroEmote = nil
 	_genv().autoReloadEnabled_Vexro = nil
