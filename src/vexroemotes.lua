@@ -1014,7 +1014,7 @@ task.wait(0.3)
 
 local function LoadEmotes()
 	local success, result = pcall(function()
-		local response = game:HttpGet("https://raw.githubusercontent.com/zyrovell/Vexro/main/emotes.json")
+		local response = game:HttpGet("https://raw.githubusercontent.com/zyrovell/Vexro/main/data/emotes.json")
 		return HttpService:JSONDecode(response)
 	end)
 	
@@ -2319,7 +2319,7 @@ do
 		pcall(function()
 			if _genv().lastVexroEmote then _genv().lastVexroEmote = nil end
 		end)
-		loadstring(game:HttpGet("https://raw.githubusercontent.com/zyrovell/Vexro/main/vexroemotes.lua"))()
+		loadstring(game:HttpGet("https://raw.githubusercontent.com/zyrovell/Vexro/main/src/vexroemotes.lua"))()
 	end)
 end
 
