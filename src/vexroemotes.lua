@@ -182,6 +182,21 @@ local function ResolveAssetImage(assetIdOrUrl)
 	return resolved
 end
 
+local UTF8_FALLBACK = {
+	[0x2605] = "*",
+	[0x2606] = "-",
+	[0x2705] = "[OK]",
+	[0x274C] = "[X]",
+}
+
+local function SafeUtf8Char(code)
+	if utf8 and type(utf8.char) == "function" then
+		local ok, value = pcall(utf8.char, code)
+		if ok and value then return value end
+	end
+	return UTF8_FALLBACK[code] or ""
+end
+
 local logo = [[
 
                                                                                   
@@ -424,6 +439,67 @@ local function Notify(title, text, iconId)
 			wrapper:Destroy()
 		end)
 	end)
+end
+
+local VEXRO_REMOTE_URL = "https://raw.githubusercontent.com/zyrovell/Vexro/main/src/vexroemotes.lua"
+local VEXRO_LOCAL_RELOAD_PATHS = {
+	"vexroemote.txt",
+	"vexroemotes.lua",
+	"VexroEmotes.lua",
+	"C:\\Users\\merte\\Desktop\\vexroemote.txt",
+}
+
+local function RunVexroSource(source, label)
+	local loader = (type(loadstring) == "function" and loadstring) or (type(load) == "function" and load)
+	if type(loader) ~= "function" then
+		warn("[Vexro] " .. label .. " failed: loadstring is not available")
+		Notify("Vexro", "Executor loadstring desteklemiyor.")
+		return false
+	end
+	if type(source) ~= "string" or source == "" then
+		warn("[Vexro] " .. label .. " failed: empty source")
+		Notify("Vexro", "Reload kaynagi bos geldi.")
+		return false
+	end
+
+	local chunk, compileErr = loader(source)
+	if type(chunk) ~= "function" then
+		warn("[Vexro] " .. label .. " compile failed: " .. tostring(compileErr))
+		Notify("Vexro", "Reload scripti derlenemedi.")
+		return false
+	end
+
+	local ok, runErr = pcall(chunk)
+	if not ok then
+		warn("[Vexro] " .. label .. " runtime failed: " .. tostring(runErr))
+		Notify("Vexro", "Reload calisirken hata verdi.")
+		return false
+	end
+	return true
+end
+
+local function ReloadVexro()
+	if type(readfile) == "function" and type(isfile) == "function" then
+		for _, path in ipairs(VEXRO_LOCAL_RELOAD_PATHS) do
+			local ok, exists = pcall(isfile, path)
+			if ok and exists then
+				local readOk, source = pcall(readfile, path)
+				if readOk and RunVexroSource(source, "local reload") then
+					return true
+				end
+			end
+		end
+	end
+
+	local ok, source = pcall(function()
+		return game:HttpGet(VEXRO_REMOTE_URL)
+	end)
+	if not ok then
+		warn("[Vexro] remote reload http failed: " .. tostring(source))
+		Notify("Vexro", "Remote reload indirilemedi.")
+		return false
+	end
+	return RunVexroSource(source, "remote reload")
 end
 
 local function ApplyTheme(name)
@@ -786,7 +862,7 @@ local Icons = {
 local char = player.Character or player.CharacterAdded:Wait()
 local hum = char:WaitForChild("Humanoid", 5)
 if not hum or hum.RigType == Enum.HumanoidRigType.R6 then
-	Notify(utf8.char(0x274C), L.r6Msg)
+	Notify(SafeUtf8Char(0x274C), L.r6Msg)
 	gui:Destroy()
 	return
 end
@@ -999,7 +1075,7 @@ Instance.new("UICorner", discordBtn).CornerRadius = UDim.new(0, 10)
 
 discordBtn.MouseButton1Click:Connect(function()
 	pcall(function() if setclipboard then setclipboard("https://discord.gg/4Bs9WYSabf") end end)
-	Notify(utf8.char(0x2705), L.copied)
+	Notify(SafeUtf8Char(0x2705), L.copied)
 end)
 
 local splashSize = isMobile and UDim2.new(0, 300, 0, 240) or UDim2.new(0, 400, 0, 280)
@@ -1061,7 +1137,7 @@ end
 TweenService:Create(loadingBar, TweenInfo.new(1), {Size = UDim2.new(1, 0, 1, 0)}):Play()
 task.wait(1)
 
-loadingLbl.Text = utf8.char(0x2705) .. " " .. #Emotes .. " emotes!"
+loadingLbl.Text = SafeUtf8Char(0x2705) .. " " .. #Emotes .. " emotes!"
 task.wait(1)
 
 TweenService:Create(splash, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
@@ -1262,7 +1338,7 @@ local function PlayEmote(id, name, silent)
 			pcall(_genv().VexroBroadcastSync, id, name)
 		end
 	else
-		Notify(utf8.char(0x274C), L.emoteLoadFail)
+		Notify(SafeUtf8Char(0x274C), L.emoteLoadFail)
 	end
 end
 
@@ -2319,7 +2395,7 @@ do
 		pcall(function()
 			if _genv().lastVexroEmote then _genv().lastVexroEmote = nil end
 		end)
-		loadstring(game:HttpGet("https://raw.githubusercontent.com/zyrovell/Vexro/main/src/vexroemotes.lua"))()
+		ReloadVexro()
 	end)
 end
 
@@ -3568,7 +3644,7 @@ local function MakeCard(emote, ci, animate)
 	favIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
 	favIcon.AnchorPoint = Vector2.new(0.5, 0.5)
 	favIcon.BackgroundTransparency = 1
-	favIcon.Text = isFav and utf8.char(0x2605) or utf8.char(0x2606)
+	favIcon.Text = isFav and SafeUtf8Char(0x2605) or SafeUtf8Char(0x2606)
 	favIcon.TextColor3 = isFav and Color3.fromRGB(255, 215, 0) or currentTheme.accent
 	favIcon.Font = Enum.Font.SourceSansLight
 	favIcon.TextSize = isMobile and 26 or 32
@@ -3595,10 +3671,10 @@ local function MakeCard(emote, ci, animate)
 		isFav = ToggleFavorite(emote.id)
 		
 		if isFav then
-			favIcon.Text = utf8.char(0x2605)
+			favIcon.Text = SafeUtf8Char(0x2605)
 			favIcon.TextColor3 = Color3.fromRGB(255, 215, 0)
 		else
-			favIcon.Text = utf8.char(0x2606)
+			favIcon.Text = SafeUtf8Char(0x2606)
 			favIcon.TextColor3 = currentTheme.accent
 		end
 		
@@ -4285,7 +4361,7 @@ local _charAddedConn = player.CharacterAdded:Connect(function(newChar)
 	if not newHum then return end
 	
 	if newHum.RigType == Enum.HumanoidRigType.R6 then
-		Notify(utf8.char(0x274C), L.r6Msg)
+		Notify(SafeUtf8Char(0x274C), L.r6Msg)
 		task.wait(2)
 		gui:Destroy()
 		return
@@ -4333,7 +4409,7 @@ if not isMobile then
 end
 
 task.wait(0.25)
-Notify(utf8.char(0x2705) .. " " .. L.ready, #Emotes .. " emotes")
+Notify(SafeUtf8Char(0x2705) .. " " .. L.ready, #Emotes .. " emotes")
 
 -- ================================================================
 -- VEXRO EXTENDED MODULES v1.0
