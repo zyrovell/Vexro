@@ -1,10 +1,10 @@
---v1
+﻿--v1
 
 
 local function getURL(path) return game:HttpGet("https://raw.githubusercontent.com/zyrovell/Vexro/main/" .. path .. "?t=" .. tick()) end
 
-local VexroLanguageLib = loadstring(getURL("vexrolanguagelib.lua"))()
-local VexroLanguageSelectionSource = getURL("vexrolanguageselection.lua")
+local VexroLanguageLib = loadstring(getURL("src/language/vexrolanguagelib.lua"))()
+local VexroLanguageSelectionSource = getURL("src/language/vexrolanguageselection.lua")
 local VexroLanguageSelection = loadstring(VexroLanguageSelectionSource)()
 
 local L = VexroLanguageSelection.Show(VexroLanguageLib.Translations)
@@ -2207,7 +2207,7 @@ local function u355()
             end
         end
     else
-        warn("RemoteEvent '1Player1sHous1e' bulunamadı.")
+        warn("RemoteEvent '1Player1sHous1e' bulunamadÄ±.")
     end
 end
 local function u357(p356)
